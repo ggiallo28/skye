@@ -67,7 +67,7 @@ router "main" {
     strategy = "least_busy"
     fallback = ["bedrock-claude", "gpt-4"]   # if claude fails, try bedrock-claude, then gpt-4
     target {
-      model = "claude-3-sonnet-20240229"
+      model = "claude-sonnet-4-5-20250929"
       provider = "anthropic"
       api_key = env.ANTHROPIC_API_KEY
       tpm = 80000
@@ -75,7 +75,7 @@ router "main" {
       tags = ["anthropic", "claude"]
     }
     target {
-      model = "claude-3-sonnet-20240229"
+      model = "claude-sonnet-4-5-20250929"
       provider = "anthropic"
       api_key = env.ANTHROPIC_API_KEY_SECONDARY
       tpm = 80000
@@ -190,7 +190,7 @@ router "main" {
     }
     # Secondary target
     target {
-      model = "claude-3-sonnet-20240229"
+      model = "claude-sonnet-4-5-20250929"
       provider = "anthropic"
       api_key = env.ANTHROPIC_API_KEY
       tpm = 80000
@@ -214,19 +214,19 @@ router "main" {
   route "bedrock-claude" {
     strategy = "latency_based"
     target {
-      model = "anthropic.claude-3-sonnet-20240229-v1:0"
+      model = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
       provider = "bedrock"
       region = "us-east-1"
       metadata = { location = "Virginia" }
     }
     target {
-      model = "anthropic.claude-3-sonnet-20240229-v1:0"
+      model = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
       provider = "bedrock"
       region = "us-west-2"
       metadata = { location = "Oregon" }
     }
     target {
-      model = "anthropic.claude-3-sonnet-20240229-v1:0"
+      model = "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
       provider = "bedrock"
       region = "eu-west-1"
       metadata = { location = "Ireland" }
