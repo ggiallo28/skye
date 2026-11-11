@@ -9,8 +9,9 @@ What you learn: providers. Read in this order:
 5. `embeddings_example.py`: Embeddings through ``skye.provider(..., provider_type="embedding")``
 6. `google_example.py`: Google (Gemini on Vertex AI) through ``skye.provider("google")``: completion and streaming
 7. `multimodal_example.py`: Images in a message: from a URL, from a data URL and from a file
-8. `openai_example.py`: OpenAI through ``skye.provider("openai")``: completion and streaming
-9. `structured_output_example.py`: Structured output with a dataclass: field constraints, lists and the request-object form
+8. `ollama_example.py`: Ollama through ``skye.provider("openai", api_base=...)``: completion and streaming
+9. `openai_example.py`: OpenAI through ``skye.provider("openai")``: completion and streaming
+10. `structured_output_example.py`: Structured output with a dataclass: field constraints, lists and the request-object form
 
 Run: `python examples/providers/anthropic_example.py`
 

@@ -211,6 +211,7 @@ Each provider has a runnable example that makes a completion and a stream. Witho
 | Bedrock | [`providers/bedrock_example.py`](https://github.com/ggiallo28/skye/blob/main/examples/providers/bedrock_example.py) | AWS credentials |
 | Azure OpenAI | [`providers/azure_example.py`](https://github.com/ggiallo28/skye/blob/main/examples/providers/azure_example.py) | `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT` |
 | Google | [`providers/google_example.py`](https://github.com/ggiallo28/skye/blob/main/examples/providers/google_example.py) | `GCP_PROJECT_ID` and Google credentials |
+| Ollama (local) | [`providers/ollama_example.py`](https://github.com/ggiallo28/skye/blob/main/examples/providers/ollama_example.py) | none: a local server at `http://localhost:11434` |
 
 ## See also
 
