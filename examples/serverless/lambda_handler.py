@@ -18,7 +18,7 @@ from _offline import provider_or_scripted  # noqa: E402
 READY = bool(os.getenv("AWS_ACCESS_KEY_ID") or os.getenv("AWS_PROFILE"))
 # Created at cold start, reused by every warm invocation. Credentials come from the provider's standard variables.
 CLIENT = provider_or_scripted("bedrock", READY, "configure AWS credentials", region=os.getenv("AWS_REGION", "us-east-1"))
-MODEL = os.getenv("MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0")
+MODEL = os.getenv("MODEL_ID", "us.anthropic.claude-sonnet-4-5-20250929-v1:0")
 
 
 def handler(event: dict, context: object = None) -> dict:
