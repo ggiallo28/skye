@@ -1,0 +1,41 @@
+name: Bug report
+description: Something does not work as the documentation says
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you got.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal example
+      description: The shortest code or `.skye` file that shows it. Remove API keys.
+      render: python
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Skye version
+      placeholder: "0.1.1 (run: pip show skyeai)"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Python and platform
+      placeholder: "Python 3.12, AWS Lambda arm64"
+  - type: input
+    id: extras
+    attributes:
+      label: Extras installed
+      placeholder: "skyeai[redis]"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error output
+      render: text

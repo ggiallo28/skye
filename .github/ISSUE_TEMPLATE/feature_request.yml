@@ -1,0 +1,34 @@
+name: Feature request
+description: Suggest something new or a missing provider
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that Skye does not let you do?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you would like
+      description: The API you imagine, in a few lines of code if you can.
+  - type: dropdown
+    id: size
+    attributes:
+      label: Does it need a new dependency?
+      description: Skye is built for serverless, where size matters (see CONTRIBUTING, "Dependencies and size").
+      options:
+        - No, standard library only
+        - Only a library already in AWS Lambda
+        - A pure-Python package
+        - I do not know
+    validations:
+      required: true
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contributing
+      options:
+        - label: I would like to work on this myself
