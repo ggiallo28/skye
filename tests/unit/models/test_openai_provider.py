@@ -19,11 +19,11 @@ from skye.base.validated import Validated, validated
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.exceptions import ProviderError
 from skye.base.messages import SystemMessage, UserMessage
-from skye.models.llm.openai import OpenAIProvider
-from skye.models.transport.rest import JsonObject
+from skye.models.plugins.openai.provider import OpenAIProvider
+from skye.models.utilities.rest import JsonObject
 
-POST = "skye.models.transport.rest.post_json"
-STREAM = "skye.models.transport.rest.stream_sse_json"
+POST = "skye.models.utilities.rest.post_json"
+STREAM = "skye.models.utilities.rest.stream_sse_json"
 URL = "https://api.openai.com/v1/chat/completions"
 
 
@@ -94,9 +94,13 @@ class TestOpenAIProviderInitialization:
         import ast
         import inspect
 
-        import skye.models.llm.openai_compatible as mod
+        import importlib
 
-        source = inspect.getsource(mod)
+        package = "skye.models.utilities.openai_compatible"
+        source = "\n".join(
+            inspect.getsource(importlib.import_module(f"{package}.{name}"))
+            for name in ("provider", "request", "response", "capabilities")
+        )
         names = []
         for node in ast.walk(ast.parse(source)):
             if isinstance(node, ast.Import):

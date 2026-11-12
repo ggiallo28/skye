@@ -5,8 +5,8 @@ import asyncio
 import pytest
 
 from skye.base.exceptions import BadRequestError, ProviderError, RateLimitError, ServerError
-from skye.models.transport import retry
-from skye.models.transport.retry import with_retry
+from skye.models.utilities import retry
+from skye.models.utilities.retry import with_retry
 
 
 @pytest.fixture

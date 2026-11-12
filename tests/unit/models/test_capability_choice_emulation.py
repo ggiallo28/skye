@@ -15,12 +15,12 @@ import pytest
 from skye.base.completion import CompleteRequest
 from skye.base.exceptions import CapabilityChoiceError, ValidationError
 from skye.base.messages import AssistantMessage, UserMessage
-from skye.models.llm.anthropic import AnthropicProvider
-from skye.models.llm.bedrock import BedrockProvider
-from skye.models.transport.capability_choice import instruction
-from skye.models.transport.rest import JsonObject
+from skye.models.plugins.anthropic.provider import AnthropicProvider
+from skye.models.plugins.bedrock.provider import BedrockProvider
+from skye.models.utilities.capability_choice import instruction
+from skye.models.utilities.rest import JsonObject
 
-POST = "skye.models.transport.rest.post_json"
+POST = "skye.models.utilities.rest.post_json"
 REFUSING = "claude-opus-5-5"
 
 
@@ -75,13 +75,6 @@ def test_refusing_models_are_known_by_the_adapters() -> None:
     bedrock = BedrockProvider(region_name="us-west-2")
     assert bedrock.refuses_forced_choice("us.anthropic.claude-sonnet-5-5-v1:0")
     assert not bedrock.refuses_forced_choice("meta.llama3-70b-instruct-v1:0")
-
-
-def test_the_bedrock_list_matches_the_anthropic_list() -> None:
-    from skye.models.llm import anthropic_compatible, bedrock
-
-    expected = anthropic_compatible.CLAUDE_REFUSING_FORCED_CHOICE
-    assert bedrock.CLAUDE_REFUSING_FORCED_CHOICE == expected
 
 
 def test_named_choice_sends_auto_every_tool_and_an_appended_instruction() -> None:
@@ -172,7 +165,7 @@ def test_auto_and_no_choice_are_untouched() -> None:
 
 def test_bedrock_merges_the_instruction_into_the_last_user_turn() -> None:
     client = BedrockProvider(region_name="us-west-2")
-    from skye.models.transport.capability_choice import emulated_request
+    from skye.models.utilities.capability_choice import emulated_request
 
     changed, added = emulated_request(_request(model="us.anthropic.claude-opus-5-5-v1:0"))
     body = client._transform_request(changed)

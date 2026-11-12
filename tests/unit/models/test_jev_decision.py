@@ -14,7 +14,7 @@ import pytest
 from skye.base.exceptions import ProviderError, SkyeError, ValidationError
 from skye.base.interfaces.decision import DecisionModel, DecisionResult
 from skye.models import JevDecisionModel
-from skye.models.decision.jev import normalize_probabilities
+from skye.models.plugins.typesafe.decision import normalize_probabilities
 from tests.examples.fake_network import FakeResponse
 
 

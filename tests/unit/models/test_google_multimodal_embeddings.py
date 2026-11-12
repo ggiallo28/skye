@@ -6,10 +6,10 @@ from unittest.mock import patch
 
 import pytest
 
-import skye.models.embeddings.google_multimodal_embeddings as mod
-from skye.auth.google import GoogleBearerAuth
-from skye.models.embeddings.google_multimodal_embeddings import GoogleMultimodalEmbeddingProvider
-from skye.models.transport.rest import JsonObject
+import skye.models.plugins.google.multimodal_embeddings as mod
+from skye.auth.plugins.google.source import GoogleBearerAuth
+from skye.models.plugins.google.multimodal_embeddings import GoogleMultimodalEmbeddingProvider
+from skye.models.utilities.rest import JsonObject
 
 URL = (
     "https://us-central1-aiplatform.googleapis.com/v1/projects/p/locations/us-central1"
@@ -40,19 +40,19 @@ def test_is_image_input(item: str, expected: bool) -> None:
 
 
 def test_encode_text() -> None:
-    with patch("skye.models.transport.rest.post_json", return_value=JsonObject({"predictions": [{"textEmbedding": [0.1, 0.2]}]})) as post:
+    with patch("skye.models.utilities.rest.post_json", return_value=JsonObject({"predictions": [{"textEmbedding": [0.1, 0.2]}]})) as post:
         assert make().encode("hi") == [0.1, 0.2]
     assert post.call_args[0] == (URL, {"instances": [{"text": "hi"}]})
 
 
 def test_encode_data_url_image() -> None:
-    with patch("skye.models.transport.rest.post_json", return_value=JsonObject({"predictions": [{"imageEmbedding": [1.0]}]})) as post:
+    with patch("skye.models.utilities.rest.post_json", return_value=JsonObject({"predictions": [{"imageEmbedding": [1.0]}]})) as post:
         assert make().encode("data:image/png;base64,QUJD") == [1.0]
     assert post.call_args[0][1] == {"instances": [{"image": {"bytesBase64Encoded": "QUJD"}}]}
 
 
 def test_encode_gcs_image() -> None:
-    with patch("skye.models.transport.rest.post_json", return_value=JsonObject({"predictions": [{"imageEmbedding": [1.0]}]})) as post:
+    with patch("skye.models.utilities.rest.post_json", return_value=JsonObject({"predictions": [{"imageEmbedding": [1.0]}]})) as post:
         make()._encode_image("gs://b/i.png")
     assert post.call_args[0][1] == {"instances": [{"image": {"gcsUri": "gs://b/i.png"}}]}
 
@@ -60,14 +60,14 @@ def test_encode_gcs_image() -> None:
 def test_encode_local_file_image(tmp_path: Path) -> None:
     f = tmp_path / "i.png"
     f.write_bytes(b"ABC")
-    with patch("skye.models.transport.rest.post_json", return_value=JsonObject({"predictions": [{"imageEmbedding": [2.0]}]})) as post:
+    with patch("skye.models.utilities.rest.post_json", return_value=JsonObject({"predictions": [{"imageEmbedding": [2.0]}]})) as post:
         assert make().encode(str(f)) == [2.0]
     assert post.call_args[0][1]["instances"][0]["image"]["bytesBase64Encoded"] == "QUJD"
 
 
 def test_encode_http_image_downloads() -> None:
     with patch("skye.base.http.send_bytes", return_value=b"ABC") as dl, patch(
-        "skye.models.transport.rest.post_json", return_value=JsonObject({"predictions": [{"imageEmbedding": [3.0]}]})
+        "skye.models.utilities.rest.post_json", return_value=JsonObject({"predictions": [{"imageEmbedding": [3.0]}]})
     ) as post:
         assert make()._encode_image("https://x.com/i.png") == [3.0]
     assert dl.call_args[0][0] == "https://x.com/i.png"
@@ -76,6 +76,6 @@ def test_encode_http_image_downloads() -> None:
 
 def test_batch_mixed_and_dimension() -> None:
     resp = [JsonObject({"predictions": [{"textEmbedding": [1.0]}]}), JsonObject({"predictions": [{"imageEmbedding": [2.0]}]})]
-    with patch("skye.models.transport.rest.post_json", side_effect=resp):
+    with patch("skye.models.utilities.rest.post_json", side_effect=resp):
         assert make().encode_batch(["text", "gs://b/i.png"]) == [[1.0], [2.0]]
     assert make().get_vector_dimension() == 1408

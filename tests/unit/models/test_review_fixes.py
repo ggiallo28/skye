@@ -37,12 +37,12 @@ from skye.base.exceptions import (
 from skye.base.interfaces.capability import CapabilitySchema
 from skye.base.messages import UserMessage
 from skye.base.prompt_parts import OutputSchema
-from skye.models.llm.anthropic import AnthropicProvider
-from skye.models.llm.azure import AzureOpenAIProvider
-from skye.models.llm.bedrock import BedrockProvider
-from skye.models.llm.openai import OpenAIProvider
-from skye.models.transport.error_mapping import ErrorHandler
-from skye.models.transport.structured import parse_structured
+from skye.models.plugins.anthropic.provider import AnthropicProvider
+from skye.models.plugins.azure.provider import AzureOpenAIProvider
+from skye.models.plugins.bedrock.provider import BedrockProvider
+from skye.models.plugins.openai.provider import OpenAIProvider
+from skye.models.utilities.error_mapping import ErrorHandler
+from skye.models.utilities.structured import parse_structured
 
 CHAT_OK = {
     "id": "c1",
@@ -386,7 +386,7 @@ def test_bedrock_without_a_region_says_so(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_bedrock_takes_the_region_of_its_authenticator(monkeypatch: pytest.MonkeyPatch) -> None:
-    from skye.auth.aws import bedrock_authenticator
+    from skye.auth.plugins.aws.source import bedrock_authenticator
 
     monkeypatch.delenv("AWS_REGION", raising=False)
     monkeypatch.delenv("AWS_DEFAULT_REGION", raising=False)
@@ -588,20 +588,22 @@ def test_a_conforming_output_schema_reply_is_returned() -> None:
     assert parse_structured(SCHEMA, json.dumps(reply)) == reply
 
 
-def test_the_key_variables_are_the_ones_auth_fixes() -> None:
-    """The adapters name their variable literally (an adapter imports no other adapter's module);
-    the names must stay the ones of ``skye.auth`` (D18)."""
-    import inspect
+def test_the_key_variables_are_the_ones_of_the_profiles(monkeypatch) -> None:
+    """The adapters keep no variable name (task 6.3): they read ``api_key_variables`` of their profile (D18)."""
+    from skye.base.api_keys import api_key_variables
+    from skye.models.plugins.cohere.embeddings import CohereEmbeddingProvider
+    from skye.models.plugins.openai.embeddings import OpenAIEmbeddingProvider
 
-    from skye.auth.azure import API_KEY_ENV_VAR
-    from skye.auth.openai_compatible import STANDARD_ENV_VARS
-    from skye.models.embeddings import cohere_embeddings, openai_embeddings
-
-    assert OpenAIProvider.api_key_env_var == STANDARD_ENV_VARS["openai"]
-    assert AnthropicProvider.api_key_env_var == STANDARD_ENV_VARS["anthropic"]
-    assert AzureOpenAIProvider.api_key_env_var == API_KEY_ENV_VAR
-    assert f'"{STANDARD_ENV_VARS["openai"]}"' in inspect.getsource(openai_embeddings)
-    assert f'"{STANDARD_ENV_VARS["cohere"]}"' in inspect.getsource(cohere_embeddings)
+    assert api_key_variables("openai") == ("OPENAI_API_KEY",)
+    assert api_key_variables("anthropic") == ("ANTHROPIC_API_KEY",)
+    assert api_key_variables("azure") == ("AZURE_OPENAI_API_KEY",)
+    assert api_key_variables("cohere") == ("COHERE_API_KEY",)
+    for provider_class in (OpenAIProvider, AnthropicProvider, AzureOpenAIProvider):
+        assert not hasattr(provider_class, "api_key_env_var")
+    monkeypatch.setenv("OPENAI_API_KEY", "ko")
+    monkeypatch.setenv("COHERE_API_KEY", "kc")
+    assert OpenAIEmbeddingProvider(model="text-embedding-3-small").api_key == "ko"
+    assert CohereEmbeddingProvider(model="embed-english-v3.0").api_key == "kc"
 
 
 def test_the_default_is_three_retries_after_the_first_attempt() -> None:

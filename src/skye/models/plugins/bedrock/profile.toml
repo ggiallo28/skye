@@ -1,0 +1,164 @@
+name = "bedrock"
+map_error = "skye.models.plugins.bedrock.errors:map_error"
+
+[region]
+variables = ["AWS_REGION", "AWS_DEFAULT_REGION"]
+required = true
+
+[models."anthropic.claude-3-opus-20240229-v1:0"]
+prompt_price = 15.0
+completion_price = 75.0
+message_overhead = 3
+
+[models."anthropic.claude-3-opus-20240229-v1:0".info]
+supports_structured_output = true
+
+[models."anthropic.claude-3-sonnet-20240229-v1:0"]
+prompt_price = 3.0
+completion_price = 15.0
+message_overhead = 3
+
+[models."anthropic.claude-3-sonnet-20240229-v1:0".info]
+supports_structured_output = true
+
+[models."anthropic.claude-3-haiku-20240307-v1:0"]
+prompt_price = 0.25
+completion_price = 1.25
+message_overhead = 3
+
+[models."anthropic.claude-3-haiku-20240307-v1:0".info]
+supports_structured_output = true
+
+[models."anthropic.claude-3-5-sonnet-20240620-v1:0"]
+prompt_price = 3.0
+completion_price = 15.0
+message_overhead = 3
+
+[models."anthropic.claude-3-5-sonnet-20240620-v1:0".info]
+supports_structured_output = true
+
+# The Claude models that refuse a forced toolChoice (any or tool) refuse it on Bedrock too (D109). A cross-Region id (us., eu., ...) is read as its base id.
+
+[models."anthropic.claude-opus-5-5"]
+message_overhead = 3
+
+[models."anthropic.claude-opus-5-5".info]
+supports_forced_capability_choice = false
+supports_structured_output = true
+
+[models."anthropic.claude-sonnet-5-5"]
+message_overhead = 3
+
+[models."anthropic.claude-sonnet-5-5".info]
+supports_forced_capability_choice = false
+supports_structured_output = true
+
+[models."anthropic.claude-fable-5-1"]
+message_overhead = 3
+
+[models."anthropic.claude-fable-5-1".info]
+supports_forced_capability_choice = false
+supports_structured_output = true
+
+[models."anthropic.claude-mythos-5-1"]
+message_overhead = 3
+
+[models."anthropic.claude-mythos-5-1".info]
+supports_forced_capability_choice = false
+supports_structured_output = true
+
+
+# Which Converse models take outputConfig.textFormat (a native JSON schema output): the Anthropic Claude models. A name here is the base of a family:
+# a date or a version after it (-20241022-v2:0) and a cross-Region prefix (us., eu.) find the same entry. A model that is not listed takes the forced answer tool.
+
+[models."anthropic.claude-3-opus"]
+message_overhead = 3
+
+[models."anthropic.claude-3-opus".info]
+supports_structured_output = true
+
+[models."anthropic.claude-3-sonnet"]
+message_overhead = 3
+
+[models."anthropic.claude-3-sonnet".info]
+supports_structured_output = true
+
+[models."anthropic.claude-3-haiku"]
+message_overhead = 3
+
+[models."anthropic.claude-3-haiku".info]
+supports_structured_output = true
+
+[models."anthropic.claude-3-5-sonnet"]
+message_overhead = 3
+
+[models."anthropic.claude-3-5-sonnet".info]
+supports_structured_output = true
+
+[models."anthropic.claude-3-5-haiku"]
+message_overhead = 3
+
+[models."anthropic.claude-3-5-haiku".info]
+supports_structured_output = true
+
+[models."anthropic.claude-3-7-sonnet"]
+message_overhead = 3
+
+[models."anthropic.claude-3-7-sonnet".info]
+supports_structured_output = true
+
+[models."anthropic.claude-opus-4"]
+message_overhead = 3
+
+[models."anthropic.claude-opus-4".info]
+supports_structured_output = true
+
+[models."anthropic.claude-opus-4-1"]
+message_overhead = 3
+
+[models."anthropic.claude-opus-4-1".info]
+supports_structured_output = true
+
+[models."anthropic.claude-sonnet-4"]
+message_overhead = 3
+
+[models."anthropic.claude-sonnet-4".info]
+supports_structured_output = true
+
+[models."anthropic.claude-sonnet-4-5"]
+message_overhead = 3
+
+[models."anthropic.claude-sonnet-4-5".info]
+supports_structured_output = true
+
+[models."anthropic.claude-haiku-4-5"]
+message_overhead = 3
+
+[models."anthropic.claude-haiku-4-5".info]
+supports_structured_output = true
+
+[models."anthropic.claude-instant-v1"]
+message_overhead = 3
+
+[models."anthropic.claude-instant-v1".info]
+supports_structured_output = true
+
+[models."anthropic.claude-v2"]
+message_overhead = 3
+
+[models."anthropic.claude-v2".info]
+supports_structured_output = true
+
+[models."anthropic.claude-v2:1"]
+message_overhead = 3
+
+[models."anthropic.claude-v2:1".info]
+supports_structured_output = true
+
+# Embedding models: the size of the vector (read by get_vector_dimension of BedrockEmbeddingProvider).
+
+[models."amazon.titan-embed-text-v1".info]
+vector_dimension = 1536
+
+[models."amazon.titan-embed-text-v2:0".info]
+vector_dimension = 1024

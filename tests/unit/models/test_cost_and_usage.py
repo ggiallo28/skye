@@ -18,11 +18,11 @@ import pytest
 import skye
 from skye.base.completion import StreamChunk, TokenUsage
 from skye.base.exceptions import ValidationError
-from skye.models.llm.azure import AzureOpenAIProvider
-from skye.models.llm.openai import OpenAIProvider
-from skye.models.transport.cost import CostCalculator, check_pricing, usage_of
-from skye.models.transport.rest import wrap
-from skye.models.transport.token_counter import TokenCounter
+from skye.models.plugins.azure.provider import AzureOpenAIProvider
+from skye.models.plugins.openai.provider import OpenAIProvider
+from skye.models.cost import CostCalculator, check_pricing, usage_of
+from skye.models.utilities.rest import wrap
+from skye.models.token_counter import TokenCounter
 
 
 class _Body(io.BytesIO):
@@ -204,7 +204,7 @@ def test_only_the_official_openai_client_asks_for_the_usage_of_a_stream() -> Non
         return iter(())
 
     client = skye.provider("openai", api_key="k")
-    with patch("skye.models.llm.openai_compatible.rest.stream_sse_json", capture):
+    with patch("skye.models.utilities.openai_compatible.provider.rest.stream_sse_json", capture):
         list(client.stream("hi", model="gpt-4"))
     assert sent[0]["stream_options"] == {"include_usage": True}
 
@@ -263,7 +263,11 @@ def test_bedrock_reads_the_usage_of_the_metadata_event() -> None:
             }
         )
     )
-    assert (chunk.usage.prompt_tokens, chunk.usage.completion_tokens, chunk.usage.total_tokens) == (5, 6, 11)  # type: ignore[union-attr]
+    assert (chunk.usage.prompt_tokens, chunk.usage.completion_tokens, chunk.usage.total_tokens) == (
+        5,
+        6,
+        11,
+    )  # type: ignore[union-attr]
     assert (
         client._transform_stream_chunk(wrap({"contentBlockDelta": {"delta": {"text": "x"}}})).usage
         is None
@@ -284,7 +288,10 @@ def test_google_reads_the_running_usage_metadata() -> None:
             }
         )
     )
-    assert chunk.delta == "Hi" and (chunk.usage.prompt_tokens, chunk.usage.completion_tokens) == (4, 2)  # type: ignore[union-attr]
+    assert chunk.delta == "Hi" and (chunk.usage.prompt_tokens, chunk.usage.completion_tokens) == (
+        4,
+        2,
+    )  # type: ignore[union-attr]
     assert (
         client._transform_stream_chunk(
             wrap({"candidates": [{"content": {"parts": [{"text": "x"}]}}]})
@@ -302,7 +309,12 @@ def test_usage_of_ignores_what_a_provider_did_not_say() -> None:
 def test_breakdown_and_pricing_for() -> None:
     usage = TokenUsage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
     assert CostCalculator.breakdown("nope", usage) is None
-    assert CostCalculator.breakdown("nope", usage, {"prompt": 2.0, "completion": 4.0}, exact=False)["exact"] is False  # type: ignore[index]
+    assert (
+        CostCalculator.breakdown("nope", usage, {"prompt": 2.0, "completion": 4.0}, exact=False)[
+            "exact"
+        ]
+        is False
+    )  # type: ignore[index]
     assert CostCalculator.pricing_for("claude-3-opus-20240229") == CostCalculator.get_pricing(
         "claude-3-opus"
     )
@@ -310,7 +322,7 @@ def test_breakdown_and_pricing_for() -> None:
         "gpt-4-turbo"
     )
     # another model that starts with a known name is not priced at the shorter name's price
-    assert "gpt-4o" not in CostCalculator.PRICING
+    assert CostCalculator.get_pricing("gpt-4o") is None
     assert CostCalculator.pricing_for("gpt-4o-2024-08-06") is None
     assert CostCalculator.pricing_for("gpt-4o") is None
     assert CostCalculator.pricing_for("gpt-4-vision-preview") is None
@@ -331,11 +343,10 @@ class _Chars:
 
 @pytest.fixture(autouse=True)
 def _clean_registry() -> Any:
-    saved = dict(TokenCounter._custom)
-    TokenCounter._custom.clear()
+    before = dict(TokenCounter._registered)
     yield
-    TokenCounter._custom.clear()
-    TokenCounter._custom.update(saved)
+    for name in set(TokenCounter._registered) - set(before):
+        TokenCounter.unregister_tokenizer(name)
 
 
 def test_a_registered_tokenizer_wins_for_its_model_and_its_prefix() -> None:
@@ -372,3 +383,96 @@ def test_an_empty_text_counts_zero_tokens() -> None:
         TokenCounter.count_tokens("", "gpt-4") == 0
         and TokenCounter.count_tokens("", "some-model") == 0
     )
+
+
+# --- the prices come from the profiles (plugins:6.1, Requirements 60.1, 59.3, 59.10) ---
+
+
+@pytest.fixture
+def private_registrar(monkeypatch):
+    """A default registrar of its own, so a registration here does not reach the other tests."""
+    import skye.base.plugins as plugins
+
+    fresh = plugins.Registrar()
+    monkeypatch.setattr(plugins, "_default", fresh)
+    return fresh
+
+
+def test_the_cost_calculator_holds_no_price_table() -> None:
+    assert not hasattr(CostCalculator, "PRICING")
+
+
+def test_a_third_party_profile_is_priced_with_no_edit_of_the_calculator(private_registrar) -> None:
+    from skye.base.profile import ModelProfile, ProviderProfile
+
+    private_registrar.provider(
+        "acme",
+        object,
+        profile=ProviderProfile(
+            "acme", models={"acme-large": ModelProfile(prompt_price=2.0, completion_price=8.0)}
+        ), function="model",
+    )
+    assert CostCalculator.get_pricing("acme-large") == {"prompt": 2.0, "completion": 8.0}
+    assert CostCalculator.pricing_for("acme-large-2025-01-31") == {"prompt": 2.0, "completion": 8.0}
+    assert "acme-large" in CostCalculator.list_models()
+    usage = TokenUsage(prompt_tokens=1_000_000, completion_tokens=500_000, total_tokens=1_500_000)
+    assert CostCalculator.calculate_cost("acme-large", usage) == pytest.approx(6.0)
+
+
+def test_the_user_layer_wins_over_a_profile(private_registrar) -> None:
+    from skye.base.profile import ModelProfile, ProviderProfile
+
+    private_registrar.provider(
+        "acme",
+        object,
+        profile=ProviderProfile(
+            "acme", models={"acme-win": ModelProfile(prompt_price=2.0, completion_price=8.0)}
+        ), function="model",
+    )
+    try:
+        CostCalculator.add_custom_pricing("acme-win", 1.0, 3.0)
+        assert CostCalculator.get_pricing("acme-win") == {"prompt": 1.0, "completion": 3.0}
+        assert CostCalculator.pricing_for("acme-win-2025-01-31") == {
+            "prompt": 1.0,
+            "completion": 3.0,
+        }
+        assert CostCalculator.list_models().count("acme-win") == 1
+    finally:
+        CostCalculator._custom.pop("acme-win", None)
+    assert CostCalculator.get_pricing("acme-win") == {"prompt": 2.0, "completion": 8.0}
+
+
+def test_a_model_with_an_unknown_price_or_no_profile_has_no_cost(private_registrar) -> None:
+    from skye.base.profile import ModelProfile, ProviderProfile
+
+    private_registrar.provider(
+        "acme",
+        object,
+        profile=ProviderProfile(
+            "acme", models={"half": ModelProfile(prompt_price=1.0), "free": ModelProfile(0.0, 0.0)}
+        ), function="model",
+    )
+    usage = TokenUsage(prompt_tokens=10, completion_tokens=10, total_tokens=20)
+    assert CostCalculator.get_pricing("half") is None
+    assert CostCalculator.breakdown("half", usage) is None
+    assert "half" not in CostCalculator.list_models()
+    assert CostCalculator.get_pricing("free") == {
+        "prompt": 0.0,
+        "completion": 0.0,
+    }  # free is a price; unknown is not
+    assert CostCalculator.get_pricing("no-profile-at-all") is None
+    assert CostCalculator.calculate_cost("no-profile-at-all", usage) == 0.0
+
+
+def test_the_longest_name_across_profiles_wins(private_registrar) -> None:
+    from skye.base.profile import ModelProfile, ProviderProfile
+
+    private_registrar.provider(
+        "short", object, profile=ProviderProfile("short", models={"zz": ModelProfile(1.0, 1.0)}), function="model"
+    )
+    private_registrar.provider(
+        "long", object, profile=ProviderProfile("long", models={"zz-pro": ModelProfile(9.0, 9.0)}), function="model"
+    )
+    assert CostCalculator.pricing_for("zz-pro-2025-01-01") == {"prompt": 9.0, "completion": 9.0}
+    assert CostCalculator.pricing_for("zz-2025-01-01") == {"prompt": 1.0, "completion": 1.0}
+    assert CostCalculator.pricing_for("zz-pro") == {"prompt": 9.0, "completion": 9.0}

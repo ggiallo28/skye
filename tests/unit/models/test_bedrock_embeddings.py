@@ -14,8 +14,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from skye.models.embeddings.bedrock_embeddings import BedrockEmbeddingProvider
-from skye.models.transport import rest
+from skye.models.plugins.bedrock.embeddings import BedrockEmbeddingProvider
+from skye.models.utilities import rest
 
 
 class TestBedrockEmbeddingProviderInitialization:
@@ -47,7 +47,7 @@ class TestBedrockEmbeddingProviderInitialization:
         assert "boto3" not in sys.modules
 
     def test_source_has_no_boto3_import(self) -> None:
-        import skye.models.embeddings.bedrock_embeddings as mod
+        import skye.models.plugins.bedrock.embeddings as mod
 
         text = Path(mod.__file__).read_text()
         assert "import boto3" not in text and "LazyImporter" not in text
@@ -59,7 +59,7 @@ KEYS = {"aws_access_key_id": "AKIDEXAMPLE", "aws_secret_access_key": "secret"}
 class TestBedrockEmbeddingProviderBatchEncoding:
     """Test batch encoding functionality."""
 
-    @patch("skye.models.transport.rest.post_json")
+    @patch("skye.models.utilities.rest.post_json")
     def test_encode_batch(self, mock_post: Mock) -> None:
         mock_post.side_effect = [
             rest.JsonObject({"embedding": [0.1, 0.2, 0.3]}),
@@ -79,7 +79,7 @@ class TestBedrockEmbeddingProviderBatchEncoding:
         assert second.args[1] == {"inputText": 'te"xt2'}
         assert first.kwargs["authenticator"] is not None
 
-    @patch("skye.models.transport.rest.post_json")
+    @patch("skye.models.utilities.rest.post_json")
     def test_encode_single_text(self, mock_post: Mock) -> None:
         mock_post.return_value = rest.JsonObject({"embedding": [0.1, 0.2, 0.3]})
         provider = BedrockEmbeddingProvider(model="amazon.titan-embed-text-v1", region_name="us-east-1", **KEYS)

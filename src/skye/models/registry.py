@@ -2,11 +2,14 @@
 
 This module provides a central registry for discovering and instantiating
 model and embedding providers. Providers can be registered by name and
-retrieved with configuration.
+retrieved with configuration. It keeps no table of its own: it is a view of the
+default registrar (``skye.base.plugins``, Requirement 56.7), where the built-in
+providers are registered by ``skye.models.plugins`` and a third-party plugin
+registers its own with ``registrar.provider`` (``function="model"`` or ``"embedding"``).
 
 Example:
     >>> from skye.models.registry import ProviderRegistry
-    >>> from skye.models.llm.openai import OpenAIProvider
+    >>> from skye.models.plugins.openai.provider import OpenAIProvider
     >>>
     >>> # Register a provider
     >>> ProviderRegistry.register_model_provider("openai", OpenAIProvider)
@@ -21,10 +24,56 @@ Example:
 import inspect
 from typing import Any, Literal, Type, overload
 
+from skye.base.api_keys import api_key_from_environment, api_key_variables
 from skye.base.exceptions import ConfigurationError
+from skye.base.interfaces.decision import DecisionModel
 from skye.base.interfaces.model import ModelInterface
 from skye.base.interfaces.registry import ProviderRegistryInterface, set_provider_registry
 from skye.base.interfaces.vector_encoder import VectorEncoderInterface
+from skye.base.plugins import ProviderFunction, Registrar, get_registrar
+
+_KIND = "provider"
+_MODEL: ProviderFunction = "model"
+_EMBEDDING: ProviderFunction = "embedding"
+_DECISION: ProviderFunction = "decision"
+
+
+def _registrar() -> Registrar:
+    """The default registrar, with the built-in providers in it: this module keeps no table of its own (Requirement 56.7)."""
+    return get_registrar()
+
+
+def _with_profile_key(name: str, provider_class: Any, config: dict[str, Any]) -> dict[str, Any]:
+    """The key of a provider of the OpenAI or Anthropic format that is registered under its own name (task 6.3).
+
+    A plugin registers ``OpenAICompatibleProvider`` or ``AnthropicCompatibleProvider`` under ``name`` with a profile that names the variables
+    of its key. The class does not know that name, so the registry reads the first variable that is set and gives the key to the class. A class
+    that has a profile of its own (``openai``, ``anthropic``) reads it itself, and a key that is passed is never replaced.
+
+    Raises:
+        ConfigurationError: The profile of ``name`` names variables and none is set (the message names them).
+    """
+    if config.get("api_key"):
+        return config
+    from skye.models.utilities.anthropic_compatible.provider import AnthropicCompatibleProvider
+    from skye.models.utilities.openai_compatible.provider import OpenAICompatibleProvider
+
+    if not (
+        isinstance(provider_class, type)
+        and issubclass(provider_class, (OpenAICompatibleProvider, AnthropicCompatibleProvider))
+    ):
+        return config
+    if api_key_variables(provider_class.provider_name):
+        return config
+    variables = api_key_variables(name)
+    if not variables:
+        return config
+    key = api_key_from_environment(name)
+    if key is None:
+        raise ConfigurationError(
+            f"No API key: pass api_key or set {' or '.join(variables)}", details={"variable": variables[0]}
+        )
+    return {**config, "api_key": key}
 
 
 class ProviderRegistry(ProviderRegistryInterface):
@@ -34,8 +83,8 @@ class ProviderRegistry(ProviderRegistryInterface):
     model and embedding providers. Providers are registered by name and can
     be retrieved with configuration parameters.
 
-    The registry maintains separate collections for model providers (LLMs)
-    and embedding providers (vector encoders).
+    The registry is a view of the default registrar: the kind ``provider``, with the function ``model`` (LLMs)
+    or ``embedding`` (vector encoders).
 
     Example:
         >>> # Register providers
@@ -48,11 +97,8 @@ class ProviderRegistry(ProviderRegistryInterface):
         >>>
         >>> # List available providers
         >>> print(ProviderRegistry.list_model_providers())
-        ['openai', 'anthropic', 'bedrock']
+        ['anthropic', 'azure', 'bedrock', 'google', 'openai']
     """
-
-    _model_providers: dict[str, Type[ModelInterface]] = {}
-    _embedding_providers: dict[str, Type[VectorEncoderInterface]] = {}
 
     @classmethod
     def register_model_provider(
@@ -65,10 +111,10 @@ class ProviderRegistry(ProviderRegistryInterface):
             provider_class: The provider class that implements ModelInterface.
 
         Example:
-            >>> from skye.models.llm.openai import OpenAIProvider
+            >>> from skye.models.plugins.openai.provider import OpenAIProvider
             >>> ProviderRegistry.register_model_provider("openai", OpenAIProvider)
         """
-        cls._model_providers[name] = provider_class
+        _registrar().provider(name, provider_class, function=_MODEL, replace=True)
 
     @classmethod
     def register_embedding_provider(
@@ -81,10 +127,10 @@ class ProviderRegistry(ProviderRegistryInterface):
             provider_class: The provider class that implements VectorEncoderInterface.
 
         Example:
-            >>> from skye.models.embeddings.openai_embeddings import OpenAIEmbeddingProvider
+            >>> from skye.models.plugins.openai.embeddings import OpenAIEmbeddingProvider
             >>> ProviderRegistry.register_embedding_provider("openai", OpenAIEmbeddingProvider)
         """
-        cls._embedding_providers[name] = provider_class
+        _registrar().provider(name, provider_class, function=_EMBEDDING, replace=True)
 
     @classmethod
     def get_model_provider(cls, name: str, **config: Any) -> ModelInterface:
@@ -108,18 +154,20 @@ class ProviderRegistry(ProviderRegistryInterface):
             ... )
             >>> response = provider.complete(request)
         """
-        if name not in cls._model_providers:
-            available = ", ".join(cls._model_providers.keys()) or "none"
-            hint = (
-                f" '{name}' is an embedding provider: pass provider_type=\"embedding\"."
-                if name in cls._embedding_providers
-                else ""
-            )
+        registrar = _registrar()
+        if not registrar.has(_KIND, name, _MODEL):
+            available = ", ".join(registrar.names(_KIND, _MODEL)) or "none"
+            hint = ""
+            if registrar.has(_KIND, name, _EMBEDDING):
+                hint = f" '{name}' is an embedding provider: pass provider_type=\"embedding\"."
+            elif registrar.has(_KIND, name, _DECISION):
+                hint = f" '{name}' is a decision provider: pass provider_type=\"decision\"."
             raise ConfigurationError(
                 f"Model provider '{name}' not found. Available model providers: {available}.{hint}"
             )
 
-        provider_class = cls._model_providers[name]
+        provider_class: Type[ModelInterface] = registrar.get(_KIND, name, _MODEL)
+        config = _with_profile_key(name, provider_class, config)
         try:
             return provider_class(**config)
         except ConfigurationError:
@@ -153,13 +201,14 @@ class ProviderRegistry(ProviderRegistryInterface):
             ... )
             >>> vectors = embedder.encode_batch(["text1", "text2"])
         """
-        if name not in cls._embedding_providers:
-            available = ", ".join(cls._embedding_providers.keys()) or "none"
+        registrar = _registrar()
+        if not registrar.has(_KIND, name, _EMBEDDING):
+            available = ", ".join(registrar.names(_KIND, _EMBEDDING)) or "none"
             raise ConfigurationError(
                 f"Embedding provider '{name}' not found. Available embedding providers: {available}."
             )
 
-        provider_class = cls._embedding_providers[name]
+        provider_class: Type[VectorEncoderInterface] = registrar.get(_KIND, name, _EMBEDDING)
         try:
             return provider_class(**config)
         except ConfigurationError:
@@ -174,28 +223,28 @@ class ProviderRegistry(ProviderRegistryInterface):
         """List all registered model providers.
 
         Returns:
-            List of registered model provider names.
+            The registered model provider names, sorted (built-in ones and those a plugin registered).
 
         Example:
             >>> providers = ProviderRegistry.list_model_providers()
             >>> print(providers)
-            ['openai', 'anthropic', 'bedrock', 'azure', 'google']
+            ['anthropic', 'azure', 'bedrock', 'google', 'openai']
         """
-        return list(cls._model_providers.keys())
+        return _registrar().names(_KIND, _MODEL)
 
     @classmethod
     def list_embedding_providers(cls) -> list[str]:
         """List all registered embedding providers.
 
         Returns:
-            List of registered embedding provider names.
+            The registered embedding provider names, sorted.
 
         Example:
             >>> providers = ProviderRegistry.list_embedding_providers()
             >>> print(providers)
-            ['openai', 'bedrock', 'cohere', 'google']
+            ['bedrock', 'cohere', 'google', 'google-multimodal', 'openai']
         """
-        return list(cls._embedding_providers.keys())
+        return _registrar().names(_KIND, _EMBEDDING)
 
 
 set_provider_registry(ProviderRegistry)
@@ -206,20 +255,26 @@ def provider(name: str, *, provider_type: Literal["embedding"], **config: Any) -
 
 
 @overload
+def provider(name: str, *, provider_type: Literal["decision"], **config: Any) -> DecisionModel: ...
+
+
+@overload
 def provider(name: str, *, provider_type: Literal["model"] = ..., **config: Any) -> ModelInterface: ...
 
 
-def provider(name: str, **config: Any) -> ModelInterface | VectorEncoderInterface:
+def provider(name: str, **config: Any) -> ModelInterface | VectorEncoderInterface | DecisionModel:
     """Create a provider client (boto3-style API).
 
     This is the main entry point for the simplified boto3-style API.
     Returns a provider instance that supports direct method calls.
 
     Args:
-        name: Provider name (e.g., "openai", "bedrock", "anthropic", "cohere").
+        name: Provider name (e.g., "openai", "bedrock", "anthropic", "cohere", "jev").
         **config: Provider-specific configuration. Use provider_type="embedding"
-            to get an embedding provider instead of a model provider; a name that has only an
-            embedding provider (``cohere``) gives it without ``provider_type``. ``region`` is an
+            to get an embedding provider instead of a model provider, or provider_type="decision"
+            for a decision model (built as ``create_decision_model(name, **config)`` does); a name
+            that has only an embedding provider (``cohere``) or only a decision provider (``jev``)
+            gives it without ``provider_type``. ``region`` is an
             alias of the AWS ``region_name`` and of the Google ``location``; ``location`` stays
             ``location`` for Google. ``max_retries`` (0 turns retries off) goes to the client.
 
@@ -271,20 +326,25 @@ def provider(name: str, **config: Any) -> ModelInterface | VectorEncoderInterfac
         ... )
         >>> vectors = embedder.encode_batch(["text1", "text2"])
     """
+    registrar = _registrar()
     provider_type = config.pop("provider_type", None)
     if provider_type is None:
-        # A name registered only for embeddings (``cohere``) gives its embedding client.
-        only_embedding = (
-            name in ProviderRegistry._embedding_providers and name not in ProviderRegistry._model_providers
-        )
-        provider_type = "embedding" if only_embedding else "model"
+        # A name registered for one function only gives that one: ``cohere`` its embedding client, ``jev`` its decision model.
+        provider_type = "model"
+        if not registrar.has(_KIND, name, _MODEL):
+            for other in (_EMBEDDING, _DECISION):
+                if registrar.has(_KIND, name, other):
+                    provider_type = other
+                    break
 
-    registered = (
-        ProviderRegistry._embedding_providers if provider_type == "embedding" else ProviderRegistry._model_providers
-    )
-    target = registered.get(name)
-    if target is not None:
-        _normalize_location(target, config)
+    if provider_type == "decision":
+        from skye.models.decision import create_decision_model
+
+        return create_decision_model(name, **config)
+
+    kind: ProviderFunction = _EMBEDDING if provider_type == "embedding" else _MODEL
+    if registrar.has(_KIND, name, kind):
+        _normalize_location(registrar.get(_KIND, name, kind), config)
 
     if provider_type == "embedding":
         return ProviderRegistry.get_embedding_provider(name, **config)

@@ -39,44 +39,33 @@ Codename: zephyr.
 """
 
 from skye.models.base import BaseEmbeddingProvider, BaseModelProvider
-from skye.models.transport.cost import CostCalculator
-from skye.models.embeddings.bedrock_embeddings import BedrockEmbeddingProvider
-from skye.models.embeddings.cohere_embeddings import CohereEmbeddingProvider
-from skye.models.embeddings.openai_embeddings import OpenAIEmbeddingProvider
-from skye.models.embeddings.google_embeddings import GoogleEmbeddingProvider
-from skye.models.embeddings.google_multimodal_embeddings import (
-    GoogleMultimodalEmbeddingProvider,
-)
+from skye.models.decision import create_decision_model
 from skye.models.lazy_import import LazyImporter
-from skye.models.llm.anthropic import AnthropicProvider
-from skye.models.llm.bedrock import BedrockProvider
-from skye.models.llm.azure import AzureOpenAIProvider
-from skye.models.llm.openai import OpenAIProvider
-from skye.models.llm.google import GoogleProvider
-from skye.models.decision.jev import JevDecisionModel
-from skye.models.transport.multimodal import ImageHandler
+from skye.models.utilities.openai_compatible import OpenAICompatibleProvider
+from skye.models.plugins.anthropic import AnthropicProvider
+from skye.models.plugins.azure import AzureOpenAIProvider
+from skye.models.plugins.bedrock import BedrockEmbeddingProvider, BedrockProvider
+from skye.models.plugins.cohere import CohereEmbeddingProvider
+from skye.models.plugins.google import (
+    GoogleEmbeddingProvider,
+    GoogleMultimodalEmbeddingProvider,
+    GoogleProvider,
+)
+from skye.models.plugins.openai import OpenAIEmbeddingProvider, OpenAIProvider
+from skye.models.plugins.typesafe import JevDecisionModel
 from skye.models.registry import ProviderRegistry
-from skye.models.transport.token_counter import TokenCounter
-from skye.models.transport import rest as _rest
+from skye.models.cost import CostCalculator
+from skye.models.utilities.multimodal import ImageHandler
+from skye.models.token_counter import TokenCounter
+from skye.models.utilities import rest as _rest
 
 # The HTTP transport of the built-in adapters, public for custom providers
 JsonObject = _rest.JsonObject
 post_json = _rest.post_json
 stream_sse_json = _rest.stream_sse_json
 
-# Register model providers
-ProviderRegistry.register_model_provider("openai", OpenAIProvider)
-ProviderRegistry.register_model_provider("anthropic", AnthropicProvider)
-ProviderRegistry.register_model_provider("bedrock", BedrockProvider)
-ProviderRegistry.register_model_provider("azure", AzureOpenAIProvider)
-ProviderRegistry.register_model_provider("google", GoogleProvider)
-
-# Register embedding providers
-ProviderRegistry.register_embedding_provider("openai", OpenAIEmbeddingProvider)
-ProviderRegistry.register_embedding_provider("bedrock", BedrockEmbeddingProvider)
-ProviderRegistry.register_embedding_provider("cohere", CohereEmbeddingProvider)
-ProviderRegistry.register_embedding_provider("google", GoogleEmbeddingProvider)
-ProviderRegistry.register_embedding_provider("google-multimodal", GoogleMultimodalEmbeddingProvider)
+# The built-in providers are not registered here: ``skye.models.plugins`` registers them with the default registrar at its first lookup, and
+# ``ProviderRegistry`` is a view of that registrar (Requirement 56.7).
 
 __all__ = [
     "BaseModelProvider",
@@ -87,11 +76,13 @@ __all__ = [
     "TokenCounter",
     "CostCalculator",
     "OpenAIProvider",
+    "OpenAICompatibleProvider",
     "AnthropicProvider",
     "BedrockProvider",
     "AzureOpenAIProvider",
     "GoogleProvider",
     "JevDecisionModel",
+    "create_decision_model",
     "OpenAIEmbeddingProvider",
     "BedrockEmbeddingProvider",
     "CohereEmbeddingProvider",

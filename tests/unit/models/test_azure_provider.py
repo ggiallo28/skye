@@ -20,11 +20,11 @@ from skye.base.validated import Validated, validated
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.exceptions import ProviderError
 from skye.base.messages import SystemMessage, UserMessage
-from skye.models.llm.azure import AzureOpenAIProvider
-from skye.models.transport.rest import JsonObject
+from skye.models.plugins.azure.provider import AzureOpenAIProvider
+from skye.models.utilities.rest import JsonObject
 
-POST = "skye.models.transport.rest.post_json"
-STREAM = "skye.models.transport.rest.stream_sse_json"
+POST = "skye.models.utilities.rest.post_json"
+STREAM = "skye.models.utilities.rest.stream_sse_json"
 URL = "https://myresource.openai.azure.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-15-preview"
 
 
@@ -107,9 +107,13 @@ class TestAzureOpenAIProviderInitialization:
         """The adapter must not import the vendor SDK."""
         import inspect
 
-        import skye.models.llm.openai_compatible as mod
+        import importlib
 
-        source = inspect.getsource(mod)
+        package = "skye.models.utilities.openai_compatible"
+        source = "\n".join(
+            inspect.getsource(importlib.import_module(f"{package}.{name}"))
+            for name in ("provider", "request", "response", "capabilities")
+        )
         assert "import openai" not in source and "from openai" not in source
         assert "LazyImporter" not in source
 

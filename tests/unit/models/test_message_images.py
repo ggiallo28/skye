@@ -13,7 +13,7 @@ import pytest
 import skye
 from skye.base.exceptions import ProviderError, UnsupportedModalityError, ValidationError
 from skye.base.messages import UserMessage
-from skye.models.transport.retry import is_retryable
+from skye.models.utilities.retry import is_retryable
 from tests.examples.fake_network import fake_urlopen
 
 PIXEL = base64.b64decode(
@@ -100,7 +100,7 @@ def test_a_provider_error_keeps_the_http_status(monkeypatch):
     import io
     import urllib.error
 
-    monkeypatch.setattr("skye.models.transport.retry.time.sleep", lambda seconds: None)
+    monkeypatch.setattr("skye.models.utilities.retry.time.sleep", lambda seconds: None)
 
     def urlopen(req: Any, *a: Any, **k: Any) -> Any:
         raise urllib.error.HTTPError(req.full_url, 429, "Too Many Requests", {}, io.BytesIO(b"{}"))  # type: ignore[arg-type]

@@ -1,0 +1,31 @@
+name = "google"
+api_key_variables = ["GOOGLE_API_KEY"]
+map_error = "skye.models.plugins.google.errors:map_error"
+
+[models."gemini-pro"]
+prompt_price = 0.5
+completion_price = 1.5
+message_overhead = 3
+
+[models."gemini-pro-vision"]
+prompt_price = 0.5
+completion_price = 1.5
+message_overhead = 3
+
+[models."gemini-1.5-pro"]
+prompt_price = 3.5
+completion_price = 10.5
+message_overhead = 3
+
+[models."gemini-1.5-flash"]
+prompt_price = 0.35
+completion_price = 1.05
+message_overhead = 3
+
+# Embedding models: the size of the vector (read by get_vector_dimension of GoogleEmbeddingProvider).
+
+[models."text-embedding-004".info]
+vector_dimension = 768
+
+[models."text-multilingual-embedding-002".info]
+vector_dimension = 768

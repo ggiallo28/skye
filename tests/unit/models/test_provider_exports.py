@@ -265,8 +265,10 @@ class TestProviderExports:
         # - 1 decision model (Jev)
         # - 2 base classes
         # - 3 HTTP transport names for custom providers (JsonObject, post_json, stream_sse_json)
-        # Total: 21
-        expected_count = 21
+        # - 1 OpenAICompatibleProvider, the adapter a plugin registers with a ProviderProfile (plugins:5.3, Requirement 59.9)
+        # - 1 create_decision_model, the decision model by name (plugins:9.3)
+        # Total: 23
+        expected_count = 23
 
         assert len(__all__) == expected_count, f"Expected {expected_count} exports, got {len(__all__)}"
 

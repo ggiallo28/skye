@@ -1,0 +1,7 @@
+name = "azure"
+api_key_variables = ["AZURE_OPENAI_API_KEY"]
+model_is_deployment = true
+map_error = "skye.models.plugins.azure.errors:map_error"
+
+[client_settings]
+api_base = "azure_endpoint"

@@ -16,8 +16,8 @@ import pytest
 
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.messages import SystemMessage, UserMessage
-from skye.models.llm.bedrock import BedrockProvider
-from skye.models.transport import rest
+from skye.models.plugins.bedrock.provider import BedrockProvider
+from skye.models.utilities import rest
 
 
 @pytest.fixture(autouse=True)
@@ -54,10 +54,13 @@ class TestBedrockProviderInitialization:
 
     def test_sources_do_not_import_boto3(self):
         """Bedrock sources contain no boto3/botocore import."""
-        import skye.models.embeddings.bedrock_embeddings as emb
-        import skye.models.llm.bedrock as llm
+        import skye.models.plugins.bedrock.capabilities as caps
+        import skye.models.plugins.bedrock.embeddings as emb
+        import skye.models.plugins.bedrock.provider as llm
+        import skye.models.plugins.bedrock.request as req
+        import skye.models.plugins.bedrock.response as resp
 
-        for mod in (llm, emb):
+        for mod in (llm, emb, req, resp, caps):
             text = Path(mod.__file__).read_text()
             assert "import boto3" not in text and "import botocore" not in text
             assert "LazyImporter" not in text
@@ -393,7 +396,7 @@ KEYS = {
 class TestBedrockProviderCalls:
     """Test provider API calls over the REST transport."""
 
-    @patch("skye.models.transport.rest.post_json")
+    @patch("skye.models.utilities.rest.post_json")
     def test_call_provider(self, mock_post):
         mock_post.return_value = rest.JsonObject({"output": {"message": {"content": [{"text": "Response"}]}}})
         provider = BedrockProvider(region_name="eu-west-1", **KEYS)
@@ -417,7 +420,7 @@ class TestBedrockProviderCalls:
         hdrs = provider._authenticator().apply("POST", "https://x", {}, b"")
         assert hdrs["Authorization"] == "Bearer abc"
 
-    @patch("skye.models.transport.rest.post_json")
+    @patch("skye.models.utilities.rest.post_json")
     def test_complete_end_to_end(self, mock_post):
         mock_post.return_value = rest.JsonObject({
             "output": {"message": {"role": "assistant", "content": [
@@ -435,7 +438,7 @@ class TestBedrockProviderCalls:
         assert resp.capability_calls[0].arguments == {"a": 1}
         assert resp.usage.total_tokens == 3
 
-    @patch("skye.models.llm.bedrock.post_eventstream_json")
+    @patch("skye.models.plugins.bedrock.provider.post_eventstream_json")
     def test_call_provider_stream(self, mock_stream):
         events = [
             {"contentBlockDelta": {"delta": {"text": "Hello"}}},
@@ -451,7 +454,7 @@ class TestBedrockProviderCalls:
         assert args[1] == {"messages": []}
         assert chunks == events
 
-    @patch("skye.models.transport.rest.post_json")
+    @patch("skye.models.utilities.rest.post_json")
     def test_acomplete(self, mock_post):
         import asyncio
 
@@ -754,7 +757,7 @@ class TestBedrockToolCalling:
         assert result["toolConfig"]["tools"][0]["toolSpec"]["name"] == "get_weather"
         assert result["toolConfig"]["tools"][1]["toolSpec"]["name"] == "get_time"
     
-    @patch("skye.models.transport.rest.post_json")
+    @patch("skye.models.utilities.rest.post_json")
     def test_complete_with_tool_calls(self, mock_post):
         """Test end-to-end completion with tool calls."""
         
@@ -829,7 +832,7 @@ class TestBedrockToolCalling:
 class TestBedrockIntegration:
     """Integration tests for complete request/response flow."""
     
-    @patch("skye.models.transport.rest.post_json")
+    @patch("skye.models.utilities.rest.post_json")
     def test_complete_request_flow(self, mock_post):
         """Test complete request flow from CompleteRequest to CompleteResponse."""
         # Setup mock client

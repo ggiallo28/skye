@@ -37,14 +37,13 @@ See docs/guides/extend/custom-provider.md for how provider adapters are built.
 """
 
 import asyncio
-import concurrent.futures
 import dataclasses
 import logging
 import threading
 import time
 from abc import ABC, abstractmethod
-from collections.abc import AsyncIterator, Callable, Coroutine, Iterator
-from typing import Any, TypeVar
+from collections.abc import AsyncIterator, Callable, Iterator
+from typing import Any
 
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk, TokenUsage
 from skye.base.exceptions import ProviderError, ProviderTimeoutError, ValidationError
@@ -61,34 +60,20 @@ from skye.base.log_event import (
     new_correlation_id,
 )
 from skye.base.prompt_parts import PromptParts
-from skye.models.transport.capability_choice import complete_emulated, emulated_request, forced_choice
-from skye.models.transport.cost import CostCalculator, check_pricing
-from skye.models.transport.prompt_parts import request_from_parts
-from skye.models.transport.retry import (
+from skye.base.sync import run_sync
+from skye.models.utilities.capability_choice import complete_emulated, emulated_request, forced_choice
+from skye.models.cost import CostCalculator, check_pricing
+from skye.models.utilities.prompt_parts import request_from_parts
+from skye.models.utilities.retry import (
     DEFAULT_MAX_RETRIES,
     call_with_retry,
     is_retryable,
     retry_wait,
 )
-from skye.models.transport.structured import parse_structured
-from skye.models.transport.token_counter import TokenCounter
+from skye.models.utilities.structured import parse_structured
+from skye.models.token_counter import TokenCounter
 
 logger = logging.getLogger(__name__)
-
-_T = TypeVar("_T")
-
-
-def _run_coroutine(coroutine: Coroutine[Any, Any, _T]) -> _T:
-    """Run a coroutine to completion from synchronous code, inside or outside a running event loop.
-
-    Inside a running loop the coroutine runs on its own loop in one worker thread, which is joined before returning.
-    """
-    try:
-        asyncio.get_running_loop()
-    except RuntimeError:
-        return asyncio.run(coroutine)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        return executor.submit(asyncio.run, coroutine).result()
 
 
 class _SchemaCapability:
@@ -118,7 +103,7 @@ def capability_list(source: Any) -> list[Any]:
     if isinstance(source, (list, tuple)):
         return list(source)
     if hasattr(source, "list_schemas"):
-        schemas = _run_coroutine(source.list_schemas())
+        schemas = run_sync(source.list_schemas())
         return [_SchemaCapability(schema) for schema in schemas]
     raise ValidationError(
         "capabilities must be a list of capabilities, a CapabilityRegistry or a ToolProvider",
@@ -365,8 +350,10 @@ class BaseModelProvider(ModelInterface, ABC):
         pass
     
     @abstractmethod
-    def _transform_messages(self, messages: list[Any]) -> list[dict[str, Any]]:
+    def _transform_messages(self, messages: list[Any]) -> Any:
         """Transform Skye messages to provider-specific format.
+
+        The shape is the provider's: most return the list of wire messages, Anthropic returns the system text and the list.
         
         This method encapsulates all provider-specific message transformation logic.
         Each provider has different requirements for message format, and this method
@@ -601,7 +588,7 @@ class BaseModelProvider(ModelInterface, ABC):
         selection = router.select_model(CompleteRequest(messages=messages, model=self.default_model or ""))
         if not asyncio.iscoroutine(selection):
             return selection  # type: ignore[no-any-return]
-        return _run_coroutine(selection)  # type: ignore[no-any-return]
+        return run_sync(selection)  # type: ignore[no-any-return]
 
     @staticmethod
     def _resolved(request: CompleteRequest) -> CompleteRequest:
@@ -886,11 +873,22 @@ class BaseModelProvider(ModelInterface, ABC):
             chunk.cost = None if cost is None else dict(cost)
             yield chunk
 
+    def _profile_info(self, provider: str, model: str | None = None) -> dict[str, Any]:
+        """The ``info`` of the entry of ``model`` (the default model when omitted) in the profile registered for ``provider`` (Requirement 59.2).
+
+        Empty when the provider has no profile or the profile has no entry for the model: the keys the adapter itself knows are then all there is.
+        """
+        from skye.base.plugins import get_registrar
+        from skye.base.profile import find_model_profile
+
+        entry = find_model_profile(get_registrar().get_profile(provider), model if model is not None else self.model or "")
+        return dict(entry.info) if entry is not None else {}
+
     def refuses_forced_choice(self, model: str) -> bool:
         """Whether ``model`` refuses a forced ``capability_choice`` (``"required"`` or a name).
 
-        ``False`` here; an adapter whose provider has such models overrides it. For those models
-        the client emulates the forced choice (decision D109, ``skye.models.transport.capability_choice``).
+        ``False`` here; an adapter whose provider has such models overrides it, reading ``supports_forced_capability_choice`` of the model's
+        ``info`` in its profile. For those models the client emulates the forced choice (decision D109, ``skye.models.utilities.capability_choice``).
         """
         return False
 
@@ -1418,6 +1416,32 @@ class BaseEmbeddingProvider(VectorEncoderInterface, ABC):
         """
         return self._encode_batch_impl(texts)
     
+    def _profile_dimension(self, provider: str) -> int:
+        """The vector dimension of ``self.model``, from ``info["vector_dimension"]`` of its entry in the profile of ``provider`` (D110).
+
+        Raises:
+            ValueError: The provider has no profile, or the profile has no entry for the model with a dimension.
+        """
+        from skye.base.plugins import get_registrar
+        from skye.base.profile import find_model_profile
+
+        entry = find_model_profile(get_registrar().get_profile(provider), self.model)
+        dimension = entry.info.get("vector_dimension") if entry is not None else None
+        if dimension is None:
+            raise ValueError(f"Unknown model: {self.model}")
+        return int(dimension)
+
+    @staticmethod
+    def _profile_api_base(provider: str) -> str:
+        """The default endpoint of ``provider`` from its profile (``default_api_base``)."""
+        from skye.base.exceptions import ConfigurationError
+        from skye.base.plugins import get_registrar
+
+        profile = get_registrar().get_profile(provider)
+        if profile is None or not profile.default_api_base:
+            raise ConfigurationError(f"the provider {provider!r} has no default endpoint in its profile; pass api_base")
+        return str(profile.default_api_base)
+
     @abstractmethod
     def get_vector_dimension(self) -> int:
         """Return the dimension of vectors produced by this encoder.

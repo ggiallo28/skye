@@ -17,7 +17,7 @@ from skye.base.completion import CompleteRequest, CompleteResponse, TokenUsage
 from skye.base.exceptions import BadRequestError, ProviderError, RateLimitError
 from skye.base.messages import UserMessage
 from skye.models.base import BaseModelProvider
-from skye.models.transport.retry import with_retry
+from skye.models.utilities.retry import with_retry
 
 
 class MockProvider(BaseModelProvider):

@@ -18,7 +18,7 @@ import pytest
 from skye.base.completion import CompleteRequest, CompleteResponse, TokenUsage
 from skye.base.interfaces.runnable import Runnable
 from skye.base.messages import UserMessage
-from skye.models.llm import (
+from skye.models import (
     AnthropicProvider,
     AzureOpenAIProvider,
     BedrockProvider,

@@ -124,15 +124,15 @@ class TestProviderAutoRegistration:
             BedrockProvider,
             GoogleProvider,
             OpenAIProvider,
-            ProviderRegistry,
         )
+        from skye.base.plugins import get_registrar
 
         # Verify that the registered classes match the expected classes
-        assert ProviderRegistry._model_providers["openai"] == OpenAIProvider
-        assert ProviderRegistry._model_providers["anthropic"] == AnthropicProvider
-        assert ProviderRegistry._model_providers["bedrock"] == BedrockProvider
-        assert ProviderRegistry._model_providers["azure"] == AzureOpenAIProvider
-        assert ProviderRegistry._model_providers["google"] == GoogleProvider
+        assert get_registrar().get("provider", "openai", "model") == OpenAIProvider
+        assert get_registrar().get("provider", "anthropic", "model") == AnthropicProvider
+        assert get_registrar().get("provider", "bedrock", "model") == BedrockProvider
+        assert get_registrar().get("provider", "azure", "model") == AzureOpenAIProvider
+        assert get_registrar().get("provider", "google", "model") == GoogleProvider
 
     def test_embedding_provider_classes_are_registered(self):
         """Test that embedding provider classes are properly registered."""
@@ -142,16 +142,16 @@ class TestProviderAutoRegistration:
             GoogleEmbeddingProvider,
             GoogleMultimodalEmbeddingProvider,
             OpenAIEmbeddingProvider,
-            ProviderRegistry,
         )
+        from skye.base.plugins import get_registrar
 
         # Verify that the registered classes match the expected classes
-        assert ProviderRegistry._embedding_providers["openai"] == OpenAIEmbeddingProvider
-        assert ProviderRegistry._embedding_providers["bedrock"] == BedrockEmbeddingProvider
-        assert ProviderRegistry._embedding_providers["cohere"] == CohereEmbeddingProvider
-        assert ProviderRegistry._embedding_providers["google"] == GoogleEmbeddingProvider
+        assert get_registrar().get("provider", "openai", "embedding") == OpenAIEmbeddingProvider
+        assert get_registrar().get("provider", "bedrock", "embedding") == BedrockEmbeddingProvider
+        assert get_registrar().get("provider", "cohere", "embedding") == CohereEmbeddingProvider
+        assert get_registrar().get("provider", "google", "embedding") == GoogleEmbeddingProvider
         assert (
-            ProviderRegistry._embedding_providers["google-multimodal"]
+            get_registrar().get("provider", "google-multimodal", "embedding")
             == GoogleMultimodalEmbeddingProvider
         )
 
