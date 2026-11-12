@@ -162,3 +162,8 @@ exclude_lines = [
 [tool.hatch.build.targets.wheel]
 # The distribution is `skyeai`; the import package is `skye`.
 packages = ["src/skye"]
+# The bundled templates are one archive in the wheel (hatch_build.py, task 24.7); the loose files stay in the repository and the sdist.
+exclude = ["src/skye/prompts/templates/*.skye"]
+
+[tool.hatch.build.targets.wheel.hooks.custom]
+# hatch_build.py: the wheel has no comment (task 24.3) and holds the templates as one archive (task 24.7); the sdist, an editable install and the repository keep the comments and the loose files.

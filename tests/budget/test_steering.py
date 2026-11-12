@@ -58,7 +58,7 @@ REQUIRED_DECISIONS = [
     (r"requirements .*design.*tasks|requirements\s*→\s*design\s*→\s*tasks",
      "spec-driven requirements/design/tasks order"),
     (r"MCP is \*\*client-only\*\*|client-only", "MCP client-only"),
-    (r'impl="builtin"', "MCP builtin default, fastmcp opt-in"),
+    (r'impl="skyemcp"', "MCP skyemcp default, fastmcp opt-in"),
     (r"authentication.*authoriz|auth.*authoriz", "auth vs policy contrast"),
 ]
 

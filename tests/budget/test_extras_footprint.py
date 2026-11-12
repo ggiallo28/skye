@@ -39,17 +39,13 @@ EXTRA_PATHS: dict[str, list[str]] = {
     # auth: authentication and credentials (Layer 0). `rsa` is declared for RS256 signing
     # (`auth/rsa_signing.py`); the SigV4 signer and the other strategies are standard library.
     "auth": ["auth"],
-    "openai": ["models/llm/openai_compatible.py", "models/llm/openai.py", "models/llm/azure.py", "models/embeddings/openai_embeddings.py"],
+    "openai": ["models/utilities/openai_compatible", "models/plugins/openai", "models/plugins/azure"],
     # tokens: exact token counting (`tiktoken`, lazy and optional; D33).
-    "tokens": ["models/transport/token_counter.py"],
-    "anthropic": ["models/llm/anthropic_compatible.py", "models/llm/anthropic.py"],
-    "bedrock": ["models/llm/bedrock.py", "models/embeddings/bedrock_embeddings.py"],
-    "google": [
-        "models/llm/google.py",
-        "models/embeddings/google_embeddings.py",
-        "models/embeddings/google_multimodal_embeddings.py",
-    ],
-    "cohere": ["models/embeddings/cohere_embeddings.py"],
+    "tokens": ["models/token_counter.py"],
+    "anthropic": ["models/utilities/anthropic_compatible", "models/plugins/anthropic"],
+    "bedrock": ["models/plugins/bedrock"],
+    "google": ["models/plugins/google"],
+    "cohere": ["models/plugins/cohere"],
     # tools carries no third-party library (known_empty). fastmcp, the optional MCP substitute,
     # belongs to the separate `mcp` extra (Requirement 15).
     "tools": [
@@ -64,12 +60,14 @@ EXTRA_PATHS: dict[str, list[str]] = {
         "tools/mcp_resource.py",
         "tools/registry.py",
         "tools/remote_api.py",
+        "tools/plugins/__init__.py",
+        "tools/plugins/skyemcp",
     ],
     "mcp": [
-        "tools/mcp_fastmcp.py",
+        "tools/plugins/fastmcp",
     ],
     # Store backends: one extra per backend (D99). The drivers are imported lazily through `missing_extra`, which names
-    # the extra, so `store/postgres.py` (three drivers) and `store/redis.py` (two) are attributed by those hints, not by its path.
+    # the extra, so `store/plugins/postgres/backend.py` (three drivers) and `store/plugins/redis/backend.py` (two) are attributed by those hints, not by its path.
     "memory": ["memory"],
     "redis": [],
     "valkey": [],

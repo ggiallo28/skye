@@ -71,6 +71,7 @@ NON_COMPONENT_TO_COMPONENT = {
     "data": "base",
     "dsl": "base",
     "interfaces": "base",
+    "plugins": "base",
 }
 
 

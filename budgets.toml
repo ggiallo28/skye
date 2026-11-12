@@ -50,6 +50,16 @@ max_cold_start_ms = 200             # best of 5, now about 56 on a laptop (was 3
 target_cold_start_ms = 100          # where the path should stay on a laptop
 runs = 5
 
+[prompts]
+# The time of `BasePromptBuilder()` in a fresh interpreter, the first one of the process (the cache of the compiled bundled templates is empty): the
+# builder registers the 40 bundled templates (their text and version) and compiles each at its first use (task 24.8, open decision O78). A
+# serverless handler that makes a builder pays this at every cold start. Measured on 2026-11-12: about 130 ms before (every bundled template compiled
+# at once, and the default filters read), 2.8 ms after (best of 10 on a laptop); the limit is 10 ms because a CI runner is slower and the test takes the
+# best of 10. The first compile of a template (0.5 ms for a small one, 3.5 ms for the largest) and the one-time load of the registrar for the filters
+# (about 17 ms, at the first render) are not in this number. Like the other budgets, this limit only goes down.
+max_builder_ms = 10                 # best of 10, now about 2.8 on a laptop (was about 130)
+runs = 10
+
 # D49: the core has no third-party import. A library that comes back must be listed here with its file count (target: empty).
 [imports.max_files]
 

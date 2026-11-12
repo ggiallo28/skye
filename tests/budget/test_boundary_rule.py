@@ -42,10 +42,10 @@ SDK_OWNERS: dict[str, tuple[str, ...]] = {
     "cohere": (),
     # boto3 drives two store backends (a store, not a model provider): DynamoDB and the RDS Data API driver of
     # PostgreSQL (decision D100).
-    "boto3": ("store/dynamodb.py", "store/postgres.py"),
-    "botocore": ("store/dynamodb.py", "store/postgres.py"),
-    "fastmcp": ("tools/mcp_fastmcp.py",),
-    "mcp": ("tools/mcp_fastmcp.py",),
+    "boto3": ("store/plugins/dynamodb/backend.py", "store/plugins/postgres/backend.py"),
+    "botocore": ("store/plugins/dynamodb/backend.py", "store/plugins/postgres/backend.py"),
+    "fastmcp": ("tools/plugins/fastmcp/client.py",),
+    "mcp": ("tools/plugins/fastmcp/client.py",),
 }
 # Import helpers that take a module name as the first string argument.
 IMPORT_CALLS = {"import_module", "missing_extra"}
@@ -168,7 +168,7 @@ def _sdk_shaped_response():
 
 def test_provider_response_is_skye_types_only():
     """The single boundary point (`_transform_response`) converts an SDK object to a Skye type."""
-    from skye.models.llm.openai import OpenAIProvider
+    from skye.models.plugins.openai.provider import OpenAIProvider
 
     result = OpenAIProvider(api_key="sk-test")._transform_response(_sdk_shaped_response())
     assert type(result).__module__.startswith("skye")
@@ -184,7 +184,7 @@ def test_models_public_port_returns_skye_types_only():
     """
     from skye.base.completion import CompleteRequest
     from skye.base.messages import UserMessage
-    from skye.models.llm.openai import OpenAIProvider
+    from skye.models.plugins.openai.provider import OpenAIProvider
 
     provider = OpenAIProvider(api_key="sk-test")
     provider._call_provider = Mock(return_value=_sdk_shaped_response())  # type: ignore[method-assign]
