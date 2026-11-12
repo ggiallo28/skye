@@ -42,4 +42,6 @@ make check
 make budget-fast
 ```
 
+**The changelog.** Add a line under `Unreleased` in [CHANGELOG.md](CHANGELOG.md) in your pull request, in the Added, Changed or Fixed group, in plain words.
+
 **The Claude skill.** The package ships a skill that teaches a model to use Skye (`src/skye/utils/claude_skill/skye/`: a minimal `SKILL.md`, one file per topic in `references/`, and `evals/`). If your change touches the `skye` command line (a command or an option), the `.skye` language (a keyword, a field, a block, a limit, what is version 2), the router strategies or fields, the public functions of `skye.base.dsl`, the short import paths or a project rule, update the matching reference **in the same pull request**, and add a prompt to `evals/evals.json` if a model could get the new rule wrong. `tests/unit/dsl/test_claude_skill.py` fails when the skill does not mention a command, option, field, keyword or public function that exists, so a missed update is caught by `uv run pytest`. Run `skye skill status` after an upgrade to see whether an installed copy is up to date; `skye skill install` updates a copy nobody edited.
