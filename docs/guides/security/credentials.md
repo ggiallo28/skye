@@ -100,7 +100,7 @@ The [`skye.auth`](../../reference/api/auth.md) package implements it for the doc
     )
     ```
 
-    `credentials=` takes any authenticator of `skye.auth.azure` (client secret, certificate, federated token, managed identity, the
+    `credentials=` takes any authenticator of `skye.auth.plugins.azure` (client secret, certificate, federated token, managed identity, the
     `az login` cache) or an API key; `api_key=` is a key. With neither, the client tries `AZURE_OPENAI_API_KEY`, then
     `AZURE_TENANT_ID` and `AZURE_CLIENT_ID` with `AZURE_FEDERATED_TOKEN_FILE`, `AZURE_CLIENT_SECRET` or
     `AZURE_CLIENT_CERTIFICATE_PATH`, then a managed identity (`IDENTITY_ENDPOINT`), then the `az login` cache.

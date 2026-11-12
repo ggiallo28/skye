@@ -26,7 +26,8 @@ This guide shows you how to load the Skye configuration from a JSON file, the en
 `${NAME}` is replaced by the environment variable `NAME` when the file is loaded, in the file and in the overrides. A variable that is
 not set raises `ConfigurationError` naming it.
 
-The file holds only the keys the library reads: `log_level`, `component_log_levels` and `correlation_id_header`. Any other key raises
+The file holds only the keys the library reads: `log_level`, `component_log_levels`, `correlation_id_header` and `plugins` (the installed
+plugins that may load; see [Which plugins load](../reference/configuration-keys.md#which-plugins-load)). Any other key raises
 `ConfigurationError` naming it, so a mistyped key is caught when the file loads instead of being ignored. Models and their keys are
 not configured here: they belong to the router (see [Aliases and fallbacks](routing/aliases-and-fallbacks.md)). The keys, their
 defaults and their meaning are in [Configuration keys](../reference/configuration-keys.md).

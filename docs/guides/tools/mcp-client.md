@@ -87,7 +87,8 @@ client = create_mcp_client("http://localhost:8000/mcp", impl="fastmcp")
 ```
 
 The choice is this argument only: no environment variable, no configuration entry, no automatic fallback. Without the extra,
-`impl="fastmcp"` raises `MissingExtraError` naming `mcp`; any other value of `impl` raises `ConfigurationError`.
+`impl="fastmcp"` raises `MissingExtraError` naming `mcp`; any name that is not registered raises `ConfigurationError` listing the registered ones. A plugin adds an implementation with
+`registrar.mcp_client("name", factory)`; the factory is called as `factory(target, headers=..., timeout=...)` and returns an `MCPClientInterface`.
 
 ## See also
 

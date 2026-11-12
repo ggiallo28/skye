@@ -154,6 +154,7 @@ nav:
           - skye.dsl: reference/api/dsl.md
           - skye.interfaces: reference/api/interfaces.md
           - skye.exceptions: reference/api/exceptions.md
+          - skye.plugins: reference/api/plugins.md
       - CLI: reference/cli.md
       - .skye language: reference/skye-language.md
       - Editor support: reference/editor.md

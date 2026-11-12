@@ -9,7 +9,7 @@ Exact descriptions, for looking things up.
 
 | Page | Contents |
 |---|---|
-| [Python API](api/skye.md) | Every public class and function, generated from the docstrings: [skye](api/skye.md), [models](api/models.md), [router](api/router.md), [prompts](api/prompts.md), [tools](api/tools.md), [store](api/store.md), [auth](api/auth.md), [dsl](api/dsl.md), [interfaces](api/interfaces.md), [exceptions](api/exceptions.md) |
+| [Python API](api/skye.md) | Every public class and function, generated from the docstrings: [skye](api/skye.md), [models](api/models.md), [router](api/router.md), [prompts](api/prompts.md), [tools](api/tools.md), [store](api/store.md), [auth](api/auth.md), [dsl](api/dsl.md), [interfaces](api/interfaces.md), [exceptions](api/exceptions.md), [plugins](api/plugins.md) |
 | [CLI](cli.md) | The `skye` command: `check`, `fmt`, `render`, `new`, `prompt`, `skill`, `vscode` |
 | [.skye language](skye-language.md) | Grammar, blocks, references, expressions and diagnostics |
 | [Editor support](editor.md) | The VS Code extension for `.skye` files |

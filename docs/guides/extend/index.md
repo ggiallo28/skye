@@ -56,6 +56,7 @@ to call concurrently. A test checks each built-in implementation against the Por
 | `DecisionModel` | decision model (choose among options) | `skye.models.JevDecisionModel` is the built-in one | `examples/models/decision_model.py` | implemented |
 | `DecisionResult` | data: the choice of a decision model | - | - | data |
 | `EventHandlerInterface` | lifecycle hooks of a run | the agent loop, by injection (planned) | `examples/observe/custom_exporter.py` | Port only |
+| `ExpiryStore` | store capability: is a key alive, and how many seconds it has left | a store backend (every built-in backend has it) | - | implemented |
 | `EventType` | data: the names of the observability events | - | - | data |
 | `KeyValueStore` | store capability: values by key with expiry | `skye.store.register_backend` | `examples/store/custom_backend.py` | implemented |
 | `MemoryEntryLike` | data: the shape of a memory entry | - | - | data |
@@ -66,13 +67,13 @@ to call concurrently. A test checks each built-in implementation against the Por
 | `ModelSelectionInterface` | router role: register, select, complete | part of `ModelRouterInterface` | `examples/routing/basic_routing.py` | implemented |
 | `ObserverInterface` | telemetry exporter: events, metrics, traces | the runtime, by injection (planned `observe`) | `examples/observe/telemetry.py` | Port only |
 | `OutputSchema` | data: the output JSON Schema of a prompt | - | - | data |
-| `PluginInterface` | plugin | none yet | - | Port only |
 | `PromptBuilderInterface` | prompt builder: rendering, registry and schema together | `skye.prompts.BasePromptBuilder` is the built-in one | `examples/advanced/prompt_engineering.py` | implemented |
 | `PromptParts` | data: a rendered prompt (system text, messages, output schema) | - | - | data |
 | `PromptRegistryInterface` | prompt role: templates and defaults | part of `PromptBuilderInterface` | `examples/advanced/prompt_engineering.py` | implemented |
 | `PromptRenderingInterface` | prompt role: rendering | part of `PromptBuilderInterface` | `examples/advanced/prompt_engineering.py` | implemented |
 | `PromptSchemaInterface` | prompt role: output schema and validation | part of `PromptBuilderInterface` | `examples/advanced/prompt_engineering.py` | implemented |
 | `ProviderRegistryInterface` | provider registry | `skye.models.ProviderRegistry` is the built-in one | `examples/advanced/custom_providers.py` | implemented |
+| `RegistrarInterface` | registrar: one method per kind of integration, which a plugin calls | the default registrar (planned, `0-base-plugins`) | `examples/plugins/model_provider.py` | Port only |
 | `Resource` | data: a resource read by URI | - | - | data |
 | `ResourceProviderInterface` | resource source: list, read by URI | every MCP client is one (`skye.tools.create_mcp_client`) | `examples/tools/mcp_prompts_and_resources.py` | implemented |
 | `RouterConfigurationInterface` | router role: strategy, fallbacks, policies | part of `ModelRouterInterface` | `examples/routing/basic_routing.py` | implemented |

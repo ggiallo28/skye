@@ -66,13 +66,27 @@ Provider credentials never come from a `SKYE_` variable. Each provider reads its
 | `log_level` | string | `"INFO"` | `SKYE_LOG_LEVEL` | level of the `skye` logger |
 | `component_log_levels` | map of string | `{}` | | level per component, for example `{"router": "DEBUG"}`; a component not listed uses `log_level`; an unknown level raises an error |
 | `correlation_id_header` | string | `"X-Correlation-ID"` | | HTTP header that carries the correlation id of an invocation |
+| `plugins` | list of string | none (every plugin may load) | | the entry points of the group `skye.plugins` that may load; a plugin not listed is never imported; `[]` lets none load; an entry that is not a non-empty string raises an error |
 
-These are all the keys. A key that no code reads is not a key: it comes back only with the code that reads it. Model, routing, retry
+These are all the keys. A key that no code reads is not a key: it comes back only with the code that reads it (`plugins` is read by the
+scan of installed plugins). Model, routing, retry
 and rate-limit settings are not configured here: they belong to the router, written as a `router` block in a `.skye` file.
 
 `skye.load_config` sets the log levels for you. A configuration built with `ConfigLoader` (below) does not touch the loggers: call
 `config.apply_log_levels()` to set the level of the `skye` logger and of each listed `skye.<component>` logger.
 `config.level_for("router")` returns the level one component uses.
+
+## Which plugins load
+
+An installed plugin (a package that declares an entry point in the group `skye.plugins`) is found the first time Skye looks up a name it does not
+know, and never at `import skye`. By default every installed plugin may load. To limit that, list the entry-point names you want:
+
+```json
+{"plugins": ["acme", "weather"]}
+```
+
+An entry point that is not in the list is not imported at all; a name in the list that is not installed is not an error. The file is read for this
+the same way `skye.load_config` reads it (the path in `SKYE_CONFIG`), but reading it for the plugins changes no logger level.
 
 ## A complete file
 
@@ -80,7 +94,8 @@ and rate-limit settings are not configured here: they belong to the router, writ
 {
   "log_level": "INFO",
   "component_log_levels": {"router": "DEBUG", "tools": "WARNING"},
-  "correlation_id_header": "X-Request-ID"
+  "correlation_id_header": "X-Request-ID",
+  "plugins": ["acme"]
 }
 ```
 

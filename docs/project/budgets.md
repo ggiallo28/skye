@@ -31,12 +31,15 @@ Provider SDKs and optional libraries are imported inside the function that uses 
 | Each extra: size added over the core, compiled packages added | `test_footprint_budget.py` | `uv`, network |
 | Serverless profile (core + `bedrock`) stays far below the 250 MB Lambda limit | `test_footprint_budget.py` | `uv`, network |
 | Tokens Skye adds to what the caller wrote, on a direct model call (reported in the job summary, not enforced yet) | `test_token_overhead.py` | nothing |
+| Size of the package by component and by kind (code, docstrings, comments, data); reports and never enforces | `size_report.py`, `test_size_report.py` | nothing (`--source`), `uv` (wheel) |
+| The wheel has no comment: `hatch_build.py` strips the comments of the Python files and of the bundled templates at build (same AST, same line numbers, same objects); the repository, the sdist and an editable install keep them; the wheel packs the templates into one reproducible `templates.zip` that the loader reads by name (`test_wheel_templates_archive.py`) | `test_wheel_comments.py` | `uv` |
 
 Run them:
 
 ```bash
 make budget-fast    # policy and import checks, a second
 make budget         # installs Skye in clean environments, about a minute
+make size           # where the bytes are, by component and by kind; run it at the end of a wave
 ```
 
 Sizes exclude the libraries Lambda already ships. Time is the best of five fresh interpreters. Measurements were taken on Python 3.13; the workflow runs the fast checks on 3.11 (the minimum, D49) and 3.13 and the footprint checks on 3.13.

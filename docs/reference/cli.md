@@ -17,9 +17,10 @@ files and reads no network.
 | [`skye fmt`](#skye-fmt) | rewrite `.skye` files in the standard layout, keeping comments and strings |
 | [`skye render`](#skye-render) | draw a flow or a router as a Mermaid diagram |
 | [`skye new`](#skye-new) | print or write a starting `.skye` file |
-| [`skye prompt`](#skye-prompt) | list the bundled prompts, or show what a prompt takes and gives back |
+| [`skye prompt`](#skye-prompt) | list the bundled prompts, show what a prompt takes and gives back, or copy them to a folder |
 | [`skye skill`](#skye-skill) | install or print the Claude Code skill that teaches Skye |
 | [`skye vscode`](#skye-vscode) | build or install the VS Code extension for `.skye` |
+| [`skye plugins`](#skye-plugins) | list the built-in registrations and the installed plugins |
 
 ## Exit codes
 
@@ -149,6 +150,7 @@ skye new flow my_flow --template loop -o my_flow.skye
 ```text
 skye prompt list [--json]
 skye prompt info [--name PROMPT] [--json] NAME|FILE
+skye prompt export [--force] DIR
 ```
 
 `list` prints the bundled prompts: name, title, version and description. `info` describes one prompt: its inputs with their types,
@@ -168,7 +170,10 @@ cannot be read, or it has no prompt of that name.
 skye prompt list
 skye prompt info structured_output_json
 skye prompt info prompts.skye --name summarize --json
+skye prompt export my-prompts
 ```
+
+`export` writes every bundled prompt as a `.skye` file into `DIR`, creating it, so you can copy one and edit it. It refuses to replace a file that is already there (exit `2`, nothing is written) unless you pass `--force`. An installed package keeps the prompts in one `templates.zip` without comments, so a prompt exported from it has no comments; a source checkout exports the files as they are. `list` and `info` work the same in both cases.
 
 From Python, `skye.prompts.describe_prompt` and `skye.prompts.prompt_help` give the same description.
 
@@ -203,6 +208,32 @@ Exit codes: `0` done, `1` `status` found the skill not up to date, `2` an unknow
 ```bash
 skye skill install --scope project
 skye skill status
+```
+
+## skye plugins
+
+```text
+skye plugins [--format {text,json}]
+```
+
+Lists what is registered, for each kind of integration (the kinds of the registrar: `provider`, `backend`, `agent`, `toolkit` and the
+others), and the plugins installed in the entry-point group `skye.plugins`. The command runs the scan of the group, so an installed
+plugin is imported as it is when a lookup misses, and the list shows what each one registered.
+
+For each entry point it prints the name, the distribution and its version, and one state: `loaded`, `failed` (with the error) or
+`skipped` (the `plugins` key of the configuration file did not list it, so it was not imported).
+
+| Option | Meaning |
+|---|---|
+| `--format text` | a readable list (the default) |
+| `--format json` | one JSON object: `builtin` (kind to the sorted names) and `entry_points` (a list of objects with `name`, `distribution`, `version`, `loaded`, `skipped`, `error`, `registered`) |
+
+Exit codes: `0` printed, also when an entry point failed (the failure is in the output), `2` the configuration file cannot be read
+or its `plugins` key is not a list of names, or a wrong option.
+
+```bash
+skye plugins
+skye plugins --format json
 ```
 
 ## skye vscode

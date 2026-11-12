@@ -21,7 +21,8 @@ storage can do:
 | Port | Methods | Required |
 |---|---|---|
 | `KeyValueStore` | `get`, `set`, `delete`, `get_multiple`, `set_multiple` | yes |
-| `CounterStore` | `increment(key, amount=1, ttl=None)`, atomic | for the router |
+| `CounterStore` | `increment(key, amount=1, ttl=None)`, atomic, and `count(key)`, a read | for the router |
+| `ExpiryStore` | `is_alive(key)` and `remaining(key)`, the seconds left (rounded up; `None` when absent, expired or without expiry) | for the router cooldown |
 | `ScanStore` | `keys(prefix="", limit=None)` | only if your storage can list keys |
 
 `StorageBackend` is key-value plus counter, as an abstract base class: subclass it, and add `ScanStore` when you implement `keys`.
@@ -45,6 +46,8 @@ The promises your backend must keep, the same for every backend:
 - `set_multiple` with one invalid key writes nothing.
 - `increment` is atomic across concurrent tasks (and across processes, for an external store), starts an absent or expired key at 0,
   accepts a negative amount, stores `{"count": n}` and returns `n`.
+- `count(key)` returns the current count as an `int`, `0` when the key is absent or expired. It only reads: it never creates the key and never
+  moves its expiry, and it validates the key like the other methods. A backend with `increment` and no `count` is refused by `check_backend`.
 - `keys` returns the live keys that start with the prefix, sorted, at most `limit` of them; `%`, `_`, `*`, `?` and `[` in the prefix
   match literally.
 - When the storage cannot be reached, raise `ProviderError`.
@@ -76,10 +79,10 @@ from skye.store import InMemoryBackend, check_backend
 
 
 def test_my_backend_conforms() -> None:
-    assert asyncio.run(check_backend(lambda clock: InMemoryBackend(clock=clock))) == ["key_value", "counter", "scan"]
+    assert asyncio.run(check_backend(lambda clock: InMemoryBackend(clock=clock))) == ["key_value", "counter", "expiry", "scan"]
 ```
 
-Replace `InMemoryBackend` with your class. The counter check runs 50 concurrent increments and expects no lost update. A backend that
+Replace `InMemoryBackend` with your class. The counter check runs 50 concurrent increments and expects no lost update, checks `count` (absent, after increments, after the expiry) and, for `ExpiryStore`, `is_alive` and `remaining` (absent, no expiry, the time left, expired). A backend that
 keeps time on its server (Redis does) passes the clock to a fake client in its test instead.
 
 ## See also
