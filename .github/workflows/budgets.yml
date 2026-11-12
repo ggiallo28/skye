@@ -30,6 +30,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
+          save-cache: false
       - run: uv python install ${{ matrix.python }}
       - run: uv sync --group dev --locked --python ${{ matrix.python }}
       - name: Dependency policy, import audit, import leaks, token overhead
@@ -62,6 +63,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
+          save-cache: false
       - run: uv python install 3.13
       - run: uv sync --group dev --locked --python 3.13
       - name: Install into clean environments and measure

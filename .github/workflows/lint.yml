@@ -29,6 +29,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
+          save-cache: false
       - run: uv python install 3.13
       - run: uv sync --group dev --locked --python 3.13
       - name: ruff

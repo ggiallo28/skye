@@ -29,6 +29,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
+          save-cache: ${{ matrix.python == '3.13' }}  # the one job that saves the cache; the others only restore it
       - run: uv python install ${{ matrix.python }}
       - run: uv sync --group dev --locked --python ${{ matrix.python }}
       - name: Tests
