@@ -1,0 +1,38 @@
+name: lint
+
+# Syntax and style checks (ruff and black, configured in pyproject.toml).
+# They run on the paths that are clean today; add a path here when it is, and the list only grows.
+# The rest of the repository has not been formatted yet, so it is not checked.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  LINTED: examples/plugins
+
+jobs:
+  lint:
+    name: ruff and black
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+          save-cache: false
+      - run: uv python install 3.13
+      - run: uv sync --group dev --locked --python 3.13
+      - name: ruff
+        run: uv run --python 3.13 ruff check $LINTED
+      - name: black
+        run: uv run --python 3.13 black --check $LINTED

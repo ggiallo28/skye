@@ -133,6 +133,7 @@ four optional services (the import-matrix test).
 ## Open points (not decided here)
 - ~~**O11**~~ settled by D84, D86, D90: `AgentLoop` and `Agent`, the operation list (a streaming-chunk hook), streaming hooks per chunk or per response, the defaults for retry limit, hook time limit, maximum steps and consecutive failures, and the budget values: the design leaves these as arguments.
 - **O12** who writes the operation description: an argument of the agent in this design.
+- **O73** how a user finds out what hooks exist and what each hook point receives and may return (`list_hooks()`, `describe_hook(name)`, and a payload table per point): open in `.kiro/steering/12-decisions.md`.
 - ~~**O13**~~ settled by D85: for a tool failure per error type and whether checkpointing is on by default in Lambda: returned to the model and opt-in until settled.
 - Requirement 43.4 (the library provides a scripted model) against D38 (the demo model lives only in `examples/`): needs a steering decision before the fixture moves into the package.
 - Whether `ReActAgent` of the registry becomes the default `Agent` or a separate type.

@@ -154,9 +154,9 @@ accepts custom pricing for private models (Requirement 19.2).
 ### Decision model (Jev)
 
 The `decision` Port in `base/interfaces/decision.py` takes a finite option set and returns one choice with a probability per
-option (each in 0..1, summing to 1; an empty set is rejected). The implementation, Jev, belongs at `models/decision/jev.py`
+option (each in 0..1, summing to 1; an empty set is rejected). The implementation, Jev, belongs at `models/plugins/typesafe/decision.py`
 and is consumed by `gateway`, `router` and `guard` (design "DecisionModel (Jev)"; Requirement 9.8). It is built
-(`models/decision/jev.py`, `JevDecisionModel`); its selector in the gateway moves with open decision O19 (D89).
+(`models/plugins/typesafe/decision.py`, `JevDecisionModel`); its selector in the gateway moves with open decision O19 (D89).
 
 ### Lazy loading and packaging
 

@@ -1,6 +1,7 @@
 name: release
 
 # Publishes skyeai to PyPI when a version tag (v*) is pushed.
+# Builds, tests the wheel (unit and integration tests against the installed wheel, and the installed `skye` command), then publishes.
 # Needs the repository secret PYPI_API_TOKEN (Settings > Secrets and variables > Actions).
 # Until the secret is set, the publish step fails and nothing is uploaded.
 
@@ -14,10 +15,10 @@ permissions:
 jobs:
   publish:
     name: build and publish
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
       - name: Check the tag matches the package version
         run: |
           version=$(uv run --no-project python -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
@@ -27,6 +28,23 @@ jobs:
           fi
       - name: Build
         run: uv build
+      - name: Test the wheel and the skye command
+        # The unit and integration tests run against the wheel that is about to be published: the dev tools come from the lock
+        # file, the project itself is not installed, so `skye` can only come from the wheel (a file missing from it fails here).
+        run: |
+          uv python install 3.13
+          uv sync --group dev --locked --no-install-project --python 3.13
+          uv pip install --python .venv/bin/python --no-deps dist/*.whl
+          .venv/bin/python -c "import skye; assert 'site-packages' in skye.__file__, skye.__file__; print(skye.__file__)"
+          .venv/bin/python -m pytest tests/unit tests/integration -q -p no:cacheprovider -m "not stress and not budget and not differential"
+          # The installed `skye` command (the entry point of the wheel), which the in-process tests do not start.
+          .venv/bin/skye --help > /dev/null
+          .venv/bin/skye new --list
+          .venv/bin/skye new prompt demo -o "$RUNNER_TEMP/demo.skye"
+          .venv/bin/skye check "$RUNNER_TEMP/demo.skye"
+          .venv/bin/skye prompt list > /dev/null
+          .venv/bin/skye plugins
+          .venv/bin/skye plugins --format json > /dev/null
       - name: Publish to PyPI
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}

@@ -52,9 +52,6 @@ dmypy.json
 .DS_Store
 Thumbs.db
 
-# uv
-uv.lock
-
 # local working prompts for Kiro (not committed)
 .kiro/prompts/
 
