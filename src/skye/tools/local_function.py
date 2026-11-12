@@ -5,6 +5,8 @@ functions as capabilities that can be invoked by LLMs.
 """
 
 import asyncio
+import copy
+import dataclasses
 import inspect
 import logging
 import re
@@ -34,6 +36,9 @@ class LocalFunctionCapability(CapabilityInterface):
     Google-style ``Args:`` section of the docstring. Logs carry the capability name and the
     outcome, never the call arguments (they may hold personal data).
 
+    On a method of a class the capability is a descriptor: read through an instance it is bound to that
+    instance (``self`` is not part of the schema), see :meth:`__get__`.
+
     Attributes:
         func: The wrapped Python function
         name: The capability name (defaults to function name)
@@ -62,6 +67,7 @@ class LocalFunctionCapability(CapabilityInterface):
         name: str | None = None,
         description: str | None = None,
         schema_override: CapabilitySchema | None = None,
+        return_direct: bool = False,
     ) -> None:
         """Initialize LocalFunctionCapability.
 
@@ -72,9 +78,13 @@ class LocalFunctionCapability(CapabilityInterface):
                 (defaults to first line of function docstring)
             schema_override: Optional complete schema override. If provided,
                 this schema will be used instead of extracting from the function.
+            return_direct: ``True`` when the result of this capability is the answer of the agent and the
+                model is not asked again (Requirement 62.3). The default is ``False``. It is only stored
+                and put on the schema: the loop that uses it is the agents spec. With a
+                ``schema_override`` the flag is ``True`` when either the argument or the override says so.
 
         Raises:
-            CapabilityValidationError: If func is not callable
+            CapabilityValidationError: If func is not callable, or ``return_direct`` is not a bool
         """
         if not callable(func):
             raise CapabilityValidationError(
@@ -82,12 +92,59 @@ class LocalFunctionCapability(CapabilityInterface):
                 capability_name=name or "<unknown>",
             )
 
+        if not isinstance(return_direct, bool):
+            raise CapabilityValidationError(
+                f"return_direct must be a bool, got {type(return_direct).__name__}",
+                capability_name=name or getattr(func, "__name__", "<unknown>"),
+            )
         self.func = func
+        self._return_direct = return_direct
         # With a schema override the capability is known by the overridden name, errors included
         self._name = schema_override.name if schema_override else (name or func.__name__)
         self._description = description or self._extract_docstring(func)
         self._schema_override = schema_override
         self._is_async = inspect.iscoroutinefunction(func)
+
+    def __get__(
+        self, instance: object | None, owner: type | None = None
+    ) -> "LocalFunctionCapability":
+        """Bind the capability to the object it is read from, so that ``@capability`` works on a method.
+
+        Read through the class, or on a function whose first parameter is neither ``self`` nor ``cls``, it is
+        this same capability, as before. Read through an instance, a capability whose first parameter is
+        ``self`` comes back bound to that instance, and one whose first parameter is ``cls`` is bound to the
+        class. The bound capability is a new object on every read, as a bound method is; its schema, its
+        parameter descriptions and the validation of the arguments never show ``self`` or ``cls``. A
+        ``staticmethod`` that holds a capability is not bound (Python returns what it holds), so a function
+        written outside a class and added with ``staticmethod(...)`` stays a free function.
+
+        Args:
+            instance: The object the capability is read from, or ``None`` when it is read through the class.
+            owner: The class it is read from.
+
+        Returns:
+            This capability, or a copy of it bound to ``instance`` (or to its class for ``cls``).
+        """
+        if instance is None:
+            return self
+        first = self._first_parameter()
+        if first == "self":
+            target: object = instance
+        elif first == "cls":
+            target = owner if owner is not None else type(instance)
+        else:
+            return self
+        bound = copy.copy(self)
+        bound.func = types.MethodType(self.func, target)
+        return bound
+
+    def _first_parameter(self) -> str | None:
+        """The name of the first parameter of the wrapped function, or ``None`` when it has none."""
+        try:
+            parameters = list(inspect.signature(self.func).parameters)
+        except (TypeError, ValueError):
+            return None
+        return parameters[0] if parameters else None
 
     def get_schema(self) -> CapabilitySchema:
         """Get the schema for this capability.
@@ -103,6 +160,8 @@ class LocalFunctionCapability(CapabilityInterface):
             CapabilityValidationError: If schema extraction fails
         """
         if self._schema_override:
+            if self._return_direct and not self._schema_override.return_direct:
+                return dataclasses.replace(self._schema_override, return_direct=True)
             return self._schema_override
 
         try:
@@ -116,6 +175,7 @@ class LocalFunctionCapability(CapabilityInterface):
                 description=self._description or "No description provided",
                 parameters=parameters,
                 returns=returns,
+                return_direct=self._return_direct,
             )
         except Exception as e:
             raise CapabilityValidationError(

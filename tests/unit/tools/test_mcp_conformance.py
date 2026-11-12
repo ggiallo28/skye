@@ -3,7 +3,7 @@
 * 1.3: the capability data types are validated dataclasses, not pydantic, and invalid data raises ``ValidationError`` with the field.
 * 6.1: ``Resource`` and its Port live in ``base``; every MCP client implements the resource Port.
 * 6.2: the MCP prompt facet returns ``base`` messages; ``tools`` imports no ``prompts`` module and implements no prompt Port.
-* 6.3: ``fastmcp`` is imported only by ``tools/mcp_fastmcp.py``; the legacy probes are gone.
+* 6.3: ``fastmcp`` is imported only by ``tools/plugins/fastmcp/client.py``; the legacy probes are gone.
 """
 
 from __future__ import annotations
@@ -26,7 +26,8 @@ from skye.base.interfaces.resource import ResourceProviderInterface
 from skye.base.messages import AssistantMessage, SkyeMessage, UserMessage
 from skye.base.validated import Validated
 from skye.tools import CapabilityCall, CapabilityResult, CapabilitySchema, Resource
-from skye.tools.mcp_client import BuiltinMCPClient, MCPClientInterface
+from skye.tools.mcp_client import MCPClientInterface
+from skye.tools.plugins.skyemcp import SkyeMCPClient
 from skye.utils.validation import port_signature_mismatches
 
 TOOLS_DIR = Path(skye.tools.__file__).resolve().parent
@@ -46,7 +47,11 @@ def _imports(path: Path) -> set[str]:
 
 
 def test_no_module_of_tools_imports_pydantic():
-    offenders = [p.name for p in TOOLS_DIR.glob("*.py") if any(n.split(".")[0] == "pydantic" for n in _imports(p))]
+    offenders = [
+        p.name
+        for p in TOOLS_DIR.rglob("*.py")
+        if any(n.split(".")[0] == "pydantic" for n in _imports(p))
+    ]
     assert not offenders
 
 
@@ -60,7 +65,10 @@ def test_capability_types_are_validated_dataclasses(cls: type):
 @pytest.mark.parametrize(
     "build,field",
     [
-        (lambda: CapabilitySchema(name="x", description="d", parameters="not a dict"), "parameters"),
+        (
+            lambda: CapabilitySchema(name="x", description="d", parameters="not a dict"),
+            "parameters",
+        ),
         (lambda: CapabilityCall(id="1", name="x", arguments=[1]), "arguments"),
         (lambda: CapabilityResult(capability_call_id=3, name="x"), "capability_call_id"),
     ],
@@ -85,10 +93,10 @@ def test_resource_is_the_base_type_everywhere():
 
 def test_every_mcp_client_implements_the_resource_port():
     assert issubclass(MCPClientInterface, ResourceProviderInterface)
-    client = BuiltinMCPClient("http://localhost:1/mcp")
+    client = SkyeMCPClient("http://localhost:1/mcp")
     assert isinstance(client, ResourceProviderInterface)
-    assert port_signature_mismatches(BuiltinMCPClient, ResourceProviderInterface) == []
-    from skye.tools.mcp_fastmcp import FastMCPClient  # importing it never imports fastmcp
+    assert port_signature_mismatches(SkyeMCPClient, ResourceProviderInterface) == []
+    from skye.tools.plugins.fastmcp import FastMCPClient  # importing it never imports fastmcp
 
     assert port_signature_mismatches(FastMCPClient, ResourceProviderInterface) == []
 
@@ -127,7 +135,7 @@ async def test_a_plain_class_satisfies_the_resource_port():
 
 
 async def test_get_prompt_returns_base_messages(monkeypatch: pytest.MonkeyPatch):
-    client = BuiltinMCPClient("http://localhost:1/mcp")
+    client = SkyeMCPClient("http://localhost:1/mcp")
     reply = {
         "messages": [
             {"role": "user", "content": {"type": "text", "text": "hi"}},
@@ -137,23 +145,32 @@ async def test_get_prompt_returns_base_messages(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setattr(client, "_rpc", lambda method, params=None: reply)
     messages = await client.get_prompt("greet", {"who": "bob"})
     assert [type(m) for m in messages] == [UserMessage, AssistantMessage]
-    assert all(isinstance(m, SkyeMessage) and type(m).__module__ == "skye.base.messages" for m in messages)
-    assert inspect.signature(MCPClientInterface.get_prompt).return_annotation in ("list[SkyeMessage]", list[SkyeMessage])
+    assert all(
+        isinstance(m, SkyeMessage) and type(m).__module__ == "skye.base.messages" for m in messages
+    )
+    assert inspect.signature(MCPClientInterface.get_prompt).return_annotation in (
+        "list[SkyeMessage]",
+        list[SkyeMessage],
+    )
 
 
 def test_tools_imports_no_prompts_module():
     offenders = [
         f"{p.name}: {name}"
-        for p in TOOLS_DIR.glob("*.py")
+        for p in TOOLS_DIR.rglob("*.py")
         for name in _imports(p)
-        if name == "skye.prompts" or name.startswith("skye.prompts.") or name == "skye.base.interfaces.prompt"
+        if name == "skye.prompts"
+        or name.startswith("skye.prompts.")
+        or name == "skye.base.interfaces.prompt"
     ]
     assert not offenders
 
 
 def test_no_tools_class_implements_a_prompt_port():
     prompt_ports = tuple(
-        getattr(interfaces, n) for n in interfaces.__all__ if n.startswith("Prompt") and n.endswith("Interface")
+        getattr(interfaces, n)
+        for n in interfaces.__all__
+        if n.startswith("Prompt") and n.endswith("Interface")
     )
     assert prompt_ports
     found = []
@@ -163,7 +180,11 @@ def test_no_tools_class_implements_a_prompt_port():
         except ImportError:  # pragma: no cover - every tools module imports without an extra
             continue
         for name, obj in vars(module).items():
-            if inspect.isclass(obj) and obj.__module__ == info.name and issubclass(obj, prompt_ports):
+            if (
+                inspect.isclass(obj)
+                and obj.__module__ == info.name
+                and issubclass(obj, prompt_ports)
+            ):
                 found.append(f"{info.name}.{name}")
     assert not found
 
@@ -171,12 +192,14 @@ def test_no_tools_class_implements_a_prompt_port():
 # --- 6.3: the legacy probes are gone ------------------------------------------------------------------------------------
 
 
-def test_only_mcp_fastmcp_imports_fastmcp():
+def test_only_the_fastmcp_client_imports_fastmcp():
     for legacy in ("mcp_capability", "mcp_server_client"):
         assert not (TOOLS_DIR / f"{legacy}.py").exists()
         with pytest.raises(ImportError):
             importlib.import_module(f"skye.tools.{legacy}")
     importers = sorted(
-        p.name for p in TOOLS_DIR.glob("*.py") if any(n.split(".")[0] == "fastmcp" for n in _imports(p))
+        str(p.relative_to(TOOLS_DIR))
+        for p in TOOLS_DIR.rglob("*.py")
+        if any(n.split(".")[0] == "fastmcp" for n in _imports(p))
     )
-    assert importers in ([], ["mcp_fastmcp.py"])
+    assert importers in ([], ["plugins/fastmcp/client.py"])

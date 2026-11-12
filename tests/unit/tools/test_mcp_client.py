@@ -22,14 +22,21 @@ from skye.base.messages import AssistantMessage, UserMessage
 from skye.tools import mcp_boundary as b
 from skye.tools.exceptions import CapabilityExecutionError
 from skye.base.interfaces.capability import CapabilityInterface
-from skye.tools.mcp_client import BuiltinMCPClient, create_mcp_client
+from skye.tools.mcp_client import create_mcp_client
+from skye.tools.plugins.skyemcp import SkyeMCPClient
 from skye.tools.mcp_resource import Resource
 
 TOOLS = [
-    {"name": "add", "description": "Add", "inputSchema": {"type": "object", "properties": {"a": {"type": "integer"}}}},
+    {
+        "name": "add",
+        "description": "Add",
+        "inputSchema": {"type": "object", "properties": {"a": {"type": "integer"}}},
+    },
     {"name": "boom", "inputSchema": {"type": "object"}},
 ]
-PROMPTS = [{"name": "greet", "description": "Greet", "arguments": [{"name": "who", "required": True}]}]
+PROMPTS = [
+    {"name": "greet", "description": "Greet", "arguments": [{"name": "who", "required": True}]}
+]
 RESOURCES = [{"uri": "file:///a.txt", "name": "a", "mimeType": "text/plain"}]
 
 
@@ -45,15 +52,22 @@ def _handle(method, params):
     if method == "prompts/list":
         return {"prompts": PROMPTS}
     if method == "prompts/get":
-        return {"messages": [
-            {"role": "user", "content": {"type": "text", "text": f"hi {params['arguments']['who']}"}},
-            {"role": "assistant", "content": {"type": "text", "text": "ok"}},
-        ]}
+        return {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": {"type": "text", "text": f"hi {params['arguments']['who']}"},
+                },
+                {"role": "assistant", "content": {"type": "text", "text": "ok"}},
+            ]
+        }
     if method == "resources/list":
         return {"resources": RESOURCES}
     if method == "resources/read":
         if params["uri"].endswith("bin"):
-            return {"contents": [{"uri": params["uri"], "blob": base64.b64encode(b"\x00\x01").decode()}]}
+            return {
+                "contents": [{"uri": params["uri"], "blob": base64.b64encode(b"\x00\x01").decode()}]
+            }
         return {"contents": [{"uri": params["uri"], "mimeType": "text/plain", "text": "hello"}]}
     raise KeyError(method)
 
@@ -70,9 +84,17 @@ def server():
             req = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
             state.seen.append((req, dict(self.headers)))
             try:
-                msg = {"jsonrpc": "2.0", "id": req["id"], "result": _handle(req["method"], req.get("params"))}
+                msg = {
+                    "jsonrpc": "2.0",
+                    "id": req["id"],
+                    "result": _handle(req["method"], req.get("params")),
+                }
             except KeyError:
-                msg = {"jsonrpc": "2.0", "id": req["id"], "error": {"code": -32601, "message": "nope"}}
+                msg = {
+                    "jsonrpc": "2.0",
+                    "id": req["id"],
+                    "error": {"code": -32601, "message": "nope"},
+                }
             body = json.dumps(msg)
             ctype = "application/json"
             if state.sse:
@@ -94,9 +116,9 @@ def server():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("sse", [False, True])
-async def test_builtin_three_facets(server, sse):
+async def test_skyemcp_three_facets(server, sse):
     server.sse = sse
-    c = BuiltinMCPClient(server.url, headers={"Authorization": "Bearer x"})
+    c = SkyeMCPClient(server.url, headers={"Authorization": "Bearer x"})
     tools = await c.list_tools()  # follows nextCursor
     assert [t.get_schema().name for t in tools] == ["add", "boom"]
     assert all(isinstance(t, CapabilityInterface) for t in tools)
@@ -112,7 +134,9 @@ async def test_builtin_three_facets(server, sse):
     assert isinstance(msgs[0], UserMessage) and msgs[0].content == "hi bob"
     assert isinstance(msgs[1], AssistantMessage)
 
-    assert await c.list_resources() == [Resource(uri="file:///a.txt", name="a", mime_type="text/plain")]
+    assert await c.list_resources() == [
+        Resource(uri="file:///a.txt", name="a", mime_type="text/plain")
+    ]
     assert (await c.read_resource("file:///a.txt")).text == "hello"
     assert (await c.read_resource("file:///x.bin")).data == b"\x00\x01"
     assert server.seen[0][1]["Authorization"] == "Bearer x"
@@ -120,12 +144,12 @@ async def test_builtin_three_facets(server, sse):
 
 
 @pytest.mark.asyncio
-async def test_builtin_rpc_error_and_transport(server):
-    c = BuiltinMCPClient(server.url)
+async def test_skyemcp_rpc_error_and_transport(server):
+    c = SkyeMCPClient(server.url)
     with pytest.raises(ProviderError, match="nope"):
         await asyncio_to(c, "bogus/method")
     with pytest.raises(ProviderError):
-        await BuiltinMCPClient("http://127.0.0.1:1/x", timeout=1).list_prompts()
+        await SkyeMCPClient("http://127.0.0.1:1/x", timeout=1).list_prompts()
 
 
 async def asyncio_to(c, method):
@@ -136,10 +160,10 @@ async def asyncio_to(c, method):
 
 def test_empty_url_and_unknown_impl():
     with pytest.raises(ConfigurationError):
-        BuiltinMCPClient(" ")
+        SkyeMCPClient(" ")
     with pytest.raises(ConfigurationError):
         create_mcp_client("http://x", impl="nope")
-    assert isinstance(create_mcp_client("http://x"), BuiltinMCPClient)
+    assert isinstance(create_mcp_client("http://x"), SkyeMCPClient)
 
 
 # --- boundary ------------------------------------------------------------------------------
@@ -156,15 +180,31 @@ def test_empty_url_and_unknown_impl():
         (b.to_prompt, {"name": "p", "arguments": [{"required": True}]}, "PromptArgument.name"),
         (b.to_prompt, {"name": "p", "arguments": "x"}, "Prompt.arguments"),
         (b.to_prompt_messages, {}, "GetPromptResult.messages"),
-        (b.to_prompt_messages, {"messages": [{"role": "system", "content": {"type": "text", "text": "x"}}]}, "PromptMessage.role"),
+        (
+            b.to_prompt_messages,
+            {"messages": [{"role": "system", "content": {"type": "text", "text": "x"}}]},
+            "PromptMessage.role",
+        ),
         (b.to_prompt_messages, {"messages": [{"role": "user"}]}, "PromptMessage.content"),
-        (b.to_prompt_messages, {"messages": [{"role": "user", "content": {"type": "image"}}]}, "PromptMessage.content.type"),
-        (b.to_prompt_messages, {"messages": [{"role": "user", "content": {"type": "text"}}]}, "PromptMessage.content.text"),
+        (
+            b.to_prompt_messages,
+            {"messages": [{"role": "user", "content": {"type": "image"}}]},
+            "PromptMessage.content.type",
+        ),
+        (
+            b.to_prompt_messages,
+            {"messages": [{"role": "user", "content": {"type": "text"}}]},
+            "PromptMessage.content.text",
+        ),
         (b.to_resource, {"name": "n"}, "Resource.uri"),
         (b.to_resource, {"uri": "u"}, "Resource.name"),
         (b.to_resource, {"uri": "u", "name": "n", "mimeType": 1}, "Resource.mimeType"),
         (b.to_read_resource, {"contents": [{"uri": "u"}]}, "ResourceContents.text"),
-        (b.to_read_resource, {"contents": [{"uri": "u", "text": "a", "blob": "AA=="}]}, "ResourceContents.text"),
+        (
+            b.to_read_resource,
+            {"contents": [{"uri": "u", "text": "a", "blob": "AA=="}]},
+            "ResourceContents.text",
+        ),
         (b.to_read_resource, {"contents": [{"uri": "u", "blob": "!!"}]}, "ResourceContents.blob"),
         (b.to_read_resource, {"contents": []}, "ReadResourceResult.contents"),
         (b.to_tool_result, {"content": [{"text": "x"}]}, "type"),
@@ -187,7 +227,13 @@ def test_boundary_accepts_objects_like_mcp_types():
 
     s = b.to_tool_schema(Tool())
     assert (s.name, s.description, s.parameters) == ("t", "d", {"type": "object"})
-    r = b.to_tool_result({"content": [{"type": "text", "text": "x"}], "structured_content": {"k": 1}, "is_error": False})
+    r = b.to_tool_result(
+        {
+            "content": [{"type": "text", "text": "x"}],
+            "structured_content": {"k": 1},
+            "is_error": False,
+        }
+    )
     assert r.value == {"k": 1}
 
 
@@ -225,7 +271,9 @@ def _fake_fastmcp():
 
         async def call_tool(self, name, args, raise_on_error=True):
             r = _handle("tools/call", {"name": name, "arguments": args})
-            return _CallToolResult(content=[_Dump(c) for c in r["content"]], is_error=r.get("isError", False))
+            return _CallToolResult(
+                content=[_Dump(c) for c in r["content"]], is_error=r.get("isError", False)
+            )
 
         async def list_prompts(self):
             return [_Dump(p) for p in PROMPTS]
@@ -246,7 +294,7 @@ def _fake_fastmcp():
 async def test_fastmcp_returns_identical_skye_types(server, monkeypatch):
     monkeypatch.setitem(sys.modules, "fastmcp", _fake_fastmcp())
     fc = create_mcp_client("http://x", impl="fastmcp")
-    bi = BuiltinMCPClient(server.url)
+    bi = SkyeMCPClient(server.url)
     f_tools, b_tools = await fc.list_tools(), await bi.list_tools()
     assert [t.get_schema() for t in f_tools][:1] == [t.get_schema() for t in b_tools][:1]
     assert await f_tools[0].aexecute(a=1) == await b_tools[0].aexecute(a=1) == "2"
@@ -270,7 +318,7 @@ def test_impl_is_an_argument_only(monkeypatch):
     """Requirement 21: no environment variable or config entry selects the client."""
     monkeypatch.setenv("SKYE_MCP_IMPL", "sdk")
     monkeypatch.setenv("SKYE_IMPL", "sdk")
-    assert isinstance(create_mcp_client("http://x"), BuiltinMCPClient)
+    assert isinstance(create_mcp_client("http://x"), SkyeMCPClient)
     with pytest.raises(ConfigurationError):
         create_mcp_client("http://x", impl="sdk")
 

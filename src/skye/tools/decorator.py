@@ -19,6 +19,7 @@ def capability(
     *,
     name: str | None = None,
     description: str | None = None,
+    return_direct: bool = False,
 ) -> Callable[[F], F]: ...
 
 
@@ -27,6 +28,7 @@ def capability(
     *,
     name: str | None = None,
     description: str | None = None,
+    return_direct: bool = False,
 ) -> F | Callable[[F], F]:
     """Decorator to create a capability from a function.
 
@@ -41,10 +43,18 @@ def capability(
     def get_weather(location: str) -> str:
         return f"Weather for {location}"
 
+    @capability(return_direct=True)
+    def refund(order_id: str) -> str:
+        '''Refund an order.'''
+        return f"Order {order_id} refunded."
+
     Args:
         func: The function to decorate (when used without arguments)
         name: Optional override for capability name
         description: Optional override for capability description
+        return_direct: When ``True`` the result of the tool is the answer of the agent and the model is not
+            asked again (Requirement 62.3). The default is ``False``. Here it is only stored on the
+            capability and put on its schema; the agent loop that uses it is the agents spec.
 
     Returns:
         The decorated function (which is now a LocalFunctionCapability)
@@ -54,7 +64,9 @@ def capability(
 
     def decorator(f: F) -> F:
         # Create the capability wrapper using LocalFunctionCapability
-        capability_instance = LocalFunctionCapability(f, name=name, description=description)
+        capability_instance = LocalFunctionCapability(
+            f, name=name, description=description, return_direct=return_direct
+        )
         # Return the capability instance, typed as F for compatibility
         return capability_instance  # type: ignore
 

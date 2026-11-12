@@ -77,6 +77,9 @@ class CapabilityRegistry:
     ) -> None:
         """Initialize the capability registry.
 
+        A new registry starts empty, or with the ``capabilities`` passed. It is no view of the registrar (Requirement 62.1): what is registered
+        on it, with ``register``, stays local to it and never reaches another registry. A set of tools that several agents share is a toolkit.
+
         Args:
             capabilities: Optional list of capabilities to register on initialization
             auto_search: Enable semantic search functionality (default: True)

@@ -35,14 +35,15 @@ from skye.tools.exceptions import (
 from skye.tools.local_function import LocalFunctionCapability
 from skye.tools.mcp_boundary import MCPPrompt, MCPPromptArgument
 from skye.tools.mcp_client import (
-    BuiltinMCPClient,
     MCPClientInterface,
     MCPToolCapability,
     create_mcp_client,
 )
+from skye.tools.plugins.skyemcp import SkyeMCPClient
 from skye.tools.mcp_resource import Resource, ResourceProviderInterface
 from skye.tools.registry import CapabilityRegistry
 from skye.tools.remote_api import RemoteAPICapability
+from skye.tools.toolkit import Toolkit
 
 __all__ = [
     "CapabilityInterface",
@@ -50,7 +51,7 @@ __all__ = [
     "LocalFunctionCapability",
     "RemoteAPICapability",
     "MCPClientInterface",
-    "BuiltinMCPClient",
+    "SkyeMCPClient",
     "MCPToolCapability",
     "MCPPrompt",
     "MCPPromptArgument",
@@ -59,6 +60,7 @@ __all__ = [
     "create_mcp_client",
     "capability",
     "CapabilityRegistry",
+    "Toolkit",
     "CapabilityCallHandler",
     "CapabilityCall",
     "CapabilityResult",
