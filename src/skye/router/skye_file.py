@@ -25,17 +25,9 @@ from skye.base.dsl import (
     format_duration,
     parse_duration,
 )
+from skye.base.api_keys import api_key_variables
 from skye.base.exceptions import ConfigurationError
 from skye.utils.skye_files import load_document, read_text
-
-#: The standard environment variable of each provider's API key, used when a target gives none.
-API_KEY_VARIABLES = {
-    "openai": "OPENAI_API_KEY",
-    "anthropic": "ANTHROPIC_API_KEY",
-    "azure": "AZURE_OPENAI_API_KEY",
-    "google": "GOOGLE_API_KEY",
-    "cohere": "COHERE_API_KEY",
-}
 
 _TARGET_FIELDS = (
     "model",
@@ -58,9 +50,10 @@ def _target(target: Any) -> dict[str, Any]:
         name: getattr(target, name) for name in _TARGET_FIELDS if getattr(target, name) is not None
     }
     if "api_key" not in out:
-        variable = API_KEY_VARIABLES.get(target.provider)
-        if variable and os.environ.get(variable):
-            out["api_key"] = f"${{{variable}}}"
+        for variable in api_key_variables(target.provider):
+            if os.environ.get(variable):
+                out["api_key"] = f"${{{variable}}}"
+                break
     if target.timeout is not None:
         out["timeout"] = parse_duration(target.timeout)
     if target.tags:

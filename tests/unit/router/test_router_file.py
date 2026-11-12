@@ -11,6 +11,7 @@ import pytest
 from skye.base.exceptions import ConfigurationError
 from skye.base.interfaces.router import RoutingStrategy
 from skye.models.registry import ProviderRegistry
+from tests.unit.plugins.registrar_state import restored_default_registrar
 from skye.router import ModelRouter, load_router_config
 from tests.unit.router.test_router_from_config import MockProvider
 
@@ -44,10 +45,9 @@ def mock_provider():
 
     Later tests then still find the real providers.
     """
-    saved = dict(ProviderRegistry._model_providers)
-    ProviderRegistry.register_model_provider("mock", MockProvider)
-    yield
-    ProviderRegistry._model_providers = saved
+    with restored_default_registrar():
+        ProviderRegistry.register_model_provider("mock", MockProvider)
+        yield
 
 
 @pytest.fixture

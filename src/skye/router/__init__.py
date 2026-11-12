@@ -93,6 +93,7 @@ from skye.router.config_models import (
     UsageStats,
 )
 from skye.router.model_router import ModelRouter
+from skye.router.routing_strategies import StrategyContext, with_context
 from skye.router.skye_file import load_router_config
 
 __all__ = [
@@ -100,6 +101,9 @@ __all__ = [
     # Router
     "ModelRouter",
     "load_router_config",
+    # Routing strategies
+    "StrategyContext",
+    "with_context",
     # Configuration models
     "ModelTarget",
     "RouteConfig",

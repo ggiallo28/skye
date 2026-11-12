@@ -1,17 +1,131 @@
-"""Routing strategy implementations for model router.
+"""How the router selects a model: the selector, the base class of a built-in strategy and the lookup of a strategy by name.
 
-This module contains the logic for different routing strategies
-used to select models from available targets.
+A strategy is chosen by name through the registrar (kind ``routing_strategy``, Requirement 58.1). The eight built-ins are registered by the built-in
+plugin of the router (``skye.router.plugins``) under the values of ``RoutingStrategy``, so every member of that enumeration still names its strategy.
+A plugin adds a name with ``plugins.routing_strategy("name")`` and the name is valid wherever a built-in one is: ``ModelRouter(strategy=...)``,
+``RouteConfig.strategy``, ``ModelRouter.from_config_dict`` and the ``strategy`` of a ``.skye`` file.
+
+The call shape of a strategy (D113) is one of three, told apart by what the registered object is and never by its parameters:
+
+* a function ``(available_models) -> model id``: it gets the list of the ids of the models that can answer and returns the one to use;
+* a function marked with :func:`with_context`: it gets one read-only :class:`StrategyContext` (the models, the alias, the token estimate, the
+  request, the metrics of the models and their targets) and returns the id;
+* a ``RouterStrategy`` subclass, as the built-ins are: the selector builds it for each call and calls ``select(context)``.
+
+Raises: ``ConfigurationError`` for a name that is not registered (it lists the registered names) and for a plugin strategy that returns an id that is
+    not one of the models it was given; ``ValueError`` when there is no model to choose from.
+Missing: no strategy (``None``) picks the first model.
+Concurrency: a selector is used by one router on one event loop; a built-in strategy is built for each call and keeps no state.
 """
 
-import random
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field
+from types import MappingProxyType
+from typing import TYPE_CHECKING, Any, TypeVar
 
+from skye.base.completion import CompleteRequest
+from skye.base.exceptions import ConfigurationError
 from skye.base.interfaces.router import RoutingStrategy
+from skye.base.plugins import Registrar, get_registrar
+
+KIND = "routing_strategy"
 
 if TYPE_CHECKING:
     from .config_models import ModelTarget
     from .health_tracker import ModelHealth, RateLimitTracker
+
+_EMPTY: Mapping[str, Any] = MappingProxyType({})
+
+#: The attribute that :func:`with_context` sets on a function to say that it wants the :class:`StrategyContext`.
+_WITH_CONTEXT = "__skye_strategy_context__"
+
+_F = TypeVar("_F", bound=Callable[..., Any])
+
+
+@dataclass(frozen=True)
+class StrategyContext:
+    """What a strategy is given to choose with: one read-only object for each call (D113, Requirement 58.7).
+
+    Nothing in it can be changed by the strategy: ``models`` is a tuple and the mappings are read-only views.
+
+    Attributes:
+        models: The ids of the models that can answer, in the order of the route (never empty).
+        alias: The alias (route) the request was made for, or ``None`` when it was not made for one.
+        token_estimate: ``(prompt_tokens, completion_tokens)`` expected for the request, or ``None`` with nothing to go on.
+        request: The ``CompleteRequest`` of the call (the messages, the capabilities, the ``response_schema``, ``max_tokens``, the tags), or ``None``.
+        snapshot: The metrics of each model that the router read before the call (``latency_ms``, ``success_rate``, ``active_requests``, ``rpm_used``,
+            ``tpm_used``); a model with no tracker has an empty entry.
+        targets: The ``ModelTarget`` of each model that has one.
+
+    Example:
+        >>> StrategyContext(models=("a", "b")).models
+        ('a', 'b')
+    """
+
+    models: tuple[str, ...]
+    alias: str | None = None
+    token_estimate: tuple[float, float] | None = None
+    request: CompleteRequest | None = None
+    snapshot: Mapping[str, Mapping[str, float]] = field(default_factory=lambda: _EMPTY)
+    targets: Mapping[str, "ModelTarget"] = field(default_factory=lambda: _EMPTY)
+
+
+def with_context(function: _F) -> _F:
+    """Mark a strategy function as one that wants the :class:`StrategyContext` and return it unchanged.
+
+    The selector calls a marked function with the context as its only argument; an unmarked function gets the list of ids.
+
+    Example:
+        >>> @with_context
+        ... def long_prompt_goes_last(context: StrategyContext) -> str:
+        ...     long = (context.token_estimate or (0, 0))[0] > 800
+        ...     return context.models[-1 if long else 0]
+        >>> long_prompt_goes_last(StrategyContext(models=("cheap", "strong"), token_estimate=(900, 10)))
+        'strong'
+    """
+    setattr(function, _WITH_CONTEXT, True)
+    return function
+
+
+#: The one call shape that the selector uses inside: the context of the call, and the id of the model chosen.
+StrategyCall = Callable[[StrategyContext], str]
+
+
+def strategy_name(strategy: RoutingStrategy | str) -> str:
+    """The name of a strategy: the value of a ``RoutingStrategy`` member, or the registered name as it is."""
+    return strategy.value if isinstance(strategy, RoutingStrategy) else str(strategy)
+
+
+def registered_strategies(registrar: Registrar | None = None) -> list[str]:
+    """Every strategy name that can be used: the built-in values first, in the order of ``RoutingStrategy``, then the names that a plugin added."""
+    names = [member.value for member in RoutingStrategy]
+    extra = [name for name in (registrar or get_registrar()).names(KIND) if name not in names]
+    return names + extra
+
+
+def normalize_strategy(
+    strategy: RoutingStrategy | str, registrar: Registrar | None = None
+) -> RoutingStrategy | str:
+    """The member of ``RoutingStrategy`` for a built-in name, the name itself for a registered one.
+
+    Raises:
+        ConfigurationError: the name is neither a built-in nor registered (``details["valid_strategies"]`` lists the names that can be used).
+    """
+    if isinstance(strategy, RoutingStrategy):
+        return strategy
+    try:
+        return RoutingStrategy(strategy)
+    except ValueError:
+        pass
+    source = registrar or get_registrar()
+    try:
+        source.get(KIND, strategy)
+    except ConfigurationError as error:
+        raise ConfigurationError(
+            f"Invalid routing strategy: {strategy}",
+            details={"strategy": strategy, "valid_strategies": registered_strategies(source)},
+        ) from error
+    return strategy
 
 
 def estimated_cost(
@@ -36,8 +150,23 @@ def estimated_cost(
     return (prompt or 0.0) * prompt_weight + (completion or 0.0) * completion_weight
 
 
+class RouterStrategy:
+    """The base of a built-in strategy: it reads the state of the router through the selector it is built with.
+
+    The selector builds one for each call (a strategy keeps no state) and calls :meth:`select` with the :class:`StrategyContext` of the call. A plugin that
+    only needs the ids writes a plain function instead (see ``skye.router.plugins``).
+    """
+
+    def __init__(self, selector: "RoutingStrategySelector") -> None:
+        self.selector = selector
+
+    def select(self, context: StrategyContext) -> str:
+        """The id of the model to use among ``context.models`` (never empty)."""
+        raise NotImplementedError
+
+
 class RoutingStrategySelector:
-    """Handles model selection based on different routing strategies."""
+    """Handles model selection by the name of a routing strategy."""
 
     def __init__(
         self,
@@ -45,6 +174,7 @@ class RoutingStrategySelector:
         rate_limits: dict[str, "RateLimitTracker"],
         model_targets: dict[str, "ModelTarget"],
         round_robin_index: dict[str, int],
+        registrar: Registrar | None = None,
     ):
         """Initialize the strategy selector.
 
@@ -53,11 +183,13 @@ class RoutingStrategySelector:
             rate_limits: Dictionary of rate limit trackers.
             model_targets: Dictionary of model target configurations.
             round_robin_index: Dictionary tracking round-robin indices.
+            registrar: The registrar that holds the strategies; the default registrar of the process when omitted, read at each call.
         """
         self.health = health
         self.rate_limits = rate_limits
         self.model_targets = model_targets
         self.round_robin_index = round_robin_index
+        self._registrar = registrar
         # Metrics read from the (async) trackers by prepare(); the strategies are synchronous.
         self._snapshot: dict[str, dict[str, float]] = {}
 
@@ -83,135 +215,91 @@ class RoutingStrategySelector:
             snapshot[model_id] = entry
         self._snapshot = snapshot
 
-    def _metric(self, model_id: str, name: str, default: float) -> float:
+    def metric(self, model_id: str, name: str, default: float) -> float:
+        """A metric of a model from the snapshot that :meth:`prepare` read, or ``default`` when there is none."""
         return self._snapshot.get(model_id, {}).get(name, default)
+
+    def resolve(self, strategy: RoutingStrategy | str) -> StrategyCall:
+        """The call that runs the strategy named ``strategy``: one shape (the context in, an id out) for the three kinds of strategy.
+
+        A ``RouterStrategy`` subclass is built with this selector and its ``select`` is called; a function marked with :func:`with_context` is called with
+        the context; any other function is called with the list of the ids. The kind is told by the object and never by its parameters.
+
+        Raises:
+            ConfigurationError: the name is not registered, or its text does not import.
+        """
+        target = (self._registrar or get_registrar()).get(KIND, strategy_name(strategy))
+        if isinstance(target, type) and issubclass(target, RouterStrategy):
+            return target(self).select
+        if getattr(target, _WITH_CONTEXT, False):
+            return lambda context: str(target(context))
+
+        def call(context: StrategyContext) -> str:
+            return str(target(list(context.models)))
+
+        return call
+
+    def context(
+        self,
+        available_models: list[str],
+        alias: str | None = None,
+        token_estimate: tuple[float, float] | None = None,
+        request: CompleteRequest | None = None,
+    ) -> StrategyContext:
+        """The read-only context of one call: the models, the alias, the estimate, the request, and the metrics and targets of those models."""
+        return StrategyContext(
+            models=tuple(available_models),
+            alias=alias,
+            token_estimate=token_estimate,
+            request=request,
+            snapshot=MappingProxyType(
+                {m: MappingProxyType(dict(self._snapshot.get(m, {}))) for m in available_models}
+            ),
+            targets=MappingProxyType(
+                {m: self.model_targets[m] for m in available_models if m in self.model_targets}
+            ),
+        )
 
     def apply_strategy(
         self,
         available_models: list[str],
         alias: str | None = None,
-        strategy: RoutingStrategy | None = None,
+        strategy: RoutingStrategy | str | None = None,
         *,
         token_estimate: tuple[float, float] | None = None,
+        request: CompleteRequest | None = None,
     ) -> str:
         """Apply routing strategy to select a model.
 
         Args:
             available_models: List of available model IDs.
             alias: Optional alias for round-robin tracking.
-            strategy: Routing strategy to use.
+            strategy: A ``RoutingStrategy`` or the registered name of a strategy; ``None`` picks the first model.
             token_estimate: ``(prompt_tokens, completion_tokens)`` expected for the request; read by
-                ``cost_based`` only (see :func:`estimated_cost`).
+                ``cost_based`` and ``lazy_complex`` (see :func:`estimated_cost`).
+            request: The ``CompleteRequest`` of the call, given to the strategy in its :class:`StrategyContext`.
 
         Returns:
             Selected model ID.
 
         Raises:
-            ValueError: If no models are available or strategy is invalid.
+            ValueError: If no models are available.
+            ConfigurationError: The name is not registered, or a plugin strategy returned an id that is not one of ``available_models``.
         """
         if not available_models:
             raise ValueError("No available models for routing")
-
-        if strategy == RoutingStrategy.ROUND_ROBIN:
-            return self._round_robin_strategy(available_models, alias)
-        elif strategy == RoutingStrategy.SIMPLE_SHUFFLE:
-            return self._simple_shuffle_strategy(available_models)
-        elif strategy == RoutingStrategy.LEAST_BUSY:
-            return self._least_busy_strategy(available_models)
-        elif strategy == RoutingStrategy.LATENCY_BASED:
-            return self._latency_based_strategy(available_models)
-        elif strategy == RoutingStrategy.RATE_LIMIT_AWARE:
-            return self._rate_limit_aware_strategy(available_models)
-        elif strategy == RoutingStrategy.WEIGHTED:
-            return self._weighted_strategy(available_models)
-        elif strategy == RoutingStrategy.PRIORITY_BASED:
-            return self._priority_based_strategy(available_models)
-        elif strategy == RoutingStrategy.COST_BASED:
-            return self._cost_based_strategy(available_models, token_estimate)
-        else:
-            # Default to first available
+        if strategy is None:
             return available_models[0]
-
-    def _round_robin_strategy(self, available_models: list[str], alias: str | None) -> str:
-        """Round-robin selection strategy."""
-        key = alias if alias else "_default"
-        index = self.round_robin_index.get(key, 0)
-        model_id = available_models[index % len(available_models)]
-        self.round_robin_index[key] = index + 1
-        return model_id
-
-    def _simple_shuffle_strategy(self, available_models: list[str]) -> str:
-        """Random selection strategy."""
-        return random.choice(available_models)
-
-    def _least_busy_strategy(self, available_models: list[str]) -> str:
-        """Select model with least active requests."""
-        return min(
-            available_models,
-            key=lambda m: self._metric(m, "active_requests", 0),
+        chosen = self.resolve(strategy)(
+            self.context(available_models, alias, token_estimate, request)
         )
-
-    def _latency_based_strategy(self, available_models: list[str]) -> str:
-        """Select model with lowest average latency."""
-        return min(
-            available_models,
-            key=lambda m: self._metric(m, "latency_ms", float("inf")),
-        )
-
-    def _rate_limit_aware_strategy(self, available_models: list[str]) -> str:
-        """Select model with most available rate limit capacity."""
-
-        def get_capacity_score(model_id: str) -> float:
-            """Calculate capacity score (0.0 = full, 1.0 = empty)."""
-            tracker = self.rate_limits[model_id]
-            if tracker.rpm_limit is None and tracker.tpm_limit is None:
-                return 1.0
-
-            rpm_capacity = 1.0
-            if tracker.rpm_limit:
-                rpm_capacity = 1.0 - (self._metric(model_id, "rpm_used", 0) / tracker.rpm_limit)
-
-            tpm_capacity = 1.0
-            if tracker.tpm_limit:
-                tpm_capacity = 1.0 - (self._metric(model_id, "tpm_used", 0) / tracker.tpm_limit)
-
-            return min(rpm_capacity, tpm_capacity)
-
-        return max(available_models, key=get_capacity_score)
-
-    def _weighted_strategy(self, available_models: list[str]) -> str:
-        """Select model based on weights (target weight or success rate)."""
-        weights = []
-        for model_id in available_models:
-            if model_id in self.model_targets:
-                weights.append(self.model_targets[model_id].weight)
-            else:
-                weights.append(self._metric(model_id, "success_rate", 1.0))
-
-        if sum(weights) <= 0:
-            # random.choices rejects all-zero weights; with no signal at all, pick uniformly.
-            return random.choice(available_models)
-        return random.choices(available_models, weights=weights)[0]
-
-    def _priority_based_strategy(self, available_models: list[str]) -> str:
-        """Select model with highest success rate (priority)."""
-        return max(
-            available_models,
-            key=lambda m: self._metric(m, "success_rate", 1.0),
-        )
-
-    def _cost_based_strategy(
-        self, available_models: list[str], token_estimate: tuple[float, float] | None
-    ) -> str:
-        """Select the target with the lowest estimated cost (:func:`estimated_cost`).
-
-        Targets without a cost come after every target with one; ties keep the configured order
-        (``min`` returns the first of equal keys, and ``available_models`` is in configured order).
-        """
-
-        def key(model_id: str) -> tuple[int, float]:
-            target = self.model_targets.get(model_id)
-            cost = None if target is None else estimated_cost(target, token_estimate)
-            return (1, 0.0) if cost is None else (0, cost)
-
-        return min(available_models, key=key)
+        if chosen not in available_models:
+            raise ConfigurationError(
+                f"The routing strategy {strategy_name(strategy)!r} returned {chosen!r}, which is not one of the available models",
+                details={
+                    "strategy": strategy_name(strategy),
+                    "returned": chosen,
+                    "available": list(available_models),
+                },
+            )
+        return chosen

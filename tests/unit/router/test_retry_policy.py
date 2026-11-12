@@ -21,7 +21,7 @@ from skye.base.exceptions import ProviderError
 from skye.base.interfaces.model import ModelInterface
 from skye.base.messages import UserMessage
 from skye.router import FallbackConfig, ModelRouter, RetryPolicyConfig
-from skye.store.memory import InMemoryBackend
+from skye.store.plugins.memory import InMemoryBackend
 
 MESSAGES = [UserMessage(content="hi")]
 

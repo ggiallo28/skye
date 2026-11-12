@@ -18,18 +18,20 @@ import asyncio
 import difflib
 import inspect
 import logging
-import os
 import time
 from collections.abc import Awaitable, Callable, Coroutine
 from dataclasses import dataclass, field
 from typing import Any, TypeVar, cast
 
+from skye.base.api_keys import api_key_from_environment
 from skye.base.completion import CompleteRequest, CompleteResponse
 from skye.base.exceptions import ConfigurationError, ProviderError
 from skye.base.interfaces import StorageBackend
 from skye.base.interfaces.model import ModelInterface
 from skye.base.interfaces.router import ModelRouterInterface, RoutingStrategy
-from skye.store.memory import InMemoryBackend
+from skye.base.plugins import get_registrar
+from skye.base.profile import apply_client_settings
+from skye.store import backend, namespaced
 
 from .config_models import (
     AllowedFailsPolicyConfig,
@@ -41,14 +43,16 @@ from .config_models import (
     RouteConfig,
     UsageStats,
 )
-from .health_tracker import ModelHealth, RateLimitTracker
-from .routing_strategies import RoutingStrategySelector
-from .skye_file import API_KEY_VARIABLES
+from .health_tracker import ModelHealth, RateLimitTracker, wall_clock
+from .routing_strategies import RoutingStrategySelector, normalize_strategy, registered_strategies, strategy_name
 
 logger = logging.getLogger(__name__)
 
 
 _T = TypeVar("_T")
+
+#: The namespace of the router in the store it is given (Requirement 60.10): its keys read ``router:health:<id>``.
+ROUTER_NAMESPACE = "router"
 
 
 def _run_sync(coro: Coroutine[Any, Any, _T]) -> _T:
@@ -106,6 +110,7 @@ _ROUTER_KEYWORDS = (
     "allowed_fails_policies",
     "storage",
     "sleep",
+    "clock",
 )
 
 
@@ -182,7 +187,7 @@ def expand_route_shorthand(
                 ModelTarget(
                     model=model,
                     provider=provider,
-                    api_key=os.environ.get(API_KEY_VARIABLES.get(provider, "")),
+                    api_key=api_key_from_environment(provider),
                 )
             )
         routes.append(RouteConfig(alias=alias, targets=[targets[0]]))
@@ -261,7 +266,7 @@ class ModelRouter(ModelRouterInterface):
     def __init__(
         self,
         routes: list[RouteConfig] | dict[str, list[str]] | None = None,
-        strategy: RoutingStrategy = RoutingStrategy.ROUND_ROBIN,
+        strategy: RoutingStrategy | str = RoutingStrategy.ROUND_ROBIN,
         cooldown_seconds: float = 60.0,
         enable_pre_call_checks: bool = True,
         fallbacks: list[FallbackConfig] | None = None,
@@ -269,6 +274,7 @@ class ModelRouter(ModelRouterInterface):
         allowed_fails_policies: list[AllowedFailsPolicyConfig] | None = None,
         storage: StorageBackend | None = None,
         sleep: Callable[[float], Awaitable[None]] | None = None,
+        clock: Callable[[], float] | None = None,
     ):
         """Initialize the router.
 
@@ -286,9 +292,16 @@ class ModelRouter(ModelRouterInterface):
                 ``DEFAULT_RETRY_POLICY``).
             allowed_fails_policies: Optional list of allowed fails policy configurations (added to
                 the defaults, see ``DEFAULT_ALLOWED_FAILS_POLICY``).
-            storage: Optional external storage backend. If None, uses in-memory storage.
+            storage: Optional external storage backend. If None, uses in-memory storage. The router keeps its state in the
+                namespace ``router`` of it (the keys read ``router:health:<id>``, ``router:cooldown:<id>``,
+                ``router:rate_limit:<id>:...``), so the same store can hold the state of another component; ``router.storage_backend``
+                is the store itself.
             sleep: The coroutine that waits between retries, ``asyncio.sleep`` by default; tests
                 pass one that only records the waits.
+            clock: The source of the current time in seconds, ``time.time`` by default: it chooses the
+                window of a rate limit count and stamps the health records (the cooldown and every
+                expiry are kept by the store with its own clock). Tests pass the ``FakeClock`` of
+                ``skye.store`` here and to ``skye.store.backend("memory", clock=...)``.
 
         Example:
             >>> router = ModelRouter(
@@ -309,10 +322,14 @@ class ModelRouter(ModelRouterInterface):
             ...     ]
             ... )
         """
-        self.strategy = strategy
+        self.strategy: RoutingStrategy | str = normalize_strategy(strategy)
         self.cooldown_seconds = cooldown_seconds
         self.pre_call_checks_enabled = enable_pre_call_checks
-        self.storage_backend = storage or InMemoryBackend()
+        self.storage_backend = storage or backend("memory")
+        # The state of the router (health, cooldown, rate limits) lives in the namespace ``router`` of that store: the
+        # keys read ``router:health:<id>``, so the same store can hold the state of another component.
+        self._state = namespaced(self.storage_backend, ROUTER_NAMESPACE)
+        self._clock: Callable[[], float] = clock or wall_clock
 
         self.models: dict[str, ModelInterface] = {}
         self.model_targets: dict[str, ModelTarget] = {}  # Store target configs
@@ -433,7 +450,7 @@ class ModelRouter(ModelRouterInterface):
                 name or a ``RoutingStrategy``), ``cooldown_seconds`` and ``enable_pre_call_checks``
                 replace the values of the configuration; ``fallbacks``, ``retry_policies`` and
                 ``allowed_fails_policies`` are added after the configuration's (so they win for the
-                same primary or error type); ``storage`` and ``sleep`` are passed on.
+                same primary or error type); ``storage``, ``sleep`` and ``clock`` are passed on.
 
         Returns:
             ModelRouter instance configured from the dictionary.
@@ -475,17 +492,8 @@ class ModelRouter(ModelRouterInterface):
             "enable_pre_call_checks", config.get("enable_pre_call_checks", True)
         )
 
-        # Convert strategy string to enum
-        try:
-            strategy = RoutingStrategy(strategy_str)
-        except ValueError:
-            raise ConfigurationError(
-                f"Invalid routing strategy: {strategy_str}",
-                details={
-                    "strategy": strategy_str,
-                    "valid_strategies": [s.value for s in RoutingStrategy],
-                },
-            )
+        # A built-in name becomes its member, a name that a plugin registered stays as it is, another name is an error
+        strategy = normalize_strategy(strategy_str)
 
         # Parse routes
         routes = []
@@ -498,17 +506,17 @@ class ModelRouter(ModelRouterInterface):
                 route_strategy_str = route_dict.get("strategy")
                 try:
                     route_strategy = (
-                        RoutingStrategy(route_strategy_str)
+                        normalize_strategy(route_strategy_str)
                         if route_strategy_str is not None
                         else None
                     )
-                except ValueError:
+                except ConfigurationError:
                     raise ConfigurationError(
                         f"Invalid routing strategy for route '{route_dict.get('alias')}': {route_strategy_str}",
                         details={
                             "alias": route_dict.get("alias"),
                             "strategy": route_strategy_str,
-                            "valid_strategies": [s.value for s in RoutingStrategy],
+                            "valid_strategies": registered_strategies(),
                         },
                     )
 
@@ -583,6 +591,7 @@ class ModelRouter(ModelRouterInterface):
             allowed_fails_policies=allowed_fails_policies if allowed_fails_policies else None,
             storage=kwargs.get("storage"),
             sleep=kwargs.get("sleep"),
+            clock=kwargs.get("clock"),
         )
 
     @staticmethod
@@ -625,14 +634,14 @@ class ModelRouter(ModelRouterInterface):
                 "alias": alias,
                 "targets": [_target_config(target, include_secrets) for target in route.targets],
             }
-            if (
-                route.strategy is not None and route.strategy != self.strategy
+            if route.strategy is not None and strategy_name(route.strategy) != strategy_name(
+                self.strategy
             ):  # left out: the router's
-                entry["strategy"] = route.strategy.value
+                entry["strategy"] = strategy_name(route.strategy)
             entry["fallback_on_error"] = route.fallback_on_error
             routes.append(entry)
         return {
-            "strategy": self.strategy.value,
+            "strategy": strategy_name(self.strategy),
             "cooldown_seconds": self.cooldown_seconds,
             "enable_pre_call_checks": self.pre_call_checks_enabled,
             "routes": routes,
@@ -717,12 +726,11 @@ class ModelRouter(ModelRouterInterface):
             if target.timeout:
                 provider_config["timeout"] = target.timeout
 
-            if target.provider == "azure":
-                # Azure names its endpoint differently, and the model of a target is the name of the
-                # deployment.
-                if "api_base" in provider_config:
-                    provider_config["azure_endpoint"] = provider_config.pop("api_base")
-                provider_config.setdefault("deployment_name", target.model)
+            # A provider may name its settings differently, and may take the model as a deployment name: its profile says so
+            # (Requirement 60.4), and the router names no provider.
+            provider_config = apply_client_settings(
+                get_registrar().get_profile(target.provider), target.model, provider_config
+            )
             # What the provider needs and the target has no field for (Google's project_id and
             # location, ...).
             provider_config.update(target.options)
@@ -736,13 +744,17 @@ class ModelRouter(ModelRouterInterface):
 
             # Create health and rate limit trackers with shared storage backend
             self.health[model_id] = ModelHealth(
-                model_id=model_id, tags=target.tags, storage=self.storage_backend
+                model_id=model_id,
+                tags=target.tags,
+                storage=self._state,
+                clock=self._clock,
             )
             self.rate_limits[model_id] = RateLimitTracker(
                 tpm_limit=target.tpm,
                 rpm_limit=target.rpm,
                 model_id=model_id,
-                storage=self.storage_backend,
+                storage=self._state,
+                clock=self._clock,
             )
 
             logger.info(
@@ -774,10 +786,14 @@ class ModelRouter(ModelRouterInterface):
 
         # Create health and rate limit trackers with shared storage backend
         self.health[model_id] = ModelHealth(
-            model_id=model_id, tags=tags or [], storage=self.storage_backend
+            model_id=model_id, tags=tags or [], storage=self._state, clock=self._clock
         )
         self.rate_limits[model_id] = RateLimitTracker(
-            tpm_limit=tpm, rpm_limit=rpm, model_id=model_id, storage=self.storage_backend
+            tpm_limit=tpm,
+            rpm_limit=rpm,
+            model_id=model_id,
+            storage=self._state,
+            clock=self._clock,
         )
         logger.info("Router model registered", extra={"model_id": model_id})
 
@@ -799,12 +815,16 @@ class ModelRouter(ModelRouterInterface):
             raise ProviderError(
                 "No available models for routing",
                 provider="router",
-                details={"strategy": self.strategy.value},
+                details={"strategy": strategy_name(self.strategy)},
             )
 
         await self._strategy_selector.prepare(available_models)
         return self._strategy_selector.apply_strategy(
-            available_models, None, self.strategy, token_estimate=self._token_estimate(request)
+            available_models,
+            None,
+            self.strategy,
+            token_estimate=self._token_estimate(request),
+            request=request,
         )
 
     async def _select_from_alias(
@@ -840,7 +860,11 @@ class ModelRouter(ModelRouterInterface):
         strategy = route.strategy if route.strategy is not None else self.strategy
         await self._strategy_selector.prepare(available_models)
         return self._strategy_selector.apply_strategy(
-            available_models, alias, strategy, token_estimate=self._token_estimate(request)
+            available_models,
+            alias,
+            strategy,
+            token_estimate=self._token_estimate(request),
+            request=request,
         )
 
     @staticmethod
@@ -1399,10 +1423,14 @@ class ModelRouter(ModelRouterInterface):
 
         return _run_sync(self.aget_model_health(model_id))
 
-    def set_routing_strategy(self, strategy: RoutingStrategy) -> None:
-        """Set the routing strategy."""
-        self.strategy = strategy
-        logger.info("Router strategy set", extra={"strategy": strategy.value})
+    def set_routing_strategy(self, strategy: RoutingStrategy | str) -> None:
+        """Set the routing strategy: a ``RoutingStrategy`` or the name of one that a plugin registered.
+
+        Raises:
+            ConfigurationError: The name is neither a built-in strategy nor registered.
+        """
+        self.strategy = normalize_strategy(strategy)
+        logger.info("Router strategy set", extra={"strategy": strategy_name(self.strategy)})
 
     def set_fallbacks(self, fallbacks: list[FallbackConfig]) -> None:
         """Set fallback model chains.
@@ -1487,7 +1515,7 @@ class ModelRouter(ModelRouterInterface):
         """Set rate limits for a model deployment (a model id the router does not know gets a tracker on its store)."""
         if model_id not in self.rate_limits:
             self.rate_limits[model_id] = RateLimitTracker(
-                model_id=model_id, storage=self.storage_backend
+                model_id=model_id, storage=self._state
             )
 
         tracker = self.rate_limits[model_id]

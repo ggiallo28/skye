@@ -16,6 +16,7 @@ from skye.base.exceptions import ConfigurationError
 from skye.base.interfaces.router import RoutingStrategy
 from skye.models.base import BaseModelProvider
 from skye.models.registry import ProviderRegistry
+from tests.unit.plugins.registrar_state import restored_default_registrar
 from skye.router.model_router import ModelRouter
 
 
@@ -71,12 +72,13 @@ class TestModelRouterFromConfigDict:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self._saved = dict(ProviderRegistry._model_providers)
+        self._restore = restored_default_registrar()
+        self._restore.__enter__()
         ProviderRegistry.register_model_provider("mock", MockProvider)
 
     def teardown_method(self):
         """Restore the provider registry, so later tests still find the real providers."""
-        ProviderRegistry._model_providers = self._saved
+        self._restore.__exit__(None, None, None)
 
     def test_from_config_dict_minimal(self):
         """Test creating router from minimal config dict."""
