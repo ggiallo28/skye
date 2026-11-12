@@ -4,13 +4,16 @@ To add a store backend you use the decorator `@plugins.backend("name")` on top o
 
 The class has the methods of the `StorageBackend` Port, all `async`:
 
-* `get`, `set`, `delete` and `get_multiple`, `set_multiple`: values are JSON objects, with an optional time to live.
+* `get`, `set`, `delete` and `get_multiple`, `set_multiple`: values are JSON objects, with an
+  optional time to live.
 * `increment` and `count`: an atomic counter; `count` is 0 when the key is absent or expired.
 * `connect`, which opens what the backend needs.
 
-`skye.backend("name")` builds it (the same word, `backend`, to add and to build), and `check_backend` runs the conformance suite over it.
+`skye.backend("name")` builds it (the same word, `backend`, to add and to build), and
+`check_backend` runs the conformance suite over it.
 
-Tip: this one keeps a dict and ignores the time to live, to keep the shape of the Port in view. A real one talks to a database.
+Tip: this one keeps a dict and ignores the time to live, to keep the shape of the Port in view. A
+real one talks to a database.
 """
 
 import asyncio

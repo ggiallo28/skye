@@ -1,0 +1,34 @@
+name: tests
+
+# The unit, integration and example tests, offline (no key, no network). The size and load budgets run in budgets.yml.
+# stress (timing) and differential (needs the official SDKs, `make differential`) are left out; budget needs a clean install.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: tests (python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]  # the oldest supported Python (requires-python >=3.11, D49) and the newest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv python install ${{ matrix.python }}
+      - run: uv sync --group dev --python ${{ matrix.python }}
+      - name: Tests
+        run: uv run --python ${{ matrix.python }} pytest tests --ignore=tests/budget -m "not stress and not differential and not budget" -q

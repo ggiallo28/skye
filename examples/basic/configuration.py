@@ -3,7 +3,7 @@
 The library reads two prefixed environment variables: ``SKYE_LOG_LEVEL`` and ``SKYE_CONFIG`` (the path of the configuration
 file, JSON; the library reads no YAML). Provider credentials are never read from a prefixed variable: they come from each provider's
 standard variable (``OPENAI_API_KEY``, ``AWS_*``, ...). Inside a file, ``${VAR}`` is replaced by the environment variable.
-The file holds only the keys the library reads (``log_level``, ``component_log_levels``, ``correlation_id_header``); any other
+The file holds only the keys the library reads (``log_level``, ``component_log_levels``, ``correlation_id_header``, ``plugins``); any other
 key is a ``ConfigurationError`` that names it. ``skye.load_config`` applies the log levels it reads to the ``skye`` loggers.
 """
 

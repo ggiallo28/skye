@@ -45,7 +45,29 @@ def _clean_env() -> dict[str, str]:
     return env
 
 
-@pytest.mark.parametrize("script", SCRIPTS, ids=lambda p: str(p.relative_to(EXAMPLES)))
+# Written against the planned plugins API (plugins:1.1); fails until plugins:4.5 (`skye.use`) is done. Strict: remove this entry then.
+EXPECTED_TO_FAIL = {
+    "plugins": "waits for plugins:4.5 (skye.use and the registrar)",
+    "agents/hooks.py": "waits for the hooks of the agents spec (3-runtime-agents)",
+    "agents/hooks_memory.py": "waits for the hooks of the agents spec (3-runtime-agents)",
+}
+NOT_EXPECTED_TO_FAIL: set[str] = set()  # scripts of those folders that already pass
+
+
+def _params(scripts):
+    params = []
+    for script in scripts:
+        reason = EXPECTED_TO_FAIL.get(str(script.relative_to(EXAMPLES))) or EXPECTED_TO_FAIL.get(
+            script.relative_to(EXAMPLES).parts[0]
+        )
+        if str(script.relative_to(EXAMPLES)) in NOT_EXPECTED_TO_FAIL:
+            reason = None
+        marks = [pytest.mark.xfail(strict=True, reason=reason)] if reason else []
+        params.append(pytest.param(script, marks=marks, id=str(script.relative_to(EXAMPLES))))
+    return params
+
+
+@pytest.mark.parametrize("script", _params(SCRIPTS))
 def test_example_runs_offline_without_traceback(script: Path):
     done = subprocess.run(
         [sys.executable, "-c", RUNNER, str(script)],

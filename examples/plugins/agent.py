@@ -1,8 +1,8 @@
 """Use an agent.
 
 An agent is built with `skye.agent(name, **options)`, the same call for yours (see `agent_type.py`)
-and for the one that ships with Skye, `REACT` (the name `"react"`), which runs the loop: the model answers, asks for a
-tool, reads the result and goes on until it has an answer.
+and for the one that ships with Skye, `REACT` (the name `"react"`), which runs the loop: the model
+answers, asks for a tool, reads the result and goes on until it has an answer.
 
 It takes what it can use in three separate options:
 

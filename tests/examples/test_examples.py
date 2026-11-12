@@ -37,6 +37,29 @@ def _id(path: Path) -> str:
     return str(path.relative_to(EXAMPLES))
 
 
+# The plugins example is written against the planned API (plugins:1.1) and fails until the discovery task (plugins:4.5, `skye.use`)
+# is done. strict: when it starts to pass, the test fails until this mark is removed, so the mark cannot be forgotten.
+EXPECTED_TO_FAIL = {
+    "plugins": "waits for plugins:4.5 (skye.use and the registrar); remove this entry when that task is done",
+    # A single script is keyed by its path. These two are written against the planned hook API of the agents spec.
+    "agents/hooks.py": "waits for the hooks of the agents spec (3-runtime-agents); remove this entry when they exist",
+    "agents/hooks_memory.py": "waits for the hooks of the agents spec (3-runtime-agents); remove this entry when they exist",
+}
+NOT_EXPECTED_TO_FAIL: set[str] = set()  # scripts of those folders that already pass
+
+
+def with_expected_failures(scripts):
+    """The scripts as test parameters, the folders in EXPECTED_TO_FAIL marked as strict expected failures."""
+    params = []
+    for script in scripts:
+        reason = EXPECTED_TO_FAIL.get(_id(script)) or EXPECTED_TO_FAIL.get(script.relative_to(EXAMPLES).parts[0])
+        if _id(script) in NOT_EXPECTED_TO_FAIL:
+            reason = None
+        marks = [pytest.mark.xfail(strict=True, reason=reason)] if reason else []
+        params.append(pytest.param(script, marks=marks, id=_id(script)))
+    return params
+
+
 @pytest.mark.parametrize("script", SCRIPTS, ids=_id)
 def test_example_compiles(script):
     compile(script.read_text(encoding="utf-8"), str(script), "exec")
@@ -75,7 +98,7 @@ def run_offline(script, monkeypatch, capsys) -> str:
     return captured.out + captured.err
 
 
-@pytest.mark.parametrize("script", SCRIPTS, ids=_id)
+@pytest.mark.parametrize("script", with_expected_failures(SCRIPTS))
 def test_example_runs_offline(script, monkeypatch, capsys):
     """The example runs to the end against the fake network and does not print a failure."""
     output = run_offline(script, monkeypatch, capsys)

@@ -12,10 +12,10 @@ ones. The word is the same to add and to build: `plugins.agent(...)` and `skye.a
 
 The decorator registers at the moment it runs, wherever that code is in your program.
 
-An agent is always built with `skye.agent(...)`, yours and the one that ships with Skye, `REACT` (`from skye.agents import REACT`).
-That one runs the loop of model calls and tool calls and takes the model and the tools as options:
-`agent.py` shows how to use it. The two classes below need neither: an agent type is any class with
-`async invoke`.
+An agent is always built with `skye.agent(...)`, yours and the one that ships with Skye, `REACT`
+(`from skye.agents import REACT`). That one runs the loop of model calls and tool calls and takes
+the model and the tools as options: `agent.py` shows how to use it. The two classes below need
+neither: an agent type is any class with `async invoke`.
 """
 
 import asyncio

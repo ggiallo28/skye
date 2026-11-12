@@ -4,13 +4,15 @@ To add an MCP client you use the decorator `@plugins.mcp_client("name")` on top 
 
 The class has:
 
-* An `__init__` that receives the `target` (the server) and the keyword arguments `headers` and `timeout`.
-* The methods of the `MCPClientInterface` Port, all `async`: `list_tools`, `call_tool`, `list_prompts`, `get_prompt`, `list_resources`
-  and `read_resource`.
+* An `__init__` that receives the `target` (the server) and the keyword arguments `headers` and
+  `timeout`.
+* The methods of the `MCPClientInterface` Port, all `async`: `list_tools`, `call_tool`,
+  `list_prompts`, `get_prompt`, `list_resources` and `read_resource`.
 
 `skye.mcp_client(target, impl="name")` builds it, as it builds `"builtin"` and `"fastmcp"`.
 
-Tip: this one answers from memory, which is also the way to test code that uses an MCP client without a server.
+Tip: this one answers from memory, which is also the way to test code that uses an MCP client
+without a server.
 """
 
 import asyncio

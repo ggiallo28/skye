@@ -41,6 +41,10 @@ class DictBackend(StorageBackend, ScanStore):
         await self.set(key, {"count": new_value}, ttl)
         return new_value
 
+    async def count(self, key: str) -> int:
+        current = await self.get(key) or {}
+        return int(current.get("count", 0))
+
     async def get_multiple(self, keys: list[str]) -> dict[str, dict[str, Any] | None]:
         return {key: await self.get(key) for key in keys}
 
@@ -57,6 +61,7 @@ async def main() -> None:
     await store.set_multiple({"user:1": {"name": "Ada"}, "user:2": {"name": "Grace"}})
     print("get(user:1):", await store.get("user:1"))
     print("increment(hits):", await store.increment("hits", amount=3))
+    print("count(hits):", await store.count("hits"))
     print("get_multiple:", await store.get_multiple(["user:1", "user:2", "missing"]))
     print("keys(user:):", await store.keys("user:"))
 

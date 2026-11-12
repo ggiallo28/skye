@@ -31,8 +31,14 @@ jobs:
           enable-cache: true
       - run: uv python install ${{ matrix.python }}
       - run: uv sync --group dev --python ${{ matrix.python }}
-      - name: Dependency policy, import audit, import leaks
+      - name: Dependency policy, import audit, import leaks, token overhead
+        env:
+          SKYE_BUDGET_REPORT: ${{ runner.temp }}/budget-report.md
         run: uv run --python ${{ matrix.python }} pytest tests/budget -q
+      - name: Job summary
+        if: always()
+        run: |
+          [ -f "${{ runner.temp }}/budget-report.md" ] && cat "${{ runner.temp }}/budget-report.md" >> "$GITHUB_STEP_SUMMARY" || true
 
   footprint:
     name: footprint (${{ matrix.target }})

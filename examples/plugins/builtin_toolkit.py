@@ -8,12 +8,12 @@ plugin, so you build it by name with `skye.toolkit(name, **options)`:
 * `"openapi"`: one tool for each operation of an OpenAPI document (`spec`).
 * `"mcp"`: the tools of an MCP server, by its address (`target`).
 
-You do not always ask for one. Giving the agent a `SKILL.md` (`skills=[...]`) makes it add `files` by
-itself, limited to the folder of that skill.
+You do not always ask for one. Giving the agent a `SKILL.md` (`skills=[...]`) makes it add `files`
+by itself, limited to the folder of that skill.
 
 A built-in toolkit is a plugin like yours, so you can build on it. `acme-api` below is the `openapi`
-toolkit with the document of one API and the key already set: an agent asks for `acme-api` with
-just the key, and never sees the address or the header.
+toolkit with the document of one API and the key already set: an agent asks for `acme-api` with just
+the key, and never sees the address or the header.
 """
 
 import asyncio

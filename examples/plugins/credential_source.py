@@ -1,11 +1,13 @@
 """Add a credential source.
 
-To add a credential source you use the decorator `@plugins.credential_source("name")` on top of a class.
+To add a credential source you use the decorator `@plugins.credential_source("name")` on top of a
+class.
 
 The class has:
 
 * An `__init__` that takes the configuration of the source, as keyword arguments.
-* `apply(method, url, headers, body=b"")`, which receives the request and returns the headers with the authentication added.
+* `apply(method, url, headers, body=b"")`, which receives the request and returns the headers with
+  the authentication added.
 * It leaves the `headers` it received untouched and returns a new dict.
 
 `skye.credential_source("name", **config)` builds it, as it builds the built-in sources.

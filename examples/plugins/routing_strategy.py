@@ -1,15 +1,18 @@
 """Add a routing strategy.
 
-To add a routing strategy you use the decorator `@plugins.routing_strategy("name")` on top of a function.
+To add a routing strategy you use the decorator `@plugins.routing_strategy("name")` on top of a
+function.
 
 The function receives:
 
 * The ids of the models that can answer, as a list of strings.
 * It returns the one to use.
 
-The name is valid wherever the name of a built-in strategy is: the `strategy` of a router and of a `.skye` file.
+The name is valid wherever the name of a built-in strategy is: the `strategy` of a router and of a
+`.skye` file.
 
-Tip: a strategy that needs numbers (latency, cost, a quota) asks the router for them; this one only looks at the names.
+Tip: a strategy that needs numbers (latency, cost, a quota) asks the router for them; this one only
+looks at the names.
 """
 
 import skye
@@ -42,7 +45,8 @@ def main() -> None:
             )
         ]
     )
-    # router.complete(messages=[UserMessage("Hello!")], model="chat")  # needs a real key and network
+    # Needs a real key and the network:
+    # router.complete(messages=[UserMessage("Hello!")], model="chat")
     route = router.get_route("chat")
     print("route:", route.strategy if route else None)
 

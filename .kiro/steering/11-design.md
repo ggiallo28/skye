@@ -148,31 +148,60 @@ every listing and call with the authorizer when one is provided.
 ## Extension points
 | Kind | Port in `base` | Owner | A new one is added by |
 |---|---|---|---|
-| model provider | `model`, `decision` | `models` | configuration or a thin dialect inside `models` |
-| store backend | `storage` | `store` | one new module in `store` |
-| tool | `capability` | `tools` | registering it in the tools registry |
+| provider (model, embedding, decision) | `model`, `vector_encoder`, `decision` | `models` | `@plugins.provider("name")` on a class, with its profile |
+| store backend | `storage` | `store` | `@plugins.backend("name")` on a class |
+| tool | `capability` | `tools` | `@capability` on a function, passed in `tools=[...]` or put in a `CapabilityRegistry` |
+| toolkit | `tool_provider` | `tools` | `@plugins.toolkit("name")` on a class that extends `skye.Toolkit` |
 | observability exporter | `observer` | `observe` | registering it in the observe registry |
-| credential provider | credential-source Port | `auth` | registering it in the `auth` registry |
+| credential provider | credential-source Port | `auth` | `@plugins.credential_source("name")` on a class |
 
 Adding one never edits a file outside the owner; a check rejects it otherwise. Every kind is also reachable through a plugin (next section).
 
 ## Plugins and provider profiles
-Proposal of D108 (Requirements 56 to 61); the spec is `0-base-plugins`. One entry for every kind: a plugin is an object with
-`register(registrar)`; the registrar has one method per kind (`model_provider`, `embedding_provider`, `store_backend`,
-`credential_source`, `routing_strategy`, `mcp_client`, `decision_model`, `tokenizer`, `capability`, `prompt_filter`, `agent_type`).
-- **Where.** `PluginInterface`, `RegistrarInterface`, `ProviderProfile`, `ModelProfile`, `RegionRule`, `resolve_region` and the lookup of
+Decision D111 (Requirements 56 to 62); the spec is `0-base-plugins`. One entry for every kind: an object `plugins = skye.Plugins()`, created
+anywhere, whose methods are decorators (or direct calls) that register at the moment they run, from any part of the program. There is no
+plugin object with `register(registrar)`, no `PluginInterface` and no `skye.use`. The kinds are `provider`, `backend`,
+`credential_source`, `routing_strategy`, `mcp_client`, `tokenizer`, `template_filter`, `agent` and `toolkit`. The same word adds and builds:
+`plugins.agent("reverse")` and `skye.agent("reverse")`, `plugins.provider` and `skye.provider`, and so on.
+- **The handle and the registrar.** `Plugins` is a thin handle on the one default table of the process; every handle sees the same
+  registrations. The concrete `Registrar` stays for a private table (a test) and has `unregister`; a duplicate raises unless `replace=True`.
+  A registration is in memory for the running process only, and the write is safe from several threads. There is no namespace of
+  plugins and no scope for tests (D111).
+- **One kind, several functions.** `provider` covers models, embeddings and decisions. The table is keyed by name and function, and the
+  function is deduced from the method of the class (`generate`, `encode`, `decide`); `skye.provider(name)` builds a model provider and
+  `provider_type="embedding"` or `"decision"` the others. One provider name has one profile, kept under its own name.
+- **Sync and async.** A plugin writes only the async method; `run_sync` and `iterate_sync` in `base` derive the sync one.
+- **Where.** `RegistrarInterface`, `ProviderProfile`, `ModelProfile`, `RegionRule`, `resolve_region` and the lookup of
   a `ModelProfile` are in `base` (data, Protocols and in-memory tables; no I/O). The scan of the entry-point group `skye.plugins` is
-  I/O and is outside `base` (O60); a lookup that finds no name triggers it once, lazily. `import <pkg>` never scans.
-- **Built-ins use the same door.** The built-in providers, backends, strategies, MCP clients and decision models register through the
-  registrar, by `"module:attribute"` text so that nothing is imported before first use. The registries that exist today stay as views.
+  I/O and is outside `base` (`skye.utils.plugins:discover`, held in `base` as text); a lookup that finds no name triggers it once,
+  lazily. The value of an entry point is a module, and importing it runs its decorators. `import <pkg>` never scans.
+- **Built-ins use the same calls.** The built-in providers, backends, strategies, MCP clients and toolkits register with the same
+  calls, by `"module:attribute"` text so that nothing is imported before first use. The registries that exist today stay as views;
+  the capability registry is not one of them.
+- **Layout of the built-ins (D110).** Each extensible component keeps them in `<component>/plugins/<name>/`, one folder per implementation or
+  provider (`models`: `openai`, `anthropic`, `bedrock`, `azure`, `google`, `cohere`, `typesafe`; `store`, `auth` and `tools` by implementation).
+  The `__init__.py` of a folder is the only door: public names resolved lazily, and an internal `register(registrar)` that makes the same calls as a third party.
+  The files have the same names in every folder: in `models` `provider.py`, `request.py`, `response.py`, `capabilities.py`, `embeddings.py`,
+  `multimodal_embeddings.py`, `decision.py`, `profile.toml`; the main file is `backend.py` in `store`, `source.py` in `auth`, `client.py` in `tools` and `agent.py` in `agents`. What several providers use, and what a plugin is written with, is in
+  `models/utilities/` (`base.py`, `openai_compatible/`, `anthropic_compatible/`, `transport/`), not in `plugins/`. `plugins` is not a component: it would have to know the internal paths of all
+  the others (Requirement 56.9).
 - **The profile is the one home of provider knowledge.** It carries the key variable, the region rule, the default endpoint, the client
   settings (Azure's names), the model profiles (prices, tokenizer, message overhead, `get_model_info` keys) and the error mapper. Cost,
   token counting, the router and `auth` read it; none keeps a table of provider names. Logic stays in the adapter module (error
-  handler, schema conversion); the profile points to it.
+  handler, schema conversion); the profile points to it. The profiles of the built-in providers are data, one `profile.toml` per provider
+  read with the standard library; `base` only builds the dataclass from the mapping (`profile_from_mapping`), because it does no file I/O.
 - **The store keeps its own representation.** `CounterStore.count`, a capability for liveness and remaining lifetime, and the default
   backend created by `skye.store.backend("memory")` mean that the router never reads a stored shape or compares a timestamp with the clock.
-- **Control.** Optional allowlist `plugins` in the configuration file; `skye.use(plugin)` for explicit registration; `skye plugins` lists
+- **Control.** Optional allowlist `plugins` in the configuration file; `skye plugins` lists
   what is installed and registered. Conformance: one public `check_<kind>` per kind, run over the built-ins too.
+- **Tools, toolkits and agents (D111).** Capabilities are not a plugin kind and no default set exists: a tool belongs to the agent that is
+  given it. `@capability` (required) takes `name`, `description` and `return_direct`; a `CapabilityRegistry` stays in `tools` and holds
+  tools with namespaces (`weather.get_current`). The built-in tools are toolkits, `ToolProvider`s that an agent takes in `toolkits=`,
+  apart from its own `tools=`: `files` (a required root), `openapi`, `mcp`, `a2a`. A toolkit is a class that extends `skye.Toolkit`
+  with `@capability` on its methods; the name of a tool is `<toolkit>.<name>`. A `SKILL.md` in `skills=` adds `files` by itself,
+  limited to the folder of the skill. An agent is built only with `skye.agent(name, **options)`; `REACT` is the built-in one.
+- **Tokenizers.** A tokenizer is registered by name and a model uses it through its `ModelProfile`; `plugins.profile(provider, models=...)`
+  merges a change into an existing provider.
 - **Checks.** `tests/budget/test_provider_knowledge.py` and `tests/budget/test_storage_knowledge.py` (allowlists that only shrink);
   the cold-start and size budgets do not rise.
 
@@ -253,10 +282,12 @@ command line. `skye vscode install|uninstall|status|path|package` (`utils/vscode
 or copies the folder into `~/.vscode/extensions` (Requirement 55).
 
 ## Transport and providers
-One shared transport in `models/transport`: `http.py` (JSON over `urllib`, bearer and API-key headers, timeouts; the helper itself is
-`base/http.py`), `streaming.py` (stdlib parsing of `text/event-stream`), `retry.py` (3 retries after the first attempt),
-`error_mapping.py`, `token_counter.py`, `cost.py`, `multimodal.py`. SigV4 signing is in `auth` and reused by Bedrock. Three adapter
-families under `models/llm` (and analogues for embeddings): `openai_compatible` (one adapter keyed by base URL and key, with `openai` and `azure` holding what is specific to each: OpenAI, Azure and
+What a provider is written with is in `models/utilities/` (D110), as plain modules: the network (`rest.py` JSON over `urllib` and server-sent events,
+`streaming.py` parsing of `text/event-stream`, `eventstream.py` the Bedrock framing, `retry.py` with 3 retries after the first attempt,
+`error_mapping.py`; the HTTP helper itself is `base/http.py`), the shaping of a request (`structured.py`, `schema_check.py`,
+`capability_choice.py`, `prompt_parts.py`, `multimodal.py`) and `credentials.py`; `models/base.py`, `cost.py` and `token_counter.py` are the
+component's own. SigV4 signing is in `auth` and reused by Bedrock. Three adapter
+families (`models/utilities/openai_compatible`, `models/utilities/anthropic_compatible`, and the provider folders of `models/plugins`): `openai_compatible` (one adapter keyed by base URL and key, with `openai` and `azure` holding what is specific to each: OpenAI, Azure and
 the OpenAI-compatible ecosystem), `anthropic` (Messages API), `bedrock` (Converse with SigV4, boto3 not required); Google has its own
 dialect. Streaming parsing and signing are written once and reused. The provider-SDK extras are driven to zero; the residual extras
 are `memory`, `observe` if no stdlib path exists, `mcp` and `auth`.
@@ -265,19 +296,19 @@ Adapters expose `invoke` (the `Runnable` Port) and delegate to `acomplete`; vend
 ## Store layout
 | Backend | Module | Capabilities | Extra | Driver |
 |---|---|---|---|---|
-| in-memory | `store/memory.py` | key-value, counter, scan | none (default, D97) | standard library |
-| file | `store/file.py` | key-value, counter, scan | none | standard library |
-| DynamoDB | `store/dynamodb.py` | key-value, counter, scan | `aws` (only outside Lambda) | boto3 |
-| Redis / Valkey | `store/redis.py` | key-value, counter, scan | `valkey` or `redis` | valkey-py, else redis-py (D102) |
-| PostgreSQL | `store/postgres.py` | key-value, counter, scan | none (Data API), `postgres` (pg8000), `postgres-asyncpg` | RDS Data API through boto3, then pg8000, then asyncpg (D100) |
-| durable function | `store/durable_function.py` | key-value, counter | none | the caller's durable context |
+| in-memory | `store/plugins/memory/backend.py` | key-value, counter, scan | none (default, D97) | standard library |
+| file | `store/plugins/file/backend.py` | key-value, counter, scan | none | standard library |
+| DynamoDB | `store/plugins/dynamodb/backend.py` | key-value, counter, scan | `aws` (only outside Lambda) | boto3 |
+| Redis / Valkey | `store/plugins/redis/backend.py` | key-value, counter, scan | `valkey` or `redis` | valkey-py, else redis-py (D102) |
+| PostgreSQL | `store/plugins/postgres/backend.py` | key-value, counter, scan | none (Data API), `postgres` (pg8000), `postgres-asyncpg` | RDS Data API through boto3, then pg8000, then asyncpg (D100) |
+| durable function | `store/plugins/durable_function/backend.py` | key-value, counter | none | the caller's durable context |
 Each backend is a separate module reached only through the storage Ports (`KeyValueStore`, `CounterStore`, `ScanStore`; D98), created
 with `skye.store.backend(name, **config)` or directly, and checked by the public conformance suite. The default is in-memory; a durable
 backend is always chosen by the caller (D97).
 
 ## DecisionModel (Jev)
 `base/interfaces/decision.py` defines the one `DecisionModel` Port: a finite option set in, one choice and a probability per option out
-(each in 0..1, sum 1, empty set rejected). The implementation, Jev, is `models/decision/jev.py`. Consumers: `gateway` (tool selection),
+(each in 0..1, sum 1, empty set rejected). The implementation, Jev, is `models/plugins/typesafe/decision.py`. Consumers: `gateway` (tool selection),
 `router` (cheapest capable model), `guard` (pre-flight).
 
 ## Extras and budgets (table)
@@ -308,7 +339,7 @@ Lives in `tools`, consume-only. Official MCP types are converted at one module (
 messages through the `MCPPrompt` descriptor in `tools`; `Resource` stays internal to `tools` until a same-layer consumer needs it
 (then a resource Port in `base`, open decision O7). The built-in client is JSON-RPC over stateless HTTP on `base/http.py`; `fastmcp`
 is the optional substitute (`create_mcp_client(target, impl=...)`); differential tests keep both equal.
-Only `tools/mcp_fastmcp.py` imports `fastmcp`; the built-in client is the default and `impl="fastmcp"` returns the substitute from the `mcp` extra.
+Only `tools/plugins/fastmcp/client.py` imports `fastmcp`; the built-in client is the default and `impl="fastmcp"` returns the substitute from the `mcp` extra.
 
 ## Correctness properties (what the tests guard)
 1. Layer import direction is downward only. 2. Imports stay within each component's allowed set. 3. `base` imports only the standard library.

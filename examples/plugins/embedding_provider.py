@@ -1,8 +1,8 @@
 """Add an embedding provider.
 
-To add an embedding provider you use the decorator `@plugins.provider("name")` on top of a class. It is the same decorator as
-for a model provider: Skye tells which kind of provider the class is from the methods it has (here `encode`, so it is an embedding
-provider).
+To add an embedding provider you use the decorator `@plugins.provider("name")` on top of a class. It
+is the same decorator as for a model provider: Skye tells which kind of provider the class is from
+the methods it has (here `encode`, so it is an embedding provider).
 
 The class has the methods of the `VectorEncoderInterface` Port:
 
@@ -10,10 +10,12 @@ The class has the methods of the `VectorEncoderInterface` Port:
 * `aencode` and `aencode_batch`, their `async` versions.
 * `get_vector_dimension()`, the size of a vector.
 
-`skye.provider("name", provider_type="embedding")` builds it, as it builds the built-in embedding providers.
+`skye.provider("name", provider_type="embedding")` builds it, as it builds the built-in embedding
+providers.
 
-Tip: when the provider has a key variable, an endpoint or models with their own vector sizes, pass `profile=` to the decorator, as
-`model_provider.py` does: the size of the vectors of a model is `info={"vector_dimension": 1536}` in its `ModelProfile`.
+Tip: when the provider has a key variable, an endpoint or models with their own vector sizes, pass
+`profile=` to the decorator, as `model_provider.py` does: the size of the vectors of a model is
+`info={"vector_dimension": 1536}` in its `ModelProfile`.
 """
 
 import hashlib
@@ -53,9 +55,8 @@ class HashEmbedder(VectorEncoderInterface):
 def main() -> None:
     embedder = skye.provider("hash-embed", provider_type="embedding")
     vector = embedder.encode("hello")
-    print(
-        f"dimension {embedder.get_vector_dimension()}, first values {[round(v, 2) for v in vector[:3]]}"
-    )
+    first = [round(v, 2) for v in vector[:3]]
+    print(f"dimension {embedder.get_vector_dimension()}, first values {first}")
     print("same text, same vector:", embedder.encode("hello") == vector)
 
 
