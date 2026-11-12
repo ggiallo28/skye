@@ -28,9 +28,15 @@ import json
 from typing import Any, Literal
 
 from skye.base.exceptions import MissingExtraError, ValidationError
-from skye.base.interfaces.storage import ScanStore, StorageBackend, check_key, check_ttl
+from skye.base.interfaces.storage import (
+    ExpiryStore,
+    ScanStore,
+    StorageBackend,
+    check_key,
+    check_ttl,
+)
 from skye.base.lazy_import import missing_extra
-from skye.store._common import check_data, check_items, check_limit, provider_errors
+from skye.store._common import check_data, check_items, check_limit, count_of, provider_errors
 
 #: Read the JSON value (or nothing), add the amount to ``count``, write ``{"count": n}`` with the
 #: expiry (or none), and return ``n``.
@@ -69,8 +75,8 @@ def choose_driver() -> Driver:
     raise error
 
 
-class RedisBackend(StorageBackend, ScanStore):
-    """Key-value, counter and scan in Redis or Valkey.
+class RedisBackend(StorageBackend, ScanStore, ExpiryStore):
+    """Key-value, counter, scan and expiry in Redis or Valkey.
 
     Args:
         redis_url: The connection URL (``redis://``, ``rediss://`` for TLS); it may hold a password,
@@ -149,6 +155,26 @@ class RedisBackend(StorageBackend, ScanStore):
         expiry = check_ttl(ttl) or 0
         with provider_errors("redis", "increment"):
             return int(await self._client().eval(INCREMENT_SCRIPT, 1, name, amount, expiry))
+
+    async def count(self, key: str) -> int:
+        """One ``GET``; the count of ``key``, 0 when it is absent or expired. A ``GET`` does not move the server's expiry."""
+        name = self._key(key)
+        with provider_errors("redis", "count"):
+            raw = await self._client().get(name)
+        return count_of(_decode(raw))
+
+    async def is_alive(self, key: str) -> bool:
+        """One ``EXISTS``; the server drops an expired key, so a key it has is alive."""
+        name = self._key(key)
+        with provider_errors("redis", "is_alive"):
+            return bool(await self._client().exists(name))
+
+    async def remaining(self, key: str) -> int | None:
+        """One ``PTTL`` (milliseconds, rounded up to whole seconds); ``None`` when absent, expired or without expiry."""
+        name = self._key(key)
+        with provider_errors("redis", "remaining"):
+            millis = int(await self._client().pttl(name))
+        return None if millis < 0 else max(1, -(-millis // 1000))
 
     async def get_multiple(self, keys: list[str]) -> dict[str, dict[str, Any] | None]:
         """One ``MGET`` for all keys."""

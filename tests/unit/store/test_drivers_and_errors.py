@@ -21,12 +21,14 @@ from skye.store import (
     RedisBackend,
     available_backends,
     backend,
-    postgres,
     register_backend,
 )
+from skye.base.plugins import Registrar
+from skye.store import plugins as store_plugin
 from skye.store import factory as factory_module
-from skye.store import redis as redis_module
-from skye.store.postgres import (
+from skye.store.plugins.postgres import backend as postgres
+from skye.store.plugins.redis import backend as redis_module
+from skye.store.plugins.postgres.backend import (
     AsyncpgExecutor,
     DataApiExecutor,
     Pg8000Executor,
@@ -215,7 +217,10 @@ def test_backend_by_name() -> None:
 
 
 def test_register_backend(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(factory_module, "_REGISTERED", {})
+    # Work on a private registrar so that replacing "memory" below does not leak into the default one.
+    private = Registrar()
+    store_plugin.register(private)
+    monkeypatch.setattr(factory_module, "_registrar", lambda: private)
     register_backend("mine", lambda **config: InMemoryBackend())
     assert isinstance(backend("mine"), InMemoryBackend)
     with pytest.raises(ConfigurationError, match="already registered"):
@@ -313,6 +318,20 @@ def test_client_errors_become_provider_errors_without_secrets() -> None:
     assert isinstance(caught.value.__cause__, ConnectionError)
 
 
+def test_count_errors_name_the_operation_without_secrets() -> None:
+    with pytest.raises(ProviderError) as caught:
+        asyncio.run(RedisBackend(client=Broken()).count("k"))
+    assert "redis: count failed (ConnectionError)" in str(caught.value)
+    assert "hunter2" not in str(caught.value)
+
+
+def test_count_validates_the_key_before_any_call() -> None:
+    from skye.base.exceptions import ValidationError
+
+    with pytest.raises(ValidationError):
+        asyncio.run(RedisBackend(client=Broken()).count(""))
+
+
 def test_dynamodb_rejects_its_reserved_attributes() -> None:
     from tests.unit.store.fakes import FakeDynamoResource
 
@@ -332,6 +351,8 @@ def test_dynamodb_has_no_default_region(monkeypatch: pytest.MonkeyPatch) -> None
 
             return FakeDynamoResource()
 
+    monkeypatch.delenv("AWS_REGION", raising=False)
+    monkeypatch.delenv("AWS_DEFAULT_REGION", raising=False)
     monkeypatch.setitem(sys.modules, "boto3", Boto3)
     asyncio.run(DynamoDBBackend("t").connect())
     asyncio.run(DynamoDBBackend("t", "eu-west-1").connect())

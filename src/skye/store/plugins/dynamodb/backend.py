@@ -32,17 +32,26 @@ import asyncio
 from decimal import Decimal
 from typing import Any
 
-from skye.base.interfaces.storage import ScanStore, StorageBackend, check_key, check_ttl
+from skye.base.interfaces.storage import (
+    ExpiryStore,
+    ScanStore,
+    StorageBackend,
+    check_key,
+    check_ttl,
+)
 from skye.base.lazy_import import missing_extra
+from skye.base.regions import region_for
 from skye.store._common import (
     Clock,
     check_data,
     check_items,
     check_limit,
+    count_of,
     default_clock,
     expiry_of,
     is_expired,
     provider_errors,
+    remaining_of,
 )
 
 _KEY = "pk"
@@ -71,13 +80,14 @@ def _from_dynamo(value: Any) -> Any:
     return value
 
 
-class DynamoDBBackend(StorageBackend, ScanStore):
-    """Key-value, counter and scan in a DynamoDB table.
+class DynamoDBBackend(StorageBackend, ScanStore, ExpiryStore):
+    """Key-value, counter, scan and expiry in a DynamoDB table.
 
     Args:
         table_name: The table; its partition key is the string ``pk``.
-        region_name: The AWS region; ``None`` uses the default AWS configuration (no silent
-            ``us-east-1``).
+        region_name: The AWS region; ``None`` reads ``AWS_REGION`` then ``AWS_DEFAULT_REGION`` (the rule of the AWS
+            profile) and, when none is set, leaves the choice to ``boto3`` (its own chain: the config file, the instance
+            metadata); there is no silent ``us-east-1``.
         resource: A ``boto3`` DynamoDB resource to use instead of creating one (tests pass a fake
             one).
         clock: The time source for expiry; ``time.time`` by default.
@@ -102,7 +112,8 @@ class DynamoDBBackend(StorageBackend, ScanStore):
         if self._table is None:
             if self._resource is None:
                 boto3 = missing_extra("boto3", extra="aws")
-                kwargs = {"region_name": self.region_name} if self.region_name else {}
+                region = region_for("bedrock", self.region_name, required=False)
+                kwargs = {"region_name": region} if region else {}
                 self._resource = boto3.resource("dynamodb", **kwargs)
             self._table = self._resource.Table(self.table_name)
         return self._table
@@ -198,6 +209,33 @@ class DynamoDBBackend(StorageBackend, ScanStore):
                 )
                 return amount
         return int(response["Attributes"]["count"])
+
+    async def count(self, key: str) -> int:
+        """The ``count`` of the item of ``key`` in one consistent ``GetItem``; 0 when it is absent or expired."""
+        check_key(key)
+        with provider_errors("dynamodb", "count"):
+            table = self._get_table()
+            response = await asyncio.to_thread(table.get_item, Key={_KEY: key}, ConsistentRead=True)
+        return count_of(self._item_value(response.get("Item")))
+
+    async def _live_item(self, key: str, operation: str) -> dict[str, Any] | None:
+        """The item of ``key`` from one consistent ``GetItem``, or ``None`` when it is absent or expired."""
+        check_key(key)
+        with provider_errors("dynamodb", operation):
+            table = self._get_table()
+            response = await asyncio.to_thread(table.get_item, Key={_KEY: key}, ConsistentRead=True)
+        item = response.get("Item")
+        return item if self._item_value(item) is not None else None
+
+    async def is_alive(self, key: str) -> bool:
+        """One consistent ``GetItem``; ``True`` when the item is present and its ``ttl`` is not past."""
+        return await self._live_item(key, "is_alive") is not None
+
+    async def remaining(self, key: str) -> int | None:
+        """The seconds left to the ``ttl`` attribute (rounded up), or ``None`` when absent, expired or without ``ttl``."""
+        item = await self._live_item(key, "remaining")
+        expiry = None if item is None else item.get(_TTL)
+        return remaining_of(None if expiry is None else float(expiry), self._clock)
 
     async def get_multiple(self, keys: list[str]) -> dict[str, dict[str, Any] | None]:
         """``BatchGetItem`` in groups of 100, retrying unprocessed keys; every key is returned."""

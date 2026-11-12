@@ -18,7 +18,7 @@ from contextlib import contextmanager
 from decimal import Decimal
 from typing import Any
 
-from skye.store.redis import INCREMENT_SCRIPT
+from skye.store.plugins.redis.backend import INCREMENT_SCRIPT
 
 
 class ConditionalCheckFailedException(Exception):  # noqa: N818 - the name boto3 uses
@@ -182,6 +182,16 @@ class FakeRedis:
         self.data[name] = (value, None if ex is None else self.clock() + ex)
         return True
 
+    async def exists(self, name: str) -> int:
+        return int(self._live(name) is not None)
+
+    async def pttl(self, name: str) -> int:
+        """Milliseconds left, -2 for a missing key and -1 for a key with no expiry, as the server answers."""
+        if self._live(name) is None:
+            return -2
+        expiry = self.data[name][1]
+        return -1 if expiry is None else int((expiry - self.clock()) * 1000)
+
     async def delete(self, name: str) -> int:
         present = self._live(name) is not None
         self.data.pop(name, None)
@@ -238,7 +248,7 @@ def _like_to_regex(pattern: str) -> re.Pattern[str]:
 
 
 class FakeSqlExecutor:
-    """Each named statement of ``skye.store.postgres.statements``, in Python over a ``dict``."""
+    """Each named statement of ``skye.store.plugins.postgres.backend.statements``, in Python over a ``dict``."""
 
     def __init__(self) -> None:
         self.rows: dict[str, tuple[str, float | None]] = {}
@@ -281,6 +291,8 @@ class FakeSqlExecutor:
             count += params["amount"]
             self.rows[key] = (json.dumps({"count": count}), params["exp"])
             return [{"count": count}]
+        if name == "expiry":
+            return [{"expires_at": self.rows[params["key"]][1]}] if live(params["key"]) else []
         if name == "keys":
             regex = _like_to_regex(params["pattern"])
             return [{"key": k} for k in sorted(self.rows) if regex.match(k) and live(k)]

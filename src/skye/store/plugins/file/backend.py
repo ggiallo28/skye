@@ -35,24 +35,32 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote, unquote
 
-from skye.base.interfaces.storage import ScanStore, StorageBackend, check_key, check_ttl
+from skye.base.interfaces.storage import (
+    ExpiryStore,
+    ScanStore,
+    StorageBackend,
+    check_key,
+    check_ttl,
+)
 from skye.store._common import (
     Clock,
     check_data,
     check_items,
     check_limit,
+    count_of,
     default_clock,
     expiry_of,
     is_expired,
     provider_errors,
+    remaining_of,
 )
 
 _SUFFIX = ".json"
 _EXPIRY = "_skye_expires_at"
 
 
-class FileSystemBackend(StorageBackend, ScanStore):
-    """Key-value, counter and scan over JSON files in ``base_path``.
+class FileSystemBackend(StorageBackend, ScanStore, ExpiryStore):
+    """Key-value, counter, scan and expiry over JSON files in ``base_path``.
 
     Args:
         base_path: The folder that holds the files; created on first write.
@@ -72,6 +80,11 @@ class FileSystemBackend(StorageBackend, ScanStore):
         return self._root / (quote(key, safe="") + _SUFFIX)
 
     def _read(self, key: str) -> dict[str, Any] | None:
+        entry = self._read_entry(key)
+        return None if entry is None else entry[0]
+
+    def _read_entry(self, key: str) -> tuple[dict[str, Any], float | None] | None:
+        """The live value of ``key`` and its absolute expiry, or ``None``; an expired file is removed."""
         path = self._path(key)
         try:
             stored = json.loads(path.read_text(encoding="utf-8"))
@@ -85,7 +98,7 @@ class FileSystemBackend(StorageBackend, ScanStore):
         if is_expired(expiry, self._clock):
             path.unlink(missing_ok=True)
             return None
-        return stored
+        return stored, expiry
 
     def _write(self, key: str, data: dict[str, Any], expiry: float | None) -> None:
         self._root.mkdir(parents=True, exist_ok=True)
@@ -147,6 +160,25 @@ class FileSystemBackend(StorageBackend, ScanStore):
             value = int(current.get("count", 0)) + amount
             await self.set(key, {"count": value}, ttl)
             return value
+
+    async def count(self, key: str) -> int:
+        """The count of ``key``; 0 when it is absent or expired. It reads the file and does not rewrite it."""
+        check_key(key)
+        with provider_errors("file", "count"):
+            return count_of(await asyncio.to_thread(self._read, key))
+
+    async def is_alive(self, key: str) -> bool:
+        """``True`` when the file of ``key`` holds a live value."""
+        check_key(key)
+        with provider_errors("file", "is_alive"):
+            return await asyncio.to_thread(self._read_entry, key) is not None
+
+    async def remaining(self, key: str) -> int | None:
+        """The seconds ``key`` has left (rounded up), or ``None`` when absent, expired or without expiry."""
+        check_key(key)
+        with provider_errors("file", "remaining"):
+            entry = await asyncio.to_thread(self._read_entry, key)
+        return None if entry is None else remaining_of(entry[1], self._clock)
 
     async def set_multiple(self, data: dict[str, dict[str, Any]], ttl: int | None = None) -> None:
         """Write every item; nothing is written when one key or value is invalid."""

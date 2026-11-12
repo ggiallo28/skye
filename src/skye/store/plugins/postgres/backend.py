@@ -40,17 +40,26 @@ from typing import Any, Literal, Protocol
 from urllib.parse import unquote, urlsplit
 
 from skye.base.exceptions import MissingExtraError, ValidationError
-from skye.base.interfaces.storage import ScanStore, StorageBackend, check_key, check_ttl
+from skye.base.interfaces.storage import (
+    ExpiryStore,
+    ScanStore,
+    StorageBackend,
+    check_key,
+    check_ttl,
+)
 from skye.base.lazy_import import missing_extra
+from skye.base.regions import region_for
 from skye.store._common import (
     Clock,
     check_data,
     check_items,
     check_limit,
+    count_of,
     default_clock,
     expiry_of,
     like_prefix,
     provider_errors,
+    remaining_of,
 )
 
 Driver = Literal["data-api", "pg8000", "asyncpg"]
@@ -87,6 +96,7 @@ def statements(table: str) -> dict[str, str]:
             "expires_at = EXCLUDED.expires_at "
             "RETURNING CAST(data->>'count' AS BIGINT) AS count"
         ),
+        "expiry": f"SELECT expires_at FROM {table} WHERE key = :key AND {live}",
         "keys": (
             f"SELECT key FROM {table} WHERE key LIKE :pattern ESCAPE '\\' AND {live} ORDER BY key"
         ),
@@ -136,7 +146,8 @@ class DataApiExecutor:
         """``ExecuteStatement`` in a worker thread."""
         if self._client is None:
             boto3 = missing_extra("boto3", extra="aws")
-            kwargs = {"region_name": self._region_name} if self._region_name else {}
+            region = region_for("bedrock", self._region_name, required=False)
+            kwargs = {"region_name": region} if region else {}
             self._client = boto3.client("rds-data", **kwargs)
         request: dict[str, Any] = {
             "resourceArn": self._cluster_arn,
@@ -279,8 +290,8 @@ def choose_driver(dsn: str | None, cluster_arn: str | None, secret_arn: str | No
     raise error
 
 
-class PostgreSQLBackend(StorageBackend, ScanStore):
-    """Key-value, counter and scan in a PostgreSQL table.
+class PostgreSQLBackend(StorageBackend, ScanStore, ExpiryStore):
+    """Key-value, counter, scan and expiry in a PostgreSQL table.
 
     Args:
         connection_string: A ``postgresql://`` URL, for pg8000 and asyncpg.
@@ -288,7 +299,7 @@ class PostgreSQLBackend(StorageBackend, ScanStore):
         cluster_arn: The Aurora cluster ARN, for the Data API.
         secret_arn: The Secrets Manager ARN of the database credentials, for the Data API.
         database: The database name, for the Data API.
-        region_name: The AWS region of the Data API; ``None`` uses the default AWS configuration.
+        region_name: The AWS region of the Data API; ``None`` reads ``AWS_REGION`` then ``AWS_DEFAULT_REGION`` and, when none is set, leaves the choice to ``boto3``.
         driver: Force a driver instead of the order of D100.
         executor: A driver object to use instead of building one (tests pass a fake one).
         clock: The time source for expiry; ``time.time`` by default.
@@ -356,12 +367,24 @@ class PostgreSQLBackend(StorageBackend, ScanStore):
 
     async def get(self, key: str) -> dict[str, Any] | None:
         """The value of ``key``, or ``None``."""
-        rows = await self._run("get", "get", key=check_key(key), now=self._clock())
-        if not rows:
+        return _row_value(await self._run("get", "get", key=check_key(key), now=self._clock()))
+
+    async def count(self, key: str) -> int:
+        """The count of ``key``, 0 when it is absent or expired: the ``get`` statement already leaves out an expired row."""
+        rows = await self._run("get", "count", key=check_key(key), now=self._clock())
+        return count_of(_row_value(rows))
+
+    async def is_alive(self, key: str) -> bool:
+        """``True`` when ``key`` has a row that has not expired: the ``expiry`` statement leaves out an expired one."""
+        rows = await self._run("expiry", "is_alive", key=check_key(key), now=self._clock())
+        return bool(rows)
+
+    async def remaining(self, key: str) -> int | None:
+        """The seconds left to ``expires_at`` (rounded up), or ``None`` when there is no live row or no expiry."""
+        rows = await self._run("expiry", "remaining", key=check_key(key), now=self._clock())
+        if not rows or rows[0]["expires_at"] is None:
             return None
-        data = rows[0]["data"]
-        value = json.loads(data) if isinstance(data, str) else data
-        return value if isinstance(value, dict) else None
+        return remaining_of(float(rows[0]["expires_at"]), self._clock)
 
     async def set(self, key: str, data: dict[str, Any], ttl: int | None = None) -> None:
         """Insert or replace the row of ``key``."""
@@ -402,6 +425,15 @@ class PostgreSQLBackend(StorageBackend, ScanStore):
         rows = await self._run("keys", "keys", pattern=like_prefix(prefix), now=self._clock())
         found = [row["key"] for row in rows]
         return found if limit is None else found[:limit]
+
+
+def _row_value(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """The JSON object of the first row of a ``get`` statement, or ``None`` when there is no live row."""
+    if not rows:
+        return None
+    data = rows[0]["data"]
+    value = json.loads(data) if isinstance(data, str) else data
+    return value if isinstance(value, dict) else None
 
 
 __all__ = [

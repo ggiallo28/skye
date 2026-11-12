@@ -29,20 +29,28 @@ import asyncio
 import copy
 from typing import Any
 
-from skye.base.interfaces.storage import ScanStore, StorageBackend, check_key, check_ttl
+from skye.base.interfaces.storage import (
+    ExpiryStore,
+    ScanStore,
+    StorageBackend,
+    check_key,
+    check_ttl,
+)
 from skye.store._common import (
     Clock,
     check_data,
     check_items,
     check_limit,
+    count_of,
     default_clock,
     expiry_of,
     is_expired,
+    remaining_of,
 )
 
 
-class InMemoryBackend(StorageBackend, ScanStore):
-    """Key-value, counter and scan in a ``dict`` of this process.
+class InMemoryBackend(StorageBackend, ScanStore, ExpiryStore):
+    """Key-value, counter, scan and expiry in a ``dict`` of this process.
 
     Args:
         clock: The time source for expiry; ``time.time`` by default (tests pass a fake one).
@@ -90,6 +98,20 @@ class InMemoryBackend(StorageBackend, ScanStore):
             value = int(current.get("count", 0)) + amount
             self._data[key] = ({"count": value}, expiry_of(ttl, self._clock))
             return value
+
+    async def count(self, key: str) -> int:
+        """The count of ``key``; 0 when it is absent or expired. It does not create the key or move its expiry."""
+        return count_of(self._live(check_key(key)))
+
+    async def is_alive(self, key: str) -> bool:
+        """``True`` when ``key`` is present and has not expired."""
+        return self._live(check_key(key)) is not None
+
+    async def remaining(self, key: str) -> int | None:
+        """The seconds ``key`` has left (rounded up), or ``None`` when absent, expired or without expiry."""
+        if self._live(check_key(key)) is None:
+            return None
+        return remaining_of(self._data[key][1], self._clock)
 
     async def set_multiple(self, data: dict[str, dict[str, Any]], ttl: int | None = None) -> None:
         """Store every item; nothing is written when one key or value is invalid."""

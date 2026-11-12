@@ -7,6 +7,7 @@ or a credential.
 
 from __future__ import annotations
 
+import math
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -28,6 +29,18 @@ def expiry_of(ttl: int | None, clock: Clock) -> float | None:
 def is_expired(expiry: float | None, clock: Clock) -> bool:
     """``True`` when ``expiry`` is set and not in the future."""
     return expiry is not None and expiry <= clock()
+
+
+def remaining_of(expiry: float | None, clock: Clock) -> int | None:
+    """The whole seconds left before ``expiry``, rounded up (at least 1), or ``None`` for no expiry or an expired one."""
+    if expiry is None or is_expired(expiry, clock):
+        return None
+    return max(1, math.ceil(expiry - clock()))
+
+
+def count_of(value: dict[str, Any] | None) -> int:
+    """The count held by a stored counter value ``{"count": n}``, ``0`` for no value (an absent or expired key)."""
+    return 0 if not value else int(value.get("count", 0))
 
 
 def check_data(data: object) -> dict[str, Any]:
@@ -103,4 +116,5 @@ __all__ = [
     "is_expired",
     "like_prefix",
     "provider_errors",
+    "remaining_of",
 ]

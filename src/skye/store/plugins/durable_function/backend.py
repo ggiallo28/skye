@@ -34,23 +34,25 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from skye.base.interfaces.storage import StorageBackend, check_key, check_ttl
+from skye.base.interfaces.storage import ExpiryStore, StorageBackend, check_key, check_ttl
 from skye.store._common import (
     Clock,
     check_data,
     check_items,
+    count_of,
     default_clock,
     expiry_of,
     is_expired,
     provider_errors,
+    remaining_of,
 )
 
 _VALUE = "value"
 _EXPIRY = "expires_at"
 
 
-class DurableFunctionBackend(StorageBackend):
-    """Key-value and counter in the durable context of a Lambda durable function.
+class DurableFunctionBackend(StorageBackend, ExpiryStore):
+    """Key-value, counter and expiry in the durable context of a Lambda durable function.
 
     Args:
         context: The durable context (anything with ``get_state`` and ``set_state``).
@@ -71,13 +73,18 @@ class DurableFunctionBackend(StorageBackend):
         return self.key_prefix + check_key(key)
 
     def _read(self, name: str) -> dict[str, Any] | None:
+        entry = self._read_entry(name)
+        return None if entry is None else entry[0]
+
+    def _read_entry(self, name: str) -> tuple[dict[str, Any], float | None] | None:
+        """The live value kept under ``name`` and its absolute expiry, or ``None``; an expired entry is cleared."""
         stored = self.context.get_state(name)
         if not isinstance(stored, dict) or not isinstance(stored.get(_VALUE), dict):
             return None
         if is_expired(stored.get(_EXPIRY), self._clock):
             self.context.set_state(name, None)
             return None
-        return dict(stored[_VALUE])
+        return dict(stored[_VALUE]), stored.get(_EXPIRY)
 
     async def get(self, key: str) -> dict[str, Any] | None:
         """The value of ``key``, or ``None``."""
@@ -112,6 +119,25 @@ class DurableFunctionBackend(StorageBackend):
                     name, {_VALUE: {"count": value}, _EXPIRY: expiry_of(ttl, self._clock)}
                 )
                 return value
+
+    async def count(self, key: str) -> int:
+        """The count of ``key``; 0 when it is absent or expired. It does not create the key or move its expiry."""
+        name = self._name(key)
+        with provider_errors("durable_function", "count"):
+            return count_of(self._read(name))
+
+    async def is_alive(self, key: str) -> bool:
+        """``True`` when ``key`` is present and has not expired."""
+        name = self._name(key)
+        with provider_errors("durable_function", "is_alive"):
+            return self._read_entry(name) is not None
+
+    async def remaining(self, key: str) -> int | None:
+        """The seconds ``key`` has left (rounded up), or ``None`` when absent, expired or without expiry."""
+        name = self._name(key)
+        with provider_errors("durable_function", "remaining"):
+            entry = self._read_entry(name)
+        return None if entry is None else remaining_of(entry[1], self._clock)
 
     async def set_multiple(self, data: dict[str, dict[str, Any]], ttl: int | None = None) -> None:
         """Store every item; nothing is written when one key or value is invalid."""
