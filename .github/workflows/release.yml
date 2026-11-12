@@ -1,6 +1,7 @@
 name: release
 
 # Publishes skyeai to PyPI when a version tag (v*) is pushed.
+# Builds, tests the wheel (unit and integration tests against the installed wheel), then publishes.
 # Needs the repository secret PYPI_API_TOKEN (Settings > Secrets and variables > Actions).
 # Until the secret is set, the publish step fails and nothing is uploaded.
 
@@ -27,6 +28,15 @@ jobs:
           fi
       - name: Build
         run: uv build
+      - name: Test the wheel
+        # The unit and integration tests run against the wheel that is about to be published: the dev tools come from the lock
+        # file, the project itself is not installed, so `skye` can only come from the wheel (a file missing from it fails here).
+        run: |
+          uv python install 3.13
+          uv sync --group dev --locked --no-install-project --python 3.13
+          uv pip install --python .venv/bin/python --no-deps dist/*.whl
+          .venv/bin/python -c "import skye; assert 'site-packages' in skye.__file__, skye.__file__; print(skye.__file__)"
+          .venv/bin/python -m pytest tests/unit tests/integration -q -p no:cacheprovider -m "not stress and not budget and not differential"
       - name: Publish to PyPI
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
