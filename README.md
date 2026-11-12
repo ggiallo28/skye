@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/assets/banner.png" alt="Skye, intelligence that travels light" width="100%">
+</p>
+
 # Skye AI
 
 **A GenAI library for AWS Lambda that deploys as a 0.56 MB zip.** Standard library only: no container, no layer, no
