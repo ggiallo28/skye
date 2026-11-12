@@ -1,6 +1,6 @@
 """MCP client implementations: built-in vs ``fastmcp`` (Live, ``fastmcp`` branch guarded).
 
-``create_mcp_client(url, impl="builtin")`` returns the standard-library MCP client (no
+``create_mcp_client(url, impl="skyemcp")`` returns the standard-library MCP client (no
 extra to install); ``impl="fastmcp"`` opts into the ``fastmcp``-backed client, which needs
 the optional ``mcp`` extra. Both implementations return identical Skye types
 (``CapabilityInterface`` tools, ``MCPPrompt`` prompts, ``Resource`` resources).
@@ -23,7 +23,7 @@ async def main() -> None:
     url = os.getenv("MCP_SERVER_URL", "http://localhost:8000/mcp")
 
     # Live: the built-in client talks JSON-RPC over HTTP (standard library only).
-    client = create_mcp_client(url, impl="builtin")
+    client = create_mcp_client(url, impl="skyemcp")
     try:
         tools = await client.list_tools()
     except (OSError, SkyeError) as error:

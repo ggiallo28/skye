@@ -9,7 +9,7 @@ The class has:
 * The methods of the `MCPClientInterface` Port, all `async`: `list_tools`, `call_tool`,
   `list_prompts`, `get_prompt`, `list_resources` and `read_resource`.
 
-`skye.mcp_client(target, impl="name")` builds it, as it builds `"builtin"` and `"fastmcp"`.
+`skye.mcp_client(target, impl="name")` builds it, as it builds `"skyemcp"` and `"fastmcp"`.
 
 Tip: this one answers from memory, which is also the way to test code that uses an MCP client
 without a server.

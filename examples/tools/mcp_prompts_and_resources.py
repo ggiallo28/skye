@@ -32,7 +32,7 @@ def show_types() -> None:
 
 async def main() -> None:
     url = os.getenv("MCP_SERVER_URL", "http://localhost:8000/mcp")
-    client = create_mcp_client(url, impl="builtin")
+    client = create_mcp_client(url, impl="skyemcp")
 
     show_types()
 

@@ -15,7 +15,7 @@ from skye.tools import create_mcp_client
 
 async def main() -> None:
     url = os.getenv("MCP_SERVER_URL", "http://localhost:8000/mcp")
-    client = create_mcp_client(url)  # impl="builtin" is the default
+    client = create_mcp_client(url)  # impl="skyemcp" is the default
 
     try:
         tools = await client.list_tools()

@@ -6,7 +6,6 @@ plugin, so you build it by name with `skye.toolkit(name, **options)`:
 * `"files"`: reads the files under a folder. The folder (`root`) is required and nothing outside it
   can be read.
 * `"openapi"`: one tool for each operation of an OpenAPI document (`spec`).
-* `"mcp"`: the tools of an MCP server, by its address (`target`).
 
 You do not always ask for one. Giving the agent a `SKILL.md` (`skills=[...]`) makes it add `files`
 by itself, limited to the folder of that skill.
@@ -39,13 +38,12 @@ async def main() -> None:
     files = skye.toolkit("files", root="docs")
     print("files:", [schema.name for schema in await files.list_schemas()])
 
-    mcp = skye.toolkit("mcp", target="http://localhost:8000/mcp")
     acme = skye.toolkit("acme-api", api_key="not-a-real-key")  # built on `openapi`, see above
 
     agent = skye.agent(
         REACT,
         model="gpt-4o-mini",
-        toolkits=[files, mcp, acme],
+        toolkits=[files, acme],
         skills=["examples/plugins/skills/refund-policy/SKILL.md"],  # adds `files` for this folder
     )
     print(await agent.invoke("What is the refund policy?"))
