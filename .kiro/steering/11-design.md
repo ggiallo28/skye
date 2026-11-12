@@ -197,7 +197,7 @@ plugin object with `register(registrar)`, no `PluginInterface` and no `skye.use`
 - **Tools, toolkits and agents (D111).** Capabilities are not a plugin kind and no default set exists: a tool belongs to the agent that is
   given it. `@capability` (required) takes `name`, `description` and `return_direct`; a `CapabilityRegistry` stays in `tools` and holds
   tools with namespaces (`weather.get_current`). The built-in tools are toolkits, `ToolProvider`s that an agent takes in `toolkits=`,
-  apart from its own `tools=`: `files` (a required root), `openapi`, `mcp`, `a2a`. A toolkit is a class that extends `skye.Toolkit`
+  apart from its own `tools=`: `files` (a required root), `openapi`, `mcp`, `skyea2a`, `a2a`, `shell`. A toolkit is a class that extends `skye.Toolkit`
   with `@capability` on its methods; the name of a tool is `<toolkit>.<name>`. A `SKILL.md` in `skills=` adds `files` by itself,
   limited to the folder of the skill. An agent is built only with `skye.agent(name, **options)`; `REACT` is the built-in one.
 - **Tokenizers.** A tokenizer is registered by name and a model uses it through its `ModelProfile`; `plugins.profile(provider, models=...)`
@@ -337,9 +337,9 @@ Tests use fake credential endpoints (stdlib `http.server`, as in `tests/differen
 ## MCP client
 Lives in `tools`, consume-only. Official MCP types are converted at one module (`tools/mcp_boundary.py`); the prompt facet returns `base`
 messages through the `MCPPrompt` descriptor in `tools`; `Resource` stays internal to `tools` until a same-layer consumer needs it
-(then a resource Port in `base`, open decision O7). The built-in client is JSON-RPC over stateless HTTP on `base/http.py`; `fastmcp`
+(then a resource Port in `base`, open decision O7). The built-in client, `skyemcp`, is JSON-RPC over stateless HTTP on `base/http.py`; `fastmcp`
 is the optional substitute (`create_mcp_client(target, impl=...)`); differential tests keep both equal.
-Only `tools/plugins/fastmcp/client.py` imports `fastmcp`; the built-in client is the default and `impl="fastmcp"` returns the substitute from the `mcp` extra.
+Only `tools/plugins/fastmcp/client.py` imports `fastmcp`; the built-in client (`impl="skyemcp"`) is the default and `impl="fastmcp"` returns the substitute from the `mcp` extra.
 
 ## Correctness properties (what the tests guard)
 1. Layer import direction is downward only. 2. Imports stay within each component's allowed set. 3. `base` imports only the standard library.

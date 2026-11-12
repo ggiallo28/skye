@@ -95,6 +95,7 @@ closed kinds, then the new interface) is in D108 and D111 and is kept by the tas
 4. THE spec SHALL realize Requirement 58.4 of #[[file:.kiro/steering/10-requirements.md]].
 5. THE spec SHALL realize Requirement 58.5 of #[[file:.kiro/steering/10-requirements.md]].
 6. THE spec SHALL realize Requirement 58.6 of #[[file:.kiro/steering/10-requirements.md]].
+7. THE spec SHALL realize Requirement 58.7 of #[[file:.kiro/steering/10-requirements.md]].
 
 ### Requirement 4: A provider declared once
 

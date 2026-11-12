@@ -72,18 +72,18 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
   - [x] 4.3 The `plugins` key of the configuration file, read with `load_config` (D91): only the listed entry points load; without the
     key, all; the key returns to the configuration schema and its documentation (D106 removed it while no code read it)
     - _Requirements: 57.5; D91, D106_
-  - [ ] 4.4 Failures: an entry point that fails to load or whose module raises is logged once at WARNING with `extra` (entry point,
+  - [x] 4.4 Failures: an entry point that fails to load or whose module raises is logged once at WARNING with `extra` (entry point,
     distribution, error) and skipped; an unknown name after the scan raises `ConfigurationError` listing the names of the kind and the
     failures
     - _Requirements: 57.6, 57.7; D105_
-  - [ ] 4.5 An entry point is a module (D111): `discover` loads the entry point, which imports the module it names, and the decorators in the
+  - [x] 4.5 An entry point is a module (D111): `discover` loads the entry point, which imports the module it names, and the decorators in the
     module register; `use_plugin`, the `register` call on a plugin object and the lazy name `skye.use` are removed; the report keeps the names
     registered per kind; importing the module in the program registers the same way, so the entry point is a convenience
     - _Requirements: 57.1, 57.4, 57.8, 7.8; D111_
-  - [ ] 4.6 `skye plugins [--format json]` in `utils/cli.py`: built-in registrations and each entry point (name, distribution, version,
+  - [x] 4.6 `skye plugins [--format json]` in `utils/cli.py`: built-in registrations and each entry point (name, distribution, version,
     loaded or failed with the error, names per kind)
     - _Requirements: 57.9_
-  - [ ] 4.7 Tests in `tests/unit/plugins/test_discovery.py` with a fake `entry_points`: an entry point that is a module, one scan per
+  - [x] 4.7 Tests in `tests/unit/plugins/test_discovery.py` with a fake `entry_points`: an entry point that is a module, one scan per
     process, allowlist, failing entry point, error after the scan, the module imported by the program, the command in text and JSON
     - _Requirements: 57.1 to 57.9_
 - [x] 5. Built-in providers through the registrar, with their profiles
@@ -141,20 +141,20 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     `ModelProfile`; `register_tokenizer` registers a tokenizer by name through the registrar (coordinate with the token-counter work of
     `1-adapters-models`)
     - _Requirements: 60.2, 59.3_
-  - [ ] 6.3 One home for API-key variables: remove `STANDARD_ENV_VARS` (`auth`), `API_KEY_VARIABLES` (`router/skye_file.py`) and the
+  - [x] 6.3 One home for API-key variables: remove `STANDARD_ENV_VARS` (`auth`), `API_KEY_VARIABLES` (`router/skye_file.py`) and the
     names written in the adapters; all read `api_key_variables` of the profile; the variable names stay the provider-standard ones
     - _Requirements: 60.3, 11.6_
   - [x] 6.4 The router applies `client_settings` and `model_is_deployment` of the target's profile; the Azure branch of
     `router/model_router.py` goes; the router contains no provider name
     - _Requirements: 60.4_
-  - [ ] 6.5 Error handlers into their adapter modules, referenced by `map_error`; `gemini_schema` into the Google adapter;
+  - [x] 6.5 Error handlers into their adapter modules, referenced by `map_error`; `gemini_schema` into the Google adapter;
     `models/utilities/error_mapping.py` keeps the HTTP-status mapping of D104 and calls `map_error`
     - _Requirements: 60.5; D104_
-  - [ ] 6.6 The AWS region through `resolve_region` in `auth/plugins/aws/source.py`, `auth/plugins/aws/sts.py`, `models/utilities/credentials.py` and the store
+  - [x] 6.6 The AWS region through `resolve_region` in `auth/plugins/aws/source.py`, `auth/plugins/aws/sts.py`, `models/utilities/credentials.py` and the store
     backends that need one; the `us-east-1` defaults go; DynamoDB passes the region found and leaves the boto3 chain last (depends on
     O63, part 2, option A)
     - _Requirements: 60.6, 59.6_
-  - [ ] 6.7 Bedrock reads its native-JSON-output capability from `get_model_info()`; `_native_json_output` goes
+  - [x] 6.7 Bedrock reads its native-JSON-output capability from `get_model_info()`; `_native_json_output` goes
     - _Requirements: 60.7_
   - [ ] 6.8 `tests/budget/test_provider_knowledge.py`: a built-in provider name, a key variable or a price as a literal outside the
     adapter and profile of that provider fails; an allowlist that only shrinks
@@ -171,7 +171,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     the built-in agent type `react` lives in `agents/plugins/react/`
     - _Requirements: 56.7, 56.8_
     - Note: built against the interface before D111: the registrar default set of capabilities goes in task 13.2 and the kind `agent_type` is `agent` after task 13.1; the default set of template filters stays.
-  - [ ] 7.4 A test that every call to a registry of today works as before (one case per registry)
+  - [x] 7.4 A test that every call to a registry of today works as before (one case per registry)
     - _Requirements: 56.7_
   - [x] 7.5 The `store/plugins/` layout (D110): one folder per backend (`memory`, `file`, `dynamodb`, `redis` with the name `valkey`,
     `postgres`, `durable_function`), each with its `__init__.py` as the only door and `backend.py`; `_common.py`, `conformance.py` and
@@ -190,20 +190,20 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
 - [ ] 8. Storage knowledge in one place
   - [x] 8.1 `CounterStore.count(key)` on the Port and in all six backends; `check_backend` checks it
     - _Requirements: 60.9; D98_
-  - [ ] 8.2 `ExpiryStore` (`is_alive`, `remaining`) beside the Protocols of D98, in every backend that stores an expiry; the
+  - [x] 8.2 `ExpiryStore` (`is_alive`, `remaining`) beside the Protocols of D98, in every backend that stores an expiry; the
     conformance suite checks it with `FakeClock`
     - _Requirements: 60.10; D95, D98_
-  - [ ] 8.3 The router: counters through `count`, cooldown as a key with a `ttl` read through `ExpiryStore`, no `time.time()`
+  - [x] 8.3 The router: counters through `count`, cooldown as a key with a `ttl` read through `ExpiryStore`, no `time.time()`
     comparison, default store from `skye.store.backend("memory")`; router tests driven by `FakeClock`
     - _Requirements: 60.9, 60.10, 60.11; D97_
-  - [ ] 8.4 `store.namespaced(store, prefix)` and the router on the namespace `router` (depends on O63, part 1, option A)
+  - [x] 8.4 `store.namespaced(store, prefix)` and the router on the namespace `router` (depends on O63, part 1, option A)
     - _Requirements: 60.10_
-  - [ ] 8.5 `tests/budget/test_storage_knowledge.py`: the import of a concrete backend class outside `store` and its tests fails, and so
+  - [x] 8.5 `tests/budget/test_storage_knowledge.py`: the import of a concrete backend class outside `store` and its tests fails, and so
     does reading the key `"count"` of a stored value outside `store`
     - _Requirements: 60.12_
 
 - [~] 9. The closed kinds
-  - [ ] 9.1 Routing strategies by name through the registrar; the eight built-ins registered in `router/plugins/`; every
+  - [x] 9.1 Routing strategies by name through the registrar; the eight built-ins registered in `router/plugins/`; every
     `RoutingStrategy` member still works; the `if`/`elif` chain goes; the `.skye` checker accepts a registered name in `strategy`
     - _Requirements: 58.1_
   - [x] 9.2 MCP clients by `impl` name through the registrar; `"builtin"` the default; `"fastmcp"` registered by text and imported only
@@ -212,7 +212,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
   - [x] 9.3 Decision models by name through the registrar; Jev registered as a built-in
     - _Requirements: 58.3, 9.8_
     - Note: built against the interface before D111; the decision model is a provider with the function `decide` after task 15.2.
-  - [ ] 9.4 A test with a third-party strategy, MCP client and decision provider registered with `plugins` decorators
+  - [x] 9.4 A test with a third-party strategy, MCP client and decision provider registered with `plugins` decorators
     - _Requirements: 58.1, 58.2, 58.3_
 - [ ] 10. Conformance per kind
   - [ ] 10.1 One public `check_<kind>` per kind, next to its owner, offline against fakes, returning the names of the checks passed and
@@ -234,115 +234,124 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     - _Requirements: 61.4, 7.9; D27_
 
 - [ ] 13. The nine kinds (D111)
-  - [ ] 13.1 Rename `store_backend` to `backend`, `agent_type` to `agent` and `prompt_filter` to `template_filter` in `KINDS`,
+  - [x] 13.1 Rename `store_backend` to `backend`, `agent_type` to `agent` and `prompt_filter` to `template_filter` in `KINDS`,
     `RegistrarInterface`, `Registrar` and the views (`register_backend`, `register_agent_type`, the prompt builders); the tests of the old
     names are updated
     - _Requirements: 56.2, 56.8, 56.11; D111_
-  - [ ] 13.2 Remove the kind `capability` and the default set of capabilities of the registrar (`default_set("capability")`, and what
+  - [x] 13.2 Remove the kind `capability` and the default set of capabilities of the registrar (`default_set("capability")`, and what
     `CapabilityRegistry` reads from it); `CapabilityRegistry` keeps its name, its place and its namespaces and is no view of the registrar; the
     default set of template filters stays; tests that a registry starts empty
     - _Requirements: 62.1, 56.8; D111_
-  - [ ] 13.3 Add the kind `toolkit` to the registrar (the table and the method, no built-in yet); tests in `test_registrar.py` for the nine
+  - [x] 13.3 Add the kind `toolkit` to the registrar (the table and the method, no built-in yet); tests in `test_registrar.py` for the nine
     kinds, and the Port compliance test for `Registrar` and the nine-method `RegistrarInterface`
     - _Requirements: 56.2, 62.5; D111_
-  - [ ] 13.4 Remove `PluginInterface` (the Protocol, its export from `skye.interfaces`, its docstring and tests) and the register-on-a-plugin
+  - [x] 13.4 Remove `PluginInterface` (the Protocol, its export from `skye.interfaces`, its docstring and tests) and the register-on-a-plugin
     path of `utils/plugins.py` that used it; the module docstring of `base/interfaces/plugin.py` describes `RegistrarInterface` only
     - _Requirements: 56.1; D111, D37_
 
 - [ ] 14. `skye.Plugins` (D111)
-  - [ ] 14.1 The class `Plugins` in `base/plugins.py`: a handle on the default registrar with no table of its own; one method for each kind that
+  - [x] 14.1 The class `Plugins` in `base/plugins.py`: a handle on the default registrar with no table of its own; one method for each kind that
     registers when it has the name and the target, and returns a decorator when it has the name only; the decorator returns the object it
     decorates; `replace=False`, `profile=` on `provider` and `tools=` on `toolkit` are taken
     - _Requirements: 56.1, 56.2, 62.5; D111_
-  - [ ] 14.2 Registration at once, from any part of the program: a write to a table takes a lock and a read does not; a test that registers from
+  - [x] 14.2 Registration at once, from any part of the program: a write to a table takes a lock and a read does not; a test that registers from
     a function, a method and several threads and finds the names at once
     - _Requirements: 56.6_
-  - [ ] 14.3 `Plugins` as a lazy name of `skye/__init__.py` and in the `skye.plugins` facade; the exports count test and the public-imports test
+  - [x] 14.3 `Plugins` as a lazy name of `skye/__init__.py` and in the `skye.plugins` facade; the exports count test and the public-imports test
     are updated (D34)
     - _Requirements: 56.1, 7.8; D34_
-  - [ ] 14.4 Tests in `tests/unit/plugins/test_plugins_handle.py`: a decorator and a direct call for each kind, two handles see one table, a
+  - [x] 14.4 Tests in `tests/unit/plugins/test_plugins_handle.py`: a decorator and a direct call for each kind, two handles see one table, a
     duplicate raises and `replace=True` overrides, `unregister` removes, the decorated class stays usable
     - _Requirements: 56.1, 56.2, 56.3, 56.4, 56.6_
 
 - [ ] 15. One `provider` kind (D111)
-  - [ ] 15.1 The function of a `provider` from the method of the class (`generate`, `encode`, `decide`); the table keyed by name and function; a
+  - [x] 15.1 The function of a `provider` from the method of the class (`generate`, `encode`, `decide`); the table keyed by name and function; a
     class with the methods of two functions raises `ConfigurationError`; the call that registers a text target gives the function, and the
     argument is chosen here and written in `design.md` (the text is not imported at registration)
     - _Requirements: 56.12_
-  - [ ] 15.2 The tables `model_provider`, `embedding_provider` and `decision_model` become the kind `provider`; `ProviderRegistry`,
+  - [x] 15.2 The tables `model_provider`, `embedding_provider` and `decision_model` become the kind `provider`; `ProviderRegistry`,
     `create_decision_model` and `create_embedding_provider` read it; every built-in registration of `models/plugins/` uses `provider`; the
     layout tests of `models` are updated
     - _Requirements: 56.12, 56.8, 58.3; D111_
-  - [ ] 15.3 `skye.provider(name)` builds a model provider, and `provider_type="embedding"` and `provider_type="decision"` the others, from the
+  - [x] 15.3 `skye.provider(name)` builds a model provider, and `provider_type="embedding"` and `provider_type="decision"` the others, from the
     single kind
     - _Requirements: 56.11, 56.12_
-  - [ ] 15.4 One profile for one provider name, kept under its own `name`, whatever the functions registered; the price of Jev in
+  - [x] 15.4 One profile for one provider name, kept under its own `name`, whatever the functions registered; the price of Jev in
     `typesafe/profile.toml`, registered with the decision provider and read by the `CostCalculator`; a test that a chat class and an embedding class
     of one name share one profile and that a different second profile raises
     - _Requirements: 59.7, 59.8, 59.12, 58.3; D110, D111_
-  - [ ] 15.5 Tests: a class of two functions is an error, one name with two classes, a text target with its function, a decision provider
+  - [x] 15.5 Tests: a class of two functions is an error, one name with two classes, a text target with its function, a decision provider
     built through `skye.provider(name, provider_type="decision")` and through `create_decision_model`
     - _Requirements: 56.12, 58.3_
 
 - [ ] 16. One word to add and to build (D111)
-  - [ ] 16.1 The builders as lazy names of `skye/__init__.py`: `skye.agent` (a view of `create_agent`; `REACT` stays in `skye.agents`),
+  - [x] 16.1 The builders as lazy names of `skye/__init__.py`: `skye.agent` (a view of `create_agent`; `REACT` stays in `skye.agents`),
     `skye.backend`, `skye.mcp_client`, `skye.credential_source`, `skye.routing_strategy`, each reading the table of its kind; the exports count test
     is updated (D34)
     - _Requirements: 56.11, 62.9; D34, D111_
-  - [ ] 16.2 `plugins.names(kind_word)` and `plugins.get(kind_word, name)` on `Plugins`, with the word of the kind (`plugins.names("agent")`,
+  - [x] 16.2 `plugins.names(kind_word)` and `plugins.get(kind_word, name)` on `Plugins`, with the word of the kind (`plugins.names("agent")`,
     `plugins.get("toolkit", "openapi")`); an unknown word raises `ConfigurationError` listing the kinds
     - _Requirements: 56.11_
-  - [ ] 16.3 Tests: for each kind the word of the decorator is the word of the builder, and what a decorator registers is found by the builder and
+  - [x] 16.3 Tests: for each kind the word of the decorator is the word of the builder, and what a decorator registers is found by the builder and
     by `names`
     - _Requirements: 56.11, 62.9_
 
 - [ ] 17. The profile of an existing provider and the tokenizer by name (D111)
-  - [ ] 17.1 `plugins.profile(provider, models={model: ModelProfile(...)})` merges the given model entries into the profile of an existing
+  - [x] 17.1 `plugins.profile(provider, models={model: ModelProfile(...)})` merges the given model entries into the profile of an existing
     provider and changes nothing else (depends on O72: what merges, the error for an unknown provider or model)
     - _Requirements: 59.11; D111_
-  - [ ] 17.2 A tokenizer is registered by name (`plugins.tokenizer`) and a model uses one only through `ModelProfile(tokenizer=...)`;
+  - [x] 17.2 A tokenizer is registered by name (`plugins.tokenizer`) and a model uses one only through `ModelProfile(tokenizer=...)`;
     `TokenCounter.register_tokenizer` by prefix is a lower-level call outside the plugin interface (its fate is open in O72)
     - _Requirements: 59.11, 59.3; D111_
-  - [ ] 17.3 Tests: a change of the tokenizer of `gpt-4o` leaves `gpt-4o-mini`, the prices and the endpoint as they are; a new provider names its
+  - [x] 17.3 Tests: a change of the tokenizer of `gpt-4o` leaves `gpt-4o-mini`, the prices and the endpoint as they are; a new provider names its
     tokenizer in its profile; a model with no tokenizer gets the estimate
     - _Requirements: 59.11, 59.10_
 
 - [ ] 18. Toolkits (D111; the loop and the content are other specs and O70)
-  - [ ] 18.1 `LocalFunctionCapability` as a descriptor (`__get__` binds it to the instance) and a schema that skips `self`, so that
+  - [x] 18.1 `LocalFunctionCapability` as a descriptor (`__get__` binds it to the instance) and a schema that skips `self`, so that
     `@capability` works on a method (open in O70: `__call__` and the early check of the schema)
     - _Requirements: 62.2, 62.5_
-  - [ ] 18.2 `skye.Toolkit` in `tools`: a `ToolProvider` that collects the methods of its class marked with `@capability`, adds the prefix
+  - [x] 18.2 `skye.Toolkit` in `tools`: a `ToolProvider` that collects the methods of its class marked with `@capability`, adds the prefix
     `<toolkit name>.<name>`, and takes an `alias` when one toolkit is built twice
     - _Requirements: 62.5_
-  - [ ] 18.3 `tools=[...]` in the `toolkit` decorator and in the call with no class (`plugins.toolkit("text", tools=[...])`), and a function that
+  - [x] 18.3 `tools=[...]` in the `toolkit` decorator and in the call with no class (`plugins.toolkit("text", tools=[...])`), and a function that
     returns a `CapabilityRegistry`; a clash of two prefixed names raises `ConfigurationError` naming both
     - _Requirements: 62.5_
-  - [ ] 18.4 `skye.toolkit(name, **options)` builds a toolkit; `replace=True` replaces a built-in one; `plugins.get("toolkit", name)` returns its class so
+  - [x] 18.4 `skye.toolkit(name, **options)` builds a toolkit; `replace=True` replaces a built-in one; `plugins.get("toolkit", name)` returns its class so
     that a plugin builds on it
     - _Requirements: 62.6, 56.11_
-  - [ ] 18.5 `@capability` takes `name`, `description` and `return_direct` (the name defaults to the function name and the description to its
+  - [x] 18.5 `@capability` takes `name`, `description` and `return_direct` (the name defaults to the function name and the description to its
     docstring); the flag is kept on the capability and the loop that uses it is the agents spec (Requirement 62.3, O70)
     - _Requirements: 62.2_
-  - [ ] 18.6 Tests in `tests/unit/tools/test_toolkit.py`: methods with `@capability`, the prefix, `alias`, `tools=[...]`, the function that returns a
+  - [x] 18.6 Tests in `tests/unit/tools/test_toolkit.py`: methods with `@capability`, the prefix, `alias`, `tools=[...]`, the function that returns a
     registry, `self` out of the schema, a toolkit that is built by name and replaced
     - _Requirements: 62.5, 62.6_
 
 - [ ] 19. The built-in toolkits as plugins (D111; the content of each is open in O70)
-  - [ ] 19.1 `tools/plugins/files/`: registered by text as the toolkit `files`; the option `root` is required and nothing outside it can be read
+  - [x] 19.1 `tools/plugins/files/`: registered by text as the toolkit `files`; the option `root` is required and nothing outside it can be read
     - _Requirements: 62.7_
-  - [ ] 19.2 `tools/plugins/openapi/`: registered as the toolkit `openapi` with the option `spec`
+  - [x] 19.2 `tools/plugins/openapi/`: registered as the toolkit `openapi` with the option `spec`
     - _Requirements: 62.7_
-  - [ ] 19.3 `tools/plugins/mcp/`: registered as the toolkit `mcp` with the option `target`, on top of an MCP client
+  - [ ] 19.3 `tools/plugins/mcp/`: registered as the toolkit `mcp` with the option `target`, on top of an MCP client ON HOLD until O80 is decided; the code is parked outside the repository.
     - _Requirements: 62.7_
-  - [ ] 19.4 `tools/plugins/a2a/`: registered as the toolkit `a2a`; none of the four is active unless the user asks for it or a feature of the
-    agent needs it; `IMPLEMENTATIONS` of `tools/plugins/` lists the MCP clients and the toolkits; `test_layout_tools.py` is updated
+  - [ ] 19.4 The toolkits `skyea2a` (the agent-to-agent protocol on the standard library, as `skyemcp` is for MCP) and `a2a` (on the official SDK, imported ON HOLD until O80 is decided; the code is parked outside the repository.
+    only when used): the base only (the door, the class, the four tools `describe_agent`, `send_message`, `get_task`, `cancel_task`, the options `url`,
+    `headers`, `timeout`); what is not done is listed as issues for contributors (`docs/_notes/toolkit-issues.md`); none of the toolkits is active unless the
+    user asks for it or a feature of the agent needs it; `IMPLEMENTATIONS` of `tools/plugins/` lists the MCP clients and the toolkits; `test_layout_tools.py`
+    is updated
     - _Requirements: 62.7, 56.9_
+  - [ ] 19.6 The toolkit `shell`, the base only (opt-in: an allow list of executables is required, no shell, a time limit, a cut of the output, a ON HOLD until O80 is decided; the code is parked outside the repository.
+    working folder, a minimal environment); the rest is listed as issues for contributors
+    - _Requirements: 62.7_
+  - [x] 19.7 The toolkit `human` for escalations, the base only (the agent asks a person a question, or hands a case over; the way to reach the person is
+    a pluggable channel: `console`, `file` (JSON files in a folder, polled) and the Protocol for the others); the rest is listed as issues for contributors
+    - _Requirements: 62.7_
   - [ ] 19.5 The seam for the skills: an agent that is given a `SKILL.md` asks the registrar for the toolkit `files`, limited to the folder of the
     skill, and never imports `tools`; the skill itself and the loop are the agents spec
     - _Requirements: 62.8_
 
 - [ ] 20. Async only for the plugin author (D111)
-  - [ ] 20.1 `run_sync(coroutine)` and `iterate_sync(async_generator)` in `base`: the first runs on a worker thread when a loop is already
+  - [x] 20.1 `run_sync(coroutine)` and `iterate_sync(async_generator)` in `base`: the first runs on a worker thread when a loop is already
     running; the second runs the generator on its own loop in one thread, with a bounded queue, raises the error in the caller and closes the
     generator when the caller stops; tests for a running loop, an error in the middle and an early stop
     - _Requirements: 56.13_
@@ -352,6 +361,56 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
   - [ ] 20.3 The embedding base class derives `encode` and `encode_batch` from `aencode` and `aencode_batch`; the example embedding provider writes
     two methods; tests
     - _Requirements: 56.13_
+
+- [ ] 22. The name of the built-in MCP client (D112)
+  - [x] 22.1 The built-in MCP client is called `skyemcp` and no longer `builtin`: the registered name, the default `impl` of
+    `create_mcp_client`, the folder `tools/plugins/builtin` (now `tools/plugins/skyemcp`, with its door and `client.py`), the class
+    `BuiltinMCPClient` (now `SkyeMCPClient`, exported by `skye.tools`), `IMPLEMENTATIONS` in `tools/plugins/__init__.py`, the tests, the examples
+    and the docs and specs that name it; the old name is not kept as an alias
+    - _Requirements: 58.2; D16, D110, D112_
+
+- [ ] 23. Strategies that read the request (D113)
+  - [x] 23.1 `StrategyContext` in `router`: a frozen, read-only dataclass with the models, the alias, the token estimate, the request and the
+    snapshot of the metrics; `RouterStrategy.select(context)` for the built-ins, a plain function keeps `(models)` and one that wants the context is
+    marked with `with_context`; the two call sites of `ModelRouter` pass the request; the eight built-ins and their tests move to the context
+    - _Requirements: 58.1, 58.7; D113_
+  - [x] 23.2 The built-in strategy `lazy_complex`, deliberately naive: the models of a route are ordered from the cheap one to the strong one, a
+    long prompt, a tool or a response schema raise the level, and the level picks the model; registered in `router/plugins/`; the `.skye` checker
+    and the docs accept it
+    - _Requirements: 58.1, 58.7; D113_
+
+- [ ] 24. Size and load time of the installed package (O77, O78; the owner approved the proposal on 2026-11-12)
+  - [x] 24.1 A script that reports the size of the installed package by component and by kind (code, docstrings, comments, data files) against
+    `[core]` of `budgets.toml`, and the rule that every wave ends with it (written in the Notes of this file): `make size`, with a test that
+    the figures add up to the measured install
+    - _Requirements: 61.4; O77_
+  - [ ] 24.2 ON HOLD until the owner decides O77 (installing the skill and the extension from the public repository may replace it): `utils/claude_skill` and `utils/vscode_extension` stay plain files in the repository; the build puts one `zipfile` archive of each in
+    the wheel (the built `.vsix` for the extension, which is a zip); `skye skill` and `skye vscode` read the archive in an installed package and the
+    folder in a source checkout; a test of the round trip and one that runs the commands against the wheel
+    - _Requirements: 61.4; O77_
+  - [x] 24.3 The comments are removed from the wheel at build (a hook of the build backend, stdlib only): from the Python files with the standard-library
+    `tokenize` (the line numbers stay, a shebang and a coding line stay) and from the bundled `.skye` templates with the lexer of the language (the `#`
+    and `/* ... */` comments, 40 KB in 87 blocks that hold usage examples; a string that holds `/*` is kept; the front matter is kept); the sdist and
+    the repository keep the comments; a test that the wheel has no comment and that every bundled template builds to the same objects with and without
+    its comments
+    - _Requirements: 61.4; O77_
+  - [ ] 24.4 The references to requirements, decisions and tasks move from the docstrings to comments (docstrings only say what the library does);
+    a budget test that forbids the patterns in docstrings, with a list of exceptions that only shrinks; no cap of docstring bytes
+    - _Requirements: 61.4; O77_
+  - [~] 24.5 DESIGN WRITTEN (`docs/_notes/include-design.md`, O79): the implementation waits for the owner's answers to O79. `include` in the `.skye` language, a public feature (the owner, O77, T3): its target, the detection of a cycle and the rules of the
+    checker, the formatter, the renderer and the extension are decided in the design first
+    - _Requirements: 61.4; O77_
+  - [ ] 24.6 The bundled `.skye` templates use `include` for what 2 or more files repeat (33% of their bytes are in repeated lines); the output of
+    each template does not change (a test renders every template before and after)
+    - _Requirements: 61.4; O77_
+  - [x] 24.7 The bundled templates are one `zipfile` archive made at build and read by name (opened at the first read, never at `import skye`); a
+    source checkout reads the folder; `skye prompt export` writes them out; a test of both paths
+    - _Requirements: 61.4; O77_
+  - [x] 24.8 A bundled template is compiled at its first use (the builder registers the names and the versions only): `BasePromptBuilder()` costs
+    under 10 ms; a cache of the compiled bundled templates for the process (immutable entries); the build of a bundled template skips the validation
+    of the objects (a context that `validate_instance` reads), guarded by a test that the build with and without validation gives equal objects for
+    all the bundled templates; a template of the user is validated when it is registered; a row in `budgets.toml` for the construction of a builder
+    - _Requirements: 61.4; O78_
 
 - [ ] 21. The examples, the lint scope and the pages written before D111
   - [ ] 21.1 `examples/plugins/` runs offline: remove the entry `plugins` of `EXPECTED_TO_FAIL` in `tests/examples/test_examples.py` and
@@ -372,6 +431,10 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     marked as taken with the options used, the "Extension points" table of `11-design.md` updated, and the scan note
     `docs/_notes/extension-points-scan.md` marked as done
 ## Notes
+
+- Exit rule of every wave (owner, 2026-11-12): a wave ends with the size check, the default suite and the footprint test; the figure by component comes from task 24.1 when it exists, and until then from `uv run pytest tests/budget/test_footprint_budget.py -m budget`.
+
+- Budget of the core size (2026-11-12): `test_core_footprint` measured 2.02 MB against `[core] max_installed_mb = 2` from task 9.1 until task 24.3, which strips the comments from the wheel; it measures 1.980 MB after 24.3 and passes. The limit is not changed; the work still to come (the built-in toolkits, the tasks 24.x) is checked at the end of every wave with `make size`.
 - Tasks are deliverables in build order (D108). Each cites the requirement numbers of `10-requirements.md` it satisfies, or the decision it honors.
 - Task IDs cited from other documents are `plugins:N.k`.
 - Task 6.2 coordinates with the token-counter work of `1-adapters-models`, which uses the field names of Requirement 59.2.
@@ -412,22 +475,22 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     { "id": 10, "tasks": ["4.3", "5.2", "5.3", "5.4", "6.4", "7.3", "8.1"] },
     { "id": 11, "tasks": ["13.1", "20.1"] },
     { "id": 12, "tasks": ["8.2", "13.2"] },
-    { "id": 13, "tasks": ["8.3", "13.3", "18.1"] },
+    { "id": 13, "tasks": ["8.3", "13.3", "18.1", "22.1"] },
     { "id": 14, "tasks": ["8.4", "13.4", "18.2", "18.5"] },
     { "id": 15, "tasks": ["8.5", "14.1"] },
     { "id": 16, "tasks": ["4.5", "9.1", "14.2", "14.3"] },
     { "id": 17, "tasks": ["4.4", "14.4", "15.1"] },
-    { "id": 18, "tasks": ["4.6", "15.2", "16.2"] },
-    { "id": 19, "tasks": ["4.7", "15.3", "15.4"] },
-    { "id": 20, "tasks": ["15.5", "16.1", "17.1"] },
-    { "id": 21, "tasks": ["9.4", "16.3", "17.2", "18.3"] },
-    { "id": 22, "tasks": ["6.3", "7.4", "17.3", "18.4"] },
-    { "id": 23, "tasks": ["6.5", "18.6", "19.1"] },
-    { "id": 24, "tasks": ["6.6", "6.7", "19.2", "19.5"] },
+    { "id": 18, "tasks": ["4.6", "15.2", "16.2", "23.1"] },
+    { "id": 19, "tasks": ["4.7", "15.3", "15.4", "23.2", "24.1", "24.8"] },
+    { "id": 20, "tasks": ["15.5", "16.1", "17.1", "24.2"] },
+    { "id": 21, "tasks": ["9.4", "16.3", "17.2", "18.3", "24.3"] },
+    { "id": 22, "tasks": ["6.3", "7.4", "17.3", "18.4", "24.5"] },
+    { "id": 23, "tasks": ["6.5", "18.6", "19.1", "24.6"] },
+    { "id": 24, "tasks": ["6.6", "6.7", "19.2", "19.5", "24.7"] },
     { "id": 25, "tasks": ["6.8", "10.1", "19.3", "20.2"] },
-    { "id": 26, "tasks": ["10.2", "19.4", "20.3"] },
+    { "id": 26, "tasks": ["10.2", "19.4", "20.3", "19.6", "19.7"] },
     { "id": 27, "tasks": ["21.1"] },
-    { "id": 28, "tasks": ["21.2", "21.3"] },
+    { "id": 28, "tasks": ["21.2", "21.3", "24.4"] },
     { "id": 29, "tasks": ["11.1", "11.2"] },
     { "id": 30, "tasks": ["11.3"] },
     { "id": 31, "tasks": ["12.0"] },

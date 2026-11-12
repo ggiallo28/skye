@@ -39,7 +39,7 @@ tools/
   capability_models.py      CapabilityResult (and re-exported CapabilityCall from base)
   capability_call_handler.py  CapabilityCallHandler (parse/validate/execute/format)
   exceptions.py             CapabilityError hierarchy (on top of SkyeError)
-  mcp_client.py             MCPClientInterface, BuiltinMCPClient, MCPToolCapability, create_mcp_client
+  mcp_client.py             MCPClientInterface, SkyeMCPClient, MCPToolCapability, create_mcp_client
   mcp_fastmcp.py            FastMCPClient (the only module importing fastmcp, lazily)
   mcp_boundary.py           the single protocol -> Skye conversion point (stdlib only)
   mcp_resource.py           re-exports Resource and ResourceProviderInterface from the base resource Port (D26), keeping the old path
@@ -102,14 +102,14 @@ behaviour (Requirement 18.3).
 `mcp_client.py` defines `MCPClientInterface`, the one Port with three facets whose return types are identical across
 implementations: `list_tools`/`call_tool` return tools as `CapabilityInterface` objects (reusing the `tools` interfaces),
 `list_prompts`/`get_prompt` return prompts as `base` messages (without importing `prompts`), and
-`list_resources`/`read_resource` return resources as `Resource` objects of the `base` resource Port (Requirement 10.1, 10.5). `BuiltinMCPClient` is a
+`list_resources`/`read_resource` return resources as `Resource` objects of the `base` resource Port (Requirement 10.1, 10.5). `SkyeMCPClient` is a
 standard-library JSON-RPC 2.0 client over stateless HTTP POST on `base/http.py`: consume-only, with no stdio transport, no
 subprocess and no server of its own; it handles both a plain-JSON and an SSE-framed reply and paginates list calls by cursor
 (Requirement 10.2). `MCPToolCapability` is the capability that executes a server tool through the client.
 
 ### Built-in by default, fastmcp by explicit choice
 
-`create_mcp_client(target, impl="builtin", ...)` returns the built-in client by default, and the `fastmcp` client when
+`create_mcp_client(target, impl="skyemcp", ...)` returns the built-in client by default, and the `fastmcp` client when
 `impl="fastmcp"`; any other value raises `ConfigurationError` and returns no client, and `impl="fastmcp"` without `fastmcp`
 installed raises `MissingExtraError` naming the extra `mcp`. The choice is this argument only — no environment variable, no
 configuration entry, no fallback (Requirement 10.3, 10.4; D15, D16). `mcp_fastmcp.py` (`FastMCPClient`) is the only module
@@ -137,7 +137,7 @@ resources are a Port in `base` (list and read by URI, MIME type, text or bytes) 
 `prompts` and `memory` can consume MCP resources through `base` without importing `tools` (Requirement 10.5). The Port
 is `skye.base.interfaces.resource` (`ResourceProviderInterface`, a `Protocol` with `list_resources` and `read_resource`, and `Resource`, a
 frozen `@validated` dataclass whose `text` and `data` are mutually exclusive; both exported from `skye.interfaces`).
-`MCPClientInterface` inherits the Port, so `BuiltinMCPClient` and `FastMCPClient` implement it, and `tools/mcp_resource.py` only
+`MCPClientInterface` inherits the Port, so `SkyeMCPClient` and `FastMCPClient` implement it, and `tools/mcp_resource.py` only
 re-exports the two names so `skye.tools.mcp_resource` keeps working.
 
 ## Data Models
@@ -216,7 +216,7 @@ The former `capability-support` spec is replaced, not deleted; its text is in th
   Requirement 16.1); done, guarded by `tests/unit/tools/test_mcp_conformance.py`.
 - The `fastmcp`-required, stdio/subprocess MCP design — `MCPCapability` and `MCPServerClient` that import `fastmcp` to run,
   with placeholder stdio framing — is replaced by the consume-only tri-faceted client: a stdlib JSON-RPC-over-HTTP
-  `BuiltinMCPClient` by default and `FastMCPClient` behind the same Port, selected by an explicit `impl` with no fallback
+  `SkyeMCPClient` by default and `FastMCPClient` behind the same Port, selected by an explicit `impl` with no fallback
   (D15, D16; Requirement 10.2, 10.3, 10.4). The legacy `mcp_capability.py` and `mcp_server_client.py` probes are deleted
   (2026-11-08), with their tests and the `LEGACY_TOOLS_PROBES` allowance of `tests/budget/test_boundary_rule.py`: `fastmcp` is imported
   only in `mcp_fastmcp.py`.

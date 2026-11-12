@@ -34,8 +34,8 @@ interface and the tasks of the second half of `tasks.md` redo it.
   (`store/factory.py`), `register_credential_source` (`auth/registry.py`), `CapabilityRegistry` (`tools/registry.py`; a default set of
   capabilities is held by the registrar, which D111 removes), `TokenCounter.register_tokenizer` (`models/token_counter.py`),
   `register_agent_type` (`agents/registry.py`). Prompt filters are registered per builder instance (`prompts/messages.py`).
-- Routing strategies, MCP client implementations and decision models are open kinds (task 9); the routing strategy still goes through the
-  `RoutingStrategy` enum in the router (O69).
+- Routing strategies, MCP client implementations and decision models are open kinds (task 9); a routing strategy gets one read-only
+  `StrategyContext` (D113, 58.7).
 - The provider knowledge scattered outside the provider (P1 to P6 of the note) and the storage knowledge outside the store (S1 to S3) are
   partly moved: tasks 6.1, 6.2, 6.4, 8.1 are done; 6.3, 6.5 to 6.8 and 8.2 to 8.5 are open.
 
@@ -86,7 +86,7 @@ in `base`, and never imports `tools`.
 - **A target.** The object, a factory, or a `"module:attribute"` text imported at the first use of the name, never at registration (56.5). The
   built-ins register as texts, so registering them costs no import. A text target is not imported at registration, so the function of a text
   target of a `provider` (Requirement 56.12) cannot be deduced from the class then: the call that registers a text target gives the function
-  (task 15.1 chooses the argument and records it here), and the call with an object or a factory deduces it.
+  with the keyword `function=` (task 15.1; see "One provider kind"), and the call with an object or a factory deduces it.
 - **The registries of today as views (56.8).** `ProviderRegistry`, `register_backend`, `register_credential_source` and `register_agent_type`
   keep their signatures and lose their tables. `CapabilityRegistry` is not a view: capabilities are not a kind and there is no default set
   (62.1). `TokenCounter.register_tokenizer` is outside the plugin interface (59.11, O72).
@@ -100,8 +100,8 @@ in `base`, and never imports `tools`.
 | `provider` | `plugins.provider` | `skye.provider(name)`, `provider_type="embedding"` or `"decision"` | `models` | a class with `generate`, `encode` or `decide` |
 | `backend` | `plugins.backend` | `skye.backend(name)` | `store` | a `StorageBackend` |
 | `credential_source` | `plugins.credential_source` | `skye.credential_source(name, ...)` | `auth` | a source with `apply` |
-| `routing_strategy` | `plugins.routing_strategy` | `skye.routing_strategy(name)` | `router` | a function from the model ids to the one to use (O69) |
-| `mcp_client` | `plugins.mcp_client` | `skye.mcp_client(target, impl=name)` | `tools` | an `MCPClientInterface` (the internal implementations `builtin` and `fastmcp`) |
+| `routing_strategy` | `plugins.routing_strategy` | `skye.routing_strategy(name)` | `router` | a function from the model ids to the one to use, a function marked with `with_context`, or a `RouterStrategy` class (D113) |
+| `mcp_client` | `plugins.mcp_client` | `skye.mcp_client(target, impl=name)` | `tools` | an `MCPClientInterface` (the internal implementations `skyemcp` and `fastmcp`) |
 | `tokenizer` | `plugins.tokenizer` | by the profile of a model | `models` | a function from the model to an object with `encode` |
 | `template_filter` | `plugins.template_filter` | used by name in a template | `prompts` | a function of the value and its arguments |
 | `agent` | `plugins.agent` | `skye.agent(name, **options)` | `agents` | a `Runnable` (`async invoke`) |
@@ -112,6 +112,18 @@ in `base`, and never imports `tools`.
 - **One provider kind (56.12).** The function of a `provider` is deduced from the method of the class (`generate`, `encode`, `decide`) and the
   table is keyed by name and function, so `acme` can have a chat class and an embedding class. A class that has the methods of two functions is
   an error. One provider name has one profile (59.7).
+- **The argument `function=` (task 15.1).** The keyword is `function=` and its values are `"model"`, `"embedding"` and `"decision"` (a `Literal`,
+  `ProviderFunction` in `base/plugins.py`). They are the words of `provider_type=` of the builder (`skye.provider(name, provider_type="embedding")`,
+  the model being the default), so a plugin author learns one vocabulary for what a provider does. The reason for the argument is the text target:
+  it is imported at the first `get`, never at registration (56.5), so its methods cannot be read when it is registered; the call gives the function.
+  For an object, a class or a factory it is optional and a wrong one is an error. The methods that say a function are `generate`, `complete` and
+  `acomplete` for a model, `encode`, `aencode`, `encode_batch` and `aencode_batch` for an embedding, and `decide` for a decision; a factory
+  function is read through the class its return annotation names (a builtin such as `str`, which has an `encode`, says nothing). A class that
+  shows none of them, or two, is an error that asks for `function=`; with `function=` the author has said which one, so a class that serves two
+  functions is registered once for each. The table is keyed by `(name, function)`. `get`, `has`, `names` and `unregister` take `function=` for
+  this kind only (another kind refuses it): `get` and `unregister` without it find the only function a name has and raise
+  `ConfigurationError` when the name has two, `has` without it answers for any function, and `names` lists each name once. There is no default
+  set of providers.
 
 ### Async only (Requirement 56.13)
 A plugin writes the async method only: `acomplete`, `astream`, `aencode`, `aencode_batch`, `invoke`. The base classes of the owners derive the sync
@@ -149,8 +161,8 @@ models/
   an inner module.
 - **The other components, the same shape.** `store/plugins/{memory,file,dynamodb,redis,postgres,durable_function}/` with `backend.py` (`valkey`
   is a second name registered by the `redis` door); `auth/plugins/{aws,google,azure,oauth2,openai_compatible,secrets}/` with `source.py` and the
-  helpers that only that family uses (`aws` also holds `aws_profile.py`, `sts.py` and `sigv4.py`); `tools/plugins/{builtin,fastmcp}/` with
-  `client.py`, and next to the two MCP clients the folders of the built-in toolkits (`files`, `openapi`, `mcp`, `a2a`; see Toolkits below); `agents/plugins/react/` with `agent.py` (a built-in registered by text, so that `import skye.agents` loads no built-in). What several folders use stays in the root: `store/_common.py`, `conformance.py`, `factory.py`; `auth/cache.py`, `refresh.py`,
+  helpers that only that family uses (`aws` also holds `aws_profile.py`, `sts.py` and `sigv4.py`); `tools/plugins/{skyemcp,fastmcp}/` with
+  `client.py`, and next to the two MCP clients the folders of the built-in toolkits (`files`, `openapi`, `mcp`, `skyea2a`, `a2a`, `shell`; see Toolkits below); `agents/plugins/react/` with `agent.py` (a built-in registered by text, so that `import skye.agents` loads no built-in). What several folders use stays in the root: `store/_common.py`, `conformance.py`, `factory.py`; `auth/cache.py`, `refresh.py`,
   `errors.py`, `rsa_signing.py`, `registry.py`; `tools/mcp_client.py` (the interface, `create_mcp_client`) and the rest.
 - **A missing file.** A missing inner file breaks only access to the name that lives in it (an `ImportError` that the registrar turns into a
   `ConfigurationError` naming the kind, the name and the cause); the folder and the others keep working. A missing `profile.toml` is a broken
@@ -224,8 +236,8 @@ class ProviderProfile:
   a wheel and from a zip; `profile_from_mapping(data, source)` in `base` builds the dataclass and raises a `ConfigurationError` for a key the
   format does not know, so a typo is not ignored. Updating a price or adding a model edits a data file and no code.
 - **Jev (D111).** TypeSafe AI publishes the price of Jev: 0.042 USD per million input tokens, output free. It is `typesafe/profile.toml`, and the
-  decision model registers through `provider` with that profile, which is kept under its own name `typesafe` (59.7, 59.12) while the registered
-  name stays `"jev"` (D110); the `CostCalculator` reads the price like any other.
+  decision model registers through `provider` with that profile, which is named by the registered name `"jev"` because a profile is kept under
+  the registered name of its provider (59.7, 59.12), while the folder stays `typesafe` (D110); the `CostCalculator` reads the price like any other.
 - `find_model_profile(profile, model)`: the exact name first, then the longest registered name followed by a date or version suffix
   (`-2024-08-06`, `-20240620`, `-v1:0`, `@001`); `gpt-4o` never matches `gpt-4` (59.4). One function, in `base/profile.py`.
 - `resolve_region(rule, passed=None, authenticator=None)`: the region passed, then the authenticator's, then the variables in order; a
@@ -238,7 +250,7 @@ class ProviderProfile:
   entries into the profile of an existing provider and changes nothing else, so a plugin changes one fact of a model without registering the
   provider again. A new provider names its tokenizer in its own profile. The tokenizer functions are registered by name (`plugins.tokenizer`) and a
   model uses one only through `ModelProfile(tokenizer=...)`; `TokenCounter.register_tokenizer`, which matches by prefix, is outside the plugin
-  interface. What exactly merges, the error for an unknown provider or model and the fate of `register_tokenizer` are open in O72.
+  interface. A model entry given as a mapping changes only those fields, a `ModelProfile` changes the fields that differ from the defaults, the `info` of a change is merged key by key, a model that is not there is added, and a provider with no profile raises `ConfigurationError`; the fate of `register_tokenizer` is open in O72.
 - The model facts of D109 (which Claude models refuse a forced choice) become `ModelProfile.info["supports_forced_capability_choice"]`
   in the Anthropic and Bedrock profiles, and `refuses_forced_choice` reads `get_model_info()`; the two adapter tuples go.
 
@@ -278,7 +290,7 @@ adapter and profile of that provider, with an allowlist that only shrinks, in th
   (`@plugins.toolkit("jira", tools=[slugify])`), also with no class (`plugins.toolkit("text", tools=[...])`); a toolkit with no state may be a
   function that returns a `CapabilityRegistry`. `@capability` is required for now and takes `name`, `description` and `return_direct` (62.2).
 - **Built-ins.** `files` (a required `root`; nothing outside it), `openapi` (one tool for each operation of a document), `mcp` (the tools of an
-  MCP server, by its address) and `a2a`, registered as plugins in `tools/plugins/` next to the two MCP clients; none is active unless the user
+  MCP server, by its address), `skyea2a` and `a2a` (a remote A2A agent, on the standard library and on the official SDK) and `shell` (programs from a required allow list, run without a shell), registered as plugins in `tools/plugins/` next to the two MCP clients; none is active unless the user
   asks for it or a feature of the agent needs it (62.7). A `SKILL.md` in `skills=[...]` makes the agent build `files` through the registrar,
   limited to the folder of the skill (62.8). The content of each toolkit, the read-only rule of `files` and the rules of `return_direct` are open
   in O70; the wire name of a tool with a dot is open in O70 as well.
@@ -292,8 +304,10 @@ adapter and profile of that provider, with an allowlist that only shrinks, in th
 - **Routing strategies.** `RoutingStrategySelector` asks the registrar for the strategy by name; the eight built-ins register in
   `router/plugins/`; every `RoutingStrategy` member stays valid as a name; the `if`/`elif` chain goes (58.1). A registered name is valid in the
   `strategy` of a router, of a route and of a `.skye` file; `ModelRouter.from_config_dict` and the `.skye` checker look the name up in the
-  registrar when it is not a built-in value (O69 keeps open what state the strategy receives).
-- **MCP clients.** `impl` is a registrar name; `"builtin"` stays the default (D16); `"fastmcp"` registers as text and imports `fastmcp`
+  registrar when it is not a built-in value. A strategy receives one read-only `StrategyContext` with the models, the alias, the token estimate, the
+  request, the metrics and the targets (58.7, D113): a function of the ids, a function marked with `with_context` and a `RouterStrategy` class are
+  told apart by the registered object; `lazy_complex` is the first strategy that reads the request, deliberately naive (O76 keeps the rest open).
+- **MCP clients.** `impl` is a registrar name; `"skyemcp"` stays the default (D16, D112); `"fastmcp"` registers as text and imports `fastmcp`
   only when chosen (58.2, Requirement 10.7).
 - **Decision models.** They are providers with the function `decide`: `skye.provider(name, provider_type="decision")` and `create_decision_model`
   build one through the registrar; Jev registers as a built-in with the profile of TypeSafe (58.3, 59.12).
@@ -401,7 +415,6 @@ and name the open point they wait for.
 - O63: namespaces with `store.namespaced` (1, option A) and the store region through `resolve_region` with boto3's chain last (2, option A).
 - O65: whether `RegistrarInterface` stays a public Protocol, whether `mcp_client` is part of it, and whether a scope for tests is reconsidered.
 - O68: the sync `run` of the agent base, the cost of one thread for each sync stream, the credential source `apply`.
-- O69: how a custom routing strategy is used in a router, and what state it receives.
 - O70: the rules of `return_direct`, plain functions without `@capability`, the early schema check and `__call__`, the wire name of a tool with a
   dot, and the content of the built-in toolkits.
 - O71: the default name `react`, `skye.BaseAgent`, and the options of a custom agent type.
