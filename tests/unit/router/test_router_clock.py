@@ -36,9 +36,8 @@ class StoreProxy:
     asked with ``count``.
     """
 
-    def __init__(self, inner: StorageBackend, *, expiry: bool = True) -> None:
+    def __init__(self, inner: StorageBackend) -> None:
         self._inner = inner
-        self._expiry = expiry
         self.reads: list[str] = []
         self.alive: list[str] = []
         self.counted: list[str] = []
@@ -55,14 +54,23 @@ class StoreProxy:
         self.counted.append(key)
         return await self._inner.count(key)
 
+    def __getattr__(self, name: str) -> Any:
+        # The expiry methods are never forwarded: ``isinstance(store, ExpiryStore)`` must not depend on the Python version, which
+        # reads a protocol with ``hasattr`` before 3.12 and with ``getattr_static`` after it.
+        if name in {"is_alive", "remaining"}:
+            raise AttributeError(name)
+        return getattr(self._inner, name)
+
+
+class ExpiringStoreProxy(StoreProxy):
+    """The same proxy for a store that has the expiry methods, written out so that every Python version sees them."""
+
     async def is_alive(self, key: str) -> bool:
         self.alive.append(key)
         return await self._inner.is_alive(key)  # type: ignore[attr-defined, no-any-return]
 
-    def __getattr__(self, name: str) -> Any:
-        if name in {"is_alive", "remaining"} and not self._expiry:
-            raise AttributeError(name)
-        return getattr(self._inner, name)
+    async def remaining(self, key: str) -> int | None:
+        return await self._inner.remaining(key)  # type: ignore[attr-defined, no-any-return]
 
 
 def _health(clock: FakeClock, store: Any = None) -> ModelHealth:
@@ -88,7 +96,7 @@ async def test_a_cooldown_ends_with_the_clock_it_is_given(clock: FakeClock) -> N
 async def test_a_cooldown_is_read_through_expiry_store_and_its_end_is_on_the_clock(
     clock: FakeClock,
 ) -> None:
-    store = StoreProxy(backend("memory", clock=clock))
+    store = ExpiringStoreProxy(backend("memory", clock=clock))
     health = _health(clock, store)
     await health.set_cooldown(30)
 
@@ -98,7 +106,7 @@ async def test_a_cooldown_is_read_through_expiry_store_and_its_end_is_on_the_clo
 
 
 async def test_a_store_with_no_expiry_store_still_ends_the_cooldown(clock: FakeClock) -> None:
-    store = StoreProxy(backend("memory", clock=clock), expiry=False)
+    store = StoreProxy(backend("memory", clock=clock))
     health = _health(clock, store)
     await health.set_cooldown(10)
     assert await health.is_in_cooldown()
@@ -146,7 +154,7 @@ async def test_the_recent_failures_window_moves_with_the_clock(clock: FakeClock)
 
 
 async def test_every_count_is_read_through_count_and_none_with_get(clock: FakeClock) -> None:
-    store = StoreProxy(backend("memory", clock=clock))
+    store = ExpiringStoreProxy(backend("memory", clock=clock))
     health = _health(clock, store)
     tracker = RateLimitTracker(model_id="m", rpm_limit=5, tpm_limit=500, storage=store, clock=clock)  # type: ignore[arg-type]
 
