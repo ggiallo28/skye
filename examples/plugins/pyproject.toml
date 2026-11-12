@@ -1,0 +1,10 @@
+# The packaging of a plugin that is installed with pip instead of being written in your own program.
+# Skye imports the module in the entry-point group "skye.plugins" the first time it meets a name it does not know, and never at `import skye`.
+# The value is a module (here model_provider.py): importing it runs the `plugins` calls it contains.
+[project]
+name = "skyeai-acme"
+version = "0.1.0"
+dependencies = ["skyeai"]
+
+[project.entry-points."skye.plugins"]
+acme = "model_provider"
