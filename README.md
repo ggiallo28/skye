@@ -4,6 +4,8 @@
 
 # Skye AI
 
+**I am sick of installing a pile of dependencies I never use every time I need a generative AI framework. So I wrote one with none.**
+
 **A GenAI library for Python with no third-party dependencies.** One client for OpenAI, Anthropic, Bedrock, Azure OpenAI and
 Google, with routing, fallbacks, tools and state on top, all written on the standard library alone.
 
