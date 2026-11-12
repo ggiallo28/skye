@@ -220,11 +220,11 @@ class RouterConfigurationInterface(ABC):
     """Configuration role of a model router: strategy, fallbacks, retry and failure policies, cooldown, rate limits and tags."""
 
     @abstractmethod
-    def set_routing_strategy(self, strategy: RoutingStrategy) -> None:
+    def set_routing_strategy(self, strategy: RoutingStrategy | str) -> None:
         """Set the routing strategy.
 
         Args:
-            strategy: The routing strategy to use.
+            strategy: The routing strategy to use: a ``RoutingStrategy``, or the name of a strategy that a plugin registered.
         """
         pass
 

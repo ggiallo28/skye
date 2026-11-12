@@ -1,5 +1,5 @@
 """The ``skye`` command line: ``skye check``, ``skye fmt``, ``skye new``, ``skye render`` and
-``skye prompt`` for ``.skye`` files.
+``skye prompt`` for ``.skye`` files, and ``skye plugins`` for what is registered.
 
 This is the code that reads and writes files; the parser in ``skye.base.dsl`` takes text only.
 
@@ -26,6 +26,7 @@ Usage::
     exit 1 if not up to date
     skye vscode install [--editor CMD] [--dir DIR] [--force]   # the VS Code extension for .skye
     skye vscode package [-o FILE] | uninstall | path | status
+    skye plugins [--format json]           # the built-in registrations and the installed plugins (exit 0)
 
 Exit codes: 0 no error, 1 the checked files have errors, 2 usage or file error.
 """
@@ -33,19 +34,21 @@ Exit codes: 0 no error, 1 the checked files have errors, 2 usage or file error.
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import os
 import sys
 from collections.abc import Sequence
 from fnmatch import fnmatch
 from pathlib import Path
+from typing import Any
 
 from skye.base.dsl import TEMPLATES, block_schema, build, check_text, skeleton, to_mermaid
 from skye.base.dsl.fmt import FormatError, format_text
 from skye.base.dsl.info import PromptInfo, describe_prompt, header_fields, prompt_help
 from skye.base.dsl.metadata import split_metadata
 from skye.base.dsl.specs import FlowSpec, RouterSpec
-from skye.base.exceptions import ConfigurationError
+from skye.base.exceptions import ConfigurationError, ValidationError
 from skye.utils.skill import (
     SCOPES,
     install_skill,
@@ -148,6 +151,13 @@ def _build_parser() -> argparse.ArgumentParser:
         "--direction", choices=["TD", "LR"], help="TD (top down) or LR (left to right)"
     )
 
+    plugins = commands.add_parser(
+        "plugins", help="list the built-in registrations and the installed plugins"
+    )
+    plugins.add_argument(
+        "--format", choices=["text", "json"], default="text", help="text (default) or json"
+    )
+
     new = commands.add_parser("new", help="print (or write) a starting .skye file")
     new.add_argument("kind", nargs="?", choices=sorted(TEMPLATES), help="router, flow or prompt")
     new.add_argument("name", nargs="?", help="the name of the block")
@@ -209,6 +219,9 @@ def _add_prompt(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -
         "--name", metavar="PROMPT", help="the prompt to show when the file has several"
     )
     info.add_argument("--json", action="store_true", help="print the PromptInfo as JSON")
+    export = actions.add_parser("export", help="write the bundled prompts as .skye files into a folder")
+    export.add_argument("directory", metavar="DIR", help="the folder to write (created when it does not exist)")
+    export.add_argument("--force", action="store_true", help="replace the files that exist")
 
 
 def _add_vscode(commands: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -476,18 +489,30 @@ def _skill(args: argparse.Namespace) -> int:
     return 0
 
 
-def _bundled() -> dict[str, Path]:
-    """The bundled ``.skye`` prompts (``skye/prompts/templates``), by name."""
-    folder = Path(__file__).resolve().parent.parent / "prompts" / "templates"
-    return {path.stem: path for path in sorted(folder.glob("*.skye"))}
+def _loaders() -> Any:
+    """The module that finds the bundled prompts, imported at the first use.
+
+    ``utils`` sits in Layer 0 and may not import ``prompts`` in a statement; the CLI needs only this one lookup, so it asks the import
+    system by name (see the note for the owner in the task 24.7 report).
+    """
+    return importlib.import_module("skye.prompts.loaders")
+
+
+def _bundled() -> dict[str, str]:
+    """The bundled ``.skye`` prompts by name, each with where it is (a file of a source checkout, or an entry of the archive).
+
+    A source checkout keeps them in ``skye/prompts/templates``; an installed wheel keeps one archive, ``templates.zip``.
+    """
+    loaders = _loaders()
+    return {name: loaders.bundled_origin(name) for name in loaders.bundled_names()}
 
 
 def _prompt_list(as_json: bool) -> int:
     rows: list[dict[str, object]] = []
     for name, path in _bundled().items():
         try:
-            metadata, _, _ = split_metadata(path.read_text(encoding="utf-8"), str(path))
-        except (OSError, UnicodeDecodeError):
+            metadata, _, _ = split_metadata(_loaders().read_bundled(name), path)
+        except (OSError, UnicodeDecodeError, ValidationError):
             metadata = {}
         meta = header_fields(metadata)
         rows.append(
@@ -514,8 +539,12 @@ def _prompt_info(args: argparse.Namespace) -> int:
     target: str = args.target
     bundled = _bundled()
     if target != "-" and target in bundled and not Path(target).exists():
-        name, path = target, str(bundled[target])
-        text = bundled[target].read_text(encoding="utf-8")
+        name, path = target, bundled[target]
+        try:
+            text = _loaders().read_bundled(target)
+        except (OSError, UnicodeDecodeError, ValidationError) as exc:
+            print(f"skye prompt info: {target}: cannot read the bundled prompt: {exc}", file=sys.stderr)
+            return 2
     elif target == "-" or Path(target).is_file():
         try:
             text, path = _read_input(target, "<stdin>")
@@ -549,9 +578,34 @@ def _prompt_info(args: argparse.Namespace) -> int:
     return 0
 
 
+def _prompt_export(args: argparse.Namespace) -> int:
+    """Write every bundled prompt as ``<name>.skye`` into a folder, from the source checkout or from the archive."""
+    names = list(_bundled())
+    folder = Path(args.directory)
+    existing = [name for name in names if (folder / f"{name}.skye").exists()]
+    if existing and not args.force:
+        print(
+            f"skye prompt export: {len(existing)} of the files exist in {folder} (for example {existing[0]}.skye); "
+            "use --force to replace them",
+            file=sys.stderr,
+        )
+        return 2
+    try:
+        folder.mkdir(parents=True, exist_ok=True)
+        for name in names:
+            (folder / f"{name}.skye").write_text(_loaders().read_bundled(name), encoding="utf-8")
+    except (OSError, UnicodeDecodeError, ValidationError) as exc:
+        print(f"skye prompt export: {folder}: {exc}", file=sys.stderr)
+        return 2
+    print(f"wrote {len(names)} prompts to {folder}")
+    return 0
+
+
 def _prompt(args: argparse.Namespace) -> int:
     if args.action == "list":
         return _prompt_list(args.json)
+    if args.action == "export":
+        return _prompt_export(args)
     return _prompt_info(args)
 
 
@@ -579,6 +633,53 @@ def _vscode(args: argparse.Namespace) -> int:
     return 0
 
 
+def _plugins(args: argparse.Namespace) -> int:
+    """Print what is registered: the built-ins by kind, then each entry point of ``skye.plugins`` (Requirement 57.9)."""
+    from skye.base.plugins import KINDS, get_registrar
+    from skye.utils.plugins import GROUP, scan
+
+    registrar = get_registrar()
+    builtin = {kind: sorted(registrar.names(kind)) for kind in KINDS}  # before the scan: what ships
+    try:
+        reports = scan(registrar)
+    except ConfigurationError as exc:
+        print(f"skye plugins: {exc.message}", file=sys.stderr)
+        return 2
+    if args.format == "json":
+        entry_points = [
+            {
+                "name": report.name,
+                "distribution": report.distribution,
+                "version": report.version,
+                "loaded": report.loaded,
+                "skipped": report.skipped,
+                "error": report.error,
+                "registered": report.registered,
+            }
+            for report in reports
+        ]
+        print(json.dumps({"builtin": builtin, "entry_points": entry_points}, indent=2))
+        return 0
+    print("Built-in")
+    width = max(len(kind) for kind in KINDS)
+    for kind, names in builtin.items():
+        print(f"  {kind:<{width}}  {', '.join(names) if names else '-'}")
+    print(f"\nInstalled plugins (entry-point group {GROUP})")
+    if not reports:
+        print("  none")
+    for report in reports:
+        who = f"{report.distribution} {report.version}" if report.distribution else "-"
+        state = "skipped" if report.skipped else ("loaded" if report.loaded else "failed")
+        print(f"  {report.name}  ({who})  {state}")
+        if report.skipped:
+            print("    not in the plugins allowlist of the configuration")
+        if report.error:
+            print(f"    {report.error}")
+        for kind, names in report.registered.items():
+            print(f"    {kind}: {', '.join(names)}")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the ``skye`` command.
 
@@ -601,6 +702,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _fmt(args)
     if args.command == "render":
         return _render(args)
+    if args.command == "plugins":
+        return _plugins(args)
     return _new(args)
 
 

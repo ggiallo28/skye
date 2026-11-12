@@ -42,6 +42,9 @@ class CapabilitySchema(Validated):
         description: Human-readable description of what the capability does.
         parameters: JSON Schema describing the capability's parameters.
         returns: JSON Schema describing the capability's return value.
+        return_direct: ``True`` when the result of the capability is the answer of the agent and the model
+            is not asked again (Requirement 62.3). It is a flag for the agent, read through the
+            ``ToolProvider`` Port; no adapter sends it to a model. It must be a ``bool``.
 
     Example:
         >>> schema = CapabilitySchema(
@@ -66,9 +69,14 @@ class CapabilitySchema(Validated):
     description: str = field(min_length=1)
     parameters: dict[str, Any] = field(default_factory=dict)
     returns: dict[str, Any] = field(default_factory=dict)
+    return_direct: bool = False
 
     def __post_init__(self) -> None:
         """Validate the fields, then strip the name and the description, which must not be blank."""
+        if not isinstance(self.return_direct, bool):
+            raise ValidationError(
+                "return_direct must be a bool", field="return_direct", value=self.return_direct
+            )
         try:
             super().__post_init__()
         except dataclasses.FrozenInstanceError as error:

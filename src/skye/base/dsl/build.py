@@ -63,7 +63,8 @@ from skye.base.dsl.tree import (
     TypeCall,
     Value,
 )
-from skye.base.exceptions import ValidationError
+from skye.base.exceptions import ConfigurationError, ValidationError
+from skye.base.plugins import get_registrar
 
 #: The value of ``next`` that finishes a flow.
 END = "end"
@@ -368,13 +369,20 @@ class _Builder:
         raise self.fail(value, f"{name} = {raw} is not a duration.", 'Use "30s", "5m" or "24h"')
 
     def read_strategy(self, attr: Attribute) -> str:
+        """A built-in strategy, or a name that a plugin registered (asked of the registrar only when the name is not a built-in)."""
         text = self.read_str(attr)
-        if text not in STRATEGIES:
+        if text in STRATEGIES:
+            return text
+        registered = get_registrar()
+        try:
+            registered.get("routing_strategy", text)
+        except ConfigurationError:
+            names = [*STRATEGIES, *(n for n in registered.names("routing_strategy") if n not in STRATEGIES)]
             raise self.fail(
                 attr.value,
                 f'strategy "{text}" is not valid.',
-                did_you_mean(text, STRATEGIES) or "Use one of: " + ", ".join(STRATEGIES) + ".",
-            )
+                did_you_mean(text, names) or "Use one of: " + ", ".join(names) + ".",
+            ) from None
         return text
 
     # -- values --------------------------------------------------------------------------------

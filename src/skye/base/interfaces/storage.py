@@ -5,9 +5,12 @@ A component asks only for the capabilities it uses, and a backend implements wha
 
 * ``KeyValueStore``: ``get``, ``set``, ``delete``, ``get_multiple``, ``set_multiple`` (every
   backend);
-* ``CounterStore``: an atomic ``increment`` (the router);
+* ``CounterStore``: an atomic ``increment`` and a read-only ``count`` (the router);
 * ``ScanStore``: ``keys(prefix, limit)``, implemented by five backends of ``store`` (in-memory,
-  file, Redis/Valkey, DynamoDB, PostgreSQL): every backend but the durable function.
+  file, Redis/Valkey, DynamoDB, PostgreSQL): every backend but the durable function;
+* ``ExpiryStore``: ``is_alive(key)`` and ``remaining(key)``, the lifetime of a key without reading
+  its value (the router keeps a cooldown as a key with a ``ttl`` and asks it here, Requirement 60.10);
+  every backend of ``store`` keeps an expiry, so every backend implements it.
 
 ``StorageBackend`` is key-value plus counter, the abstract base class every backend of ``store``
 subclasses, so the code that typed
@@ -22,7 +25,8 @@ Raises: ``ValidationError`` for an invalid key or time to live; ``ProviderError`
     is unreachable or rejects a call.
 Missing: ``get`` returns ``None`` for an absent or expired key, ``get_multiple`` maps such a key to
     ``None``, ``delete`` returns
-    ``False`` and ``keys`` leaves it out; absence never raises.
+    ``False``, ``keys`` leaves it out, ``count`` returns 0, ``is_alive`` returns ``False`` and
+    ``remaining`` returns ``None``; absence never raises.
 Concurrency: a backend is shared by many tasks; ``increment`` is atomic across them (and across
     processes for the external stores).
 """
@@ -100,6 +104,34 @@ class CounterStore(Protocol):
         """
         ...
 
+    async def count(self, key: str) -> int:
+        """The current count of ``key``: ``0`` when it is absent or expired.
+
+        It only reads: it never creates the key and never changes its expiry, so the caller does not
+        need to know that the count is stored as ``{"count": n}``.
+        """
+        ...
+
+
+@runtime_checkable
+class ExpiryStore(Protocol):
+    """Ask whether a key is alive and how long it has left, without reading its value."""
+
+    async def is_alive(self, key: str) -> bool:
+        """``True`` when ``key`` is present and has not expired (a key with no expiry is alive).
+
+        It only reads: it never creates the key and never moves its expiry.
+        """
+        ...
+
+    async def remaining(self, key: str) -> int | None:
+        """The whole seconds that ``key`` has left, rounded up, so at least 1 while it is alive.
+
+        ``None`` when the key is absent, has expired, or never expires; ``is_alive`` tells the last
+        case from the first two. It only reads: it never creates the key and never moves its expiry.
+        """
+        ...
+
 
 @runtime_checkable
 class ScanStore(Protocol):
@@ -139,6 +171,10 @@ class StorageBackend(KeyValueStore, CounterStore, ABC):
     @abstractmethod
     async def increment(self, key: str, amount: int = 1, ttl: int | None = None) -> int:
         """Atomically add ``amount`` to the counter of ``key`` and return the new value."""
+
+    @abstractmethod
+    async def count(self, key: str) -> int:
+        """The count of ``key``, ``0`` when absent or expired; it never creates the key or moves its expiry."""
 
     async def get_multiple(self, keys: list[str]) -> dict[str, dict[str, Any] | None]:
         """Every key mapped to its value or ``None``; the default calls ``get`` once per key."""

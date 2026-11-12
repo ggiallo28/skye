@@ -278,6 +278,10 @@ class SkyeConfig(Validated):
         component_log_levels: Log level per component, keyed by the component name (for example
             ``{"router": "DEBUG", "models": "WARNING"}``); a component not listed uses
             ``log_level``.
+        plugins: The names of the installed plugins (entry points of the group ``skye.plugins``)
+            that may load; ``None`` (no key) lets all of them load, ``[]`` lets none. Read by the
+            scan of ``skye.utils.plugins`` (Requirement 57.5); an entry point not listed is never
+            imported.
 
     Example:
         >>> config = SkyeConfig(log_level="INFO", component_log_levels={"router": "DEBUG"})
@@ -288,10 +292,19 @@ class SkyeConfig(Validated):
     log_level: str = "INFO"
     correlation_id_header: str = "X-Correlation-ID"
     component_log_levels: dict[str, str] = field(default_factory=dict)
+    plugins: list[str] | None = field(default=None, description="The entry points that may load")
 
     def __post_init__(self) -> None:
-        """Validate the fields, then that every component log level is a standard level name."""
+        """Validate the fields, then that every component log level is a standard level name and every plugin name a non-empty string."""
         super().__post_init__()
+        if self.plugins is not None:
+            for name in self.plugins:
+                if not name.strip():
+                    raise ValidationError(
+                        "A plugin name in `plugins` must be a non-empty string",
+                        field="plugins",
+                        value=self.plugins,
+                    )
         for component, level in self.component_log_levels.items():
             if not isinstance(logging.getLevelName(level.upper()), int):
                 raise ValidationError(

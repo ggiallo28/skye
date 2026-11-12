@@ -19,6 +19,8 @@ Example:
 
 from __future__ import annotations
 
+import contextlib
+import contextvars
 import dataclasses
 import enum
 import datetime as _dt
@@ -27,7 +29,7 @@ import json
 import re
 import types
 import typing
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING, Any, Literal, Union
 
 from skye.base.exceptions import ValidationError
@@ -43,6 +45,35 @@ else:  # no effect at run time: a type checker reads it, so ``@validated`` class
 
     def dataclass_transform(**_: Any) -> Any:
         return lambda target: target
+
+
+_TRUSTED: contextvars.ContextVar[bool] = contextvars.ContextVar("skye_validated_trusted", default=False)
+
+
+@contextlib.contextmanager
+def trusted() -> Iterator[None]:
+    """Build objects inside the block without checking or converting their fields.
+
+    Use it only for data that was checked in development, such as the templates that ship with Skye: a test
+    must show that the objects built with and without the block are equal. Do not use it for what a user
+    writes. The block works per thread and per task (it is a ``contextvars`` value), and blocks can be nested.
+
+    Example:
+        >>> from skye.base.validated import Validated, trusted, validated
+        >>> @validated
+        ... class Limits(Validated):
+        ...     timeout: int = 60
+        >>> with trusted():
+        ...     Limits(timeout="30").timeout
+        '30'
+        >>> Limits(timeout="30").timeout
+        30
+    """
+    token = _TRUSTED.set(True)
+    try:
+        yield
+    finally:
+        _TRUSTED.reset(token)
 
 
 _BOOL_TRUE = frozenset({"true", "1", "yes", "on", "t", "y"})
@@ -243,6 +274,8 @@ def validate_instance(obj: Any) -> None:
     Raises:
         ValidationError: If a field cannot be read as its annotated type or breaks a constraint.
     """
+    if _TRUSTED.get():
+        return
     cls = type(obj)
     hints = _hints(cls)
     for f in dataclasses.fields(obj):

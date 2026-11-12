@@ -1,6 +1,6 @@
 """Minimal stdlib HTTP helper (``urllib.request`` + ``json``), shared by ``models`` and ``tools``.
 
-Pure standard library: no third-party import. ``models.transport.http`` re-exports the
+Pure standard library: no third-party import. ``models.utilities.rest`` builds on the
 JSON helpers; ``tools.remote_api`` uses :func:`request`.
 
 A failure is raised as the :class:`ProviderError` subclass the response calls for (decision D104):

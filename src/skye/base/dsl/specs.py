@@ -18,7 +18,8 @@ from typing import Any, Literal
 
 from skye.base.validated import Validated, field, validated
 
-#: The routing strategies (the values of ``skye.base.interfaces.router.RoutingStrategy``).
+#: The built-in routing strategies (the values of ``skye.base.interfaces.router.RoutingStrategy``). A name that a plugin registered is also valid
+#: in a ``strategy`` (the checker asks the registrar), which is why the fields below are ``Strategy | str``.
 Strategy = Literal[
     "simple_shuffle",
     "round_robin",
@@ -121,7 +122,9 @@ class RouteSpec(Validated):
 
     alias: str = field(description="Alias name of the route")
     targets: list[TargetSpec] = field(default_factory=list, description="Targets of the route")
-    strategy: Strategy | None = field(default=None, description="Strategy that picks a target")
+    strategy: Strategy | str | None = field(
+        default=None, description="Strategy that picks a target"
+    )
     fallback_on_error: bool = field(default=True, description="Try the next target on error")
     fallback: list[str] = field(
         default_factory=list, description="Routes to try, in order, when this route fails"
@@ -155,7 +158,7 @@ class RouterSpec(Validated):
     """A ``router`` block."""
 
     name: str | None = field(default=None, description="The label of the block, if any")
-    strategy: Strategy | None = field(default=None, description="Default routing strategy")
+    strategy: Strategy | str | None = field(default=None, description="Default routing strategy")
     cooldown: str | None = field(default=None, description='Cooldown after failures, "60s"')
     enable_pre_call_checks: bool = field(
         default=True, description="Check rate limits before a call"

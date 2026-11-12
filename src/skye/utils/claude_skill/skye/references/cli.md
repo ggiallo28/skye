@@ -13,6 +13,7 @@ skye new --list               the kinds (router, flow, prompt) and their templat
 skye render FILE [--name NAME] [--stdout] [--fence] [-o OUT | --output OUT] [--direction TD|LR]    a flow or a router as a Mermaid diagram
 skye prompt list [--json]     the bundled prompts: name, title, version and description (from the front matter)
 skye prompt info NAME|FILE [--name PROMPT] [--json]    what a prompt takes and gives back: inputs, history, messages, output
+skye prompt export DIR [--force]    write every bundled prompt as a .skye file into DIR (no overwrite without --force, exit 2)
 skye skill install [--scope user|project] [--dir DIR] [--force]    install this skill for Claude Code
 skye skill print [NAME]       print SKILL.md, or references/NAME.md
 skye skill path [--scope user|project] [--dir DIR]                 where the skill is installed
@@ -22,6 +23,7 @@ skye vscode install [--editor CMD] [--dir DIR] [--force]    install it with code
 skye vscode uninstall [--editor CMD] [--dir DIR]   remove it
 skye vscode path [--dir DIR]                       the folder a copied install uses
 skye vscode status [--editor CMD] [--dir DIR]      up to date, outdated, edited or not installed (exit 1 if it is not up to date)
+skye plugins [--format text|json]     what is registered per kind, and each installed plugin: loaded, failed (with the error) or skipped; exit 0
 ```
 
 Exit codes: 0 no error, 1 the checked files have errors, 2 usage or file error.

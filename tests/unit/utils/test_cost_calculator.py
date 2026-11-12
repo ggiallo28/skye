@@ -6,7 +6,7 @@ Tests cost calculation functionality for various models and scenarios.
 import pytest
 
 from skye.base.completion import TokenUsage
-from skye.models.transport.cost import CostCalculator
+from skye.models.cost import CostCalculator
 
 
 class TestCostCalculator:
@@ -90,9 +90,7 @@ class TestCostCalculator:
 
     def test_calculate_cost_large_token_count(self):
         """Test cost calculation with large token counts."""
-        usage = TokenUsage(
-            prompt_tokens=100_000, completion_tokens=50_000, total_tokens=150_000
-        )
+        usage = TokenUsage(prompt_tokens=100_000, completion_tokens=50_000, total_tokens=150_000)
         cost = CostCalculator.calculate_cost("gpt-4", usage)
         # (100000/1M * 30) + (50000/1M * 60) = 3.0 + 3.0 = 6.0
         assert cost == pytest.approx(6.0, rel=1e-6)
@@ -100,9 +98,8 @@ class TestCostCalculator:
     def test_add_custom_pricing(self):
         """Test adding custom pricing for a model."""
         CostCalculator.add_custom_pricing("my-custom-model", 5.0, 10.0)
-        assert "my-custom-model" in CostCalculator.PRICING
-        assert CostCalculator.PRICING["my-custom-model"]["prompt"] == 5.0
-        assert CostCalculator.PRICING["my-custom-model"]["completion"] == 10.0
+        assert "my-custom-model" in CostCalculator.list_models()
+        assert CostCalculator.get_pricing("my-custom-model") == {"prompt": 5.0, "completion": 10.0}
 
     def test_add_custom_pricing_and_calculate(self):
         """Test adding custom pricing and calculating cost."""
@@ -174,9 +171,7 @@ class TestCostCalculator:
     def test_calculate_cost_bedrock_model(self):
         """Test cost calculation for Bedrock model."""
         usage = TokenUsage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
-        cost = CostCalculator.calculate_cost(
-            "anthropic.claude-3-sonnet-20240229-v1:0", usage
-        )
+        cost = CostCalculator.calculate_cost("anthropic.claude-3-sonnet-20240229-v1:0", usage)
         # Should use same pricing as claude-3-sonnet
         assert cost == pytest.approx(0.0105, rel=1e-6)
 
