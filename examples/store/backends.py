@@ -6,7 +6,7 @@ library (``DynamoDBBackend`` needs boto3, preinstalled in Lambda; ``RedisBackend
 extra; ``PostgreSQLBackend`` uses the RDS Data API, pg8000 or asyncpg). Nothing connects until the first
 operation, so constructing them needs no server.
 
-Every backend shares the same async API: ``set``, ``get``, ``delete``, ``increment``, ``get_multiple``,
+Every backend shares the same async API: ``set``, ``get``, ``delete``, ``increment``, ``count``, ``get_multiple``,
 ``set_multiple`` and, for most, ``keys``.
 """
 

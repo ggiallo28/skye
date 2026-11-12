@@ -30,6 +30,7 @@ Provider SDKs and optional libraries are imported inside the function that uses 
 | `import skye` in a clean core install: modules, time, memory | `test_footprint_budget.py` | `uv`, network |
 | Each extra: size added over the core, compiled packages added | `test_footprint_budget.py` | `uv`, network |
 | Serverless profile (core + `bedrock`) stays far below the 250 MB Lambda limit | `test_footprint_budget.py` | `uv`, network |
+| Tokens Skye adds to what the caller wrote, on a direct model call (reported in the job summary, not enforced yet) | `test_token_overhead.py` | nothing |
 
 Run them:
 

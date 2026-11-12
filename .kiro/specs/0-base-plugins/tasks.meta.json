@@ -1,0 +1,267 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Write `examples/plugins/` against the planned API: a provider registered with `OpenAICompatibleProvider` and a": [
+      {
+        "executionId": "6b59243d-5b91-40cd-aaa7-2ff94b58de0c",
+        "chatSessionId": "sess_8e50735a-64ad-45a6-bdb8-de2dcd81aba5",
+        "timestamp": 1794436227730
+      },
+      {
+        "executionId": "6b59243d-5b91-40cd-aaa7-2ff94b58de0c",
+        "chatSessionId": "sess_8e50735a-64ad-45a6-bdb8-de2dcd81aba5",
+        "timestamp": 1794436324773
+      },
+      {
+        "executionId": "c99930a8-3ef6-4633-af3f-f9bd8bf39d38",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "1.2 Add the example to `tests/examples`, marked expected-to-fail until task 4 is done, then unmarked by the task that makes it pass": [
+      {
+        "executionId": "a94746eb-f027-4697-a85f-3c2272a8d204",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "2.1 `PluginInterface` as a `Protocol` with `name` and `register(registrar)`; remove `initialize`, `shutdown` and `get_metadata`;": [
+      {
+        "executionId": "863033cf-2318-42d0-93be-0478fec9bb56",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "2.2 `RegistrarInterface` with the eleven methods of Requirement 56.2, each `(name, target, *, replace=False)`, and `profile=`": [
+      {
+        "executionId": "0b4fb5e1-78e7-4876-882f-6ede1ee85bbb",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "2.3 `base/plugins.py`: `Registrar` with one in-memory table per kind, `get(kind, name)`, `names(kind)`, the default registrar;": [
+      {
+        "executionId": "309176c0-f720-451f-95b2-9973a819b363",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "2.4 Duplicate names and profiles: `ConfigurationError` naming the kind and the name, `replace=True` overrides; the same profile": [
+      {
+        "executionId": "a63167b5-4b7e-4630-b860-2614e81c192a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "2.5 `\"module:attribute\"` targets imported at the first use of the name, never at registration; a text that does not import": [
+      {
+        "executionId": "fcfaccae-6358-49b5-9d26-47a33895d7fe",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "2.6 Tests in `tests/unit/plugins/test_registrar.py`: each kind, duplicates, `replace`, lazy text targets, a private `Registrar()`": [
+      {
+        "executionId": "7693a707-2258-4e21-a33f-ea32ceedc78b",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "3.1 `base/profile.py`: `ProviderProfile`, `ModelProfile`, `RegionRule` as frozen dataclasses with the fields of Requirements 59.1": [
+      {
+        "executionId": "a8632308-879e-48bd-9e62-90e1faff9a0d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "3.2 `find_model_profile`: exact name, then the longest registered name followed by a date or version suffix; tests that": [
+      {
+        "executionId": "59248985-55ba-4992-8297-8ec44293d8fb",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "3.3 `resolve_region`: passed, authenticator, variables in order; `ConfigurationError` naming the variables when a required": [
+      {
+        "executionId": "bbd6cb6f-4f6e-48dd-b750-2f214c8492f2",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "3.4 Property tests: a lookup never raises for a missing profile or model (cost `None`, the estimate for tokens)": [
+      {
+        "executionId": "c4f82e70-aac9-4790-838d-9b53d67c908a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "4.1 `utils/plugins.py` `discover(registrar)`: `importlib.metadata.entry_points(group=\"skye.plugins\")`, each entry point loaded and": [
+      {
+        "executionId": "35300bf1-0f38-4d6d-9e1d-d74a6dbd0b26",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437305774
+      }
+    ],
+    "4.2 The registrar imports `\"skye.utils.plugins:discover\"` by text at the first miss, scans once per process and looks again": [
+      {
+        "executionId": "8c88f0be-6fab-4aa5-9c8c-ffe7c52b7717",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437661829
+      }
+    ],
+    "6.1 `CostCalculator` without `PRICING`: prices from the profiles, `add_custom_pricing` as a user layer that wins,": [
+      {
+        "executionId": "9c8861c3-18e3-4e4e-8e42-96bb67e2f92b",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437661829
+      }
+    ],
+    "6.2 `TokenCounter` without prefixes, tokenizers or overheads of its own: `tokenizer` and `message_overhead` from the": [
+      {
+        "executionId": "4c32033d-8145-4ef7-9f48-34fa4e31252c",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437661829
+      }
+    ],
+    "9.2 MCP clients by `impl` name through the registrar; `\"builtin\"` the default; `\"fastmcp\"` registered by text and imported only": [
+      {
+        "executionId": "797a4a9a-7c4b-4019-812a-03ac97455787",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437661829
+      }
+    ],
+    "9.3 Decision models by name through the registrar; Jev registered as a built-in": [
+      {
+        "executionId": "4b923342-9285-4613-abb6-b4153fa2a795",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794437661829
+      }
+    ],
+    "5.1 `models/plugins/` (`register`): every built-in model and embedding provider registered by text with its `ProviderProfile`, read from": [
+      {
+        "executionId": "799e9484-a669-4777-9237-565c0ce027f5",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794441495560
+      }
+    ],
+    "5.5 The `models/plugins/` layout (D110): one folder per provider (`openai`, `anthropic`, `bedrock`, `azure`, `google`, `cohere`,": [
+      {
+        "executionId": "4c3f5918-cd64-408b-95e5-000f55090b38",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794441495560
+      }
+    ],
+    "5.6 Separate the call logic of each provider by responsibility, with the same file names in every folder: `provider.py` (the class:": [
+      {
+        "executionId": "fa409462-bf69-4fbb-a6eb-7be192d9be98",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794441495560
+      }
+    ],
+    "5.7 The facts of a model out of the adapters and into `profile.toml`: `info.vector_dimension` for the embedding models of `openai`,": [
+      {
+        "executionId": "df8dffd4-b742-4faa-a047-cc9c1549b9b4",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794441495560
+      }
+    ],
+    "5.8 `models/utilities/` (D110): `base.py`, `openai_compatible/`, `anthropic_compatible/` and `transport/` moved from the root of": [
+      {
+        "executionId": "e437bffb-0e87-49b9-99f5-6b3115c2f417",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794441495560
+      }
+    ],
+    "7.1 `store/plugins/` (`register`) and `register_backend` as a view (the `_BUILTIN` table becomes registrations by text)": [
+      {
+        "executionId": "4b381657-dc87-4aa9-b7a6-3e417e7be0e4",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794441495560
+      }
+    ],
+    "7.2 `auth/plugins/` (`register`) and `register_credential_source` as a view (`BUILTIN_SOURCES` becomes registrations by text)": [
+      {
+        "executionId": "98a557ac-d2a5-441d-b45e-3f93551b4803",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794441495560
+      }
+    ],
+    "5.9 The toolkit of `models/utilities/` as plain modules and not groups: `transport/` dissolved into `rest`, `streaming`, `eventstream`,": [
+      {
+        "executionId": "252e6e88-c185-46ff-9984-dd2f6a05ccd9",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794442988004
+      }
+    ],
+    "7.5 The `store/plugins/` layout (D110): one folder per backend (`memory`, `file`, `dynamodb`, `redis` with the name `valkey`,": [
+      {
+        "executionId": "2ab3ed46-ab43-4d96-b5bb-9ab411fd5bff",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794446125109
+      }
+    ],
+    "7.6 The `auth/plugins/` layout (D110): one folder per family of credential sources (`aws` with `aws_profile`, `sts` and `sigv4`,": [
+      {
+        "executionId": "880c154c-864a-48e6-b877-b2035541e206",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794446125109
+      }
+    ],
+    "7.7 The `tools/plugins/` layout (D110): the MCP clients `builtin` and `fastmcp`, each with its `__init__.py` as the only door and": [
+      {
+        "executionId": "464c167e-8409-45b8-a778-4178cca152ce",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794446125109
+      }
+    ],
+    "4.3 The `plugins` key of the configuration file, read with `load_config` (D91): only the listed entry points load; without the": [
+      {
+        "executionId": "95b20ca6-6dc9-4ee9-9b3f-c27a88be1695",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794476626934
+      }
+    ],
+    "5.2 `ProviderRegistry` becomes a view of the registrar: same methods and signatures, no table of its own; `skye.provider(name)`": [
+      {
+        "executionId": "a3a95b7b-cd6e-4967-932b-593056ecb27b",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794476626934
+      }
+    ],
+    "5.3 An OpenAI-compatible endpoint registered with `OpenAICompatibleProvider` and a profile, and no class; a test that calls it": [
+      {
+        "executionId": "a904c7ca-5009-4a95-b2bc-1ae603104517",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794476626934
+      }
+    ],
+    "5.4 The D109 list of Claude models that refuse a forced choice moves into the Anthropic and Bedrock model profiles": [
+      {
+        "executionId": "edf4cb81-6635-48e5-8b27-db2254a2cd73",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794476626934
+      }
+    ],
+    "6.4 The router applies `client_settings` and `model_is_deployment` of the target's profile; the Azure branch of": [
+      {
+        "executionId": "08e4681d-c0ca-43c1-aa42-df27ff1c2f40",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794476626934
+      }
+    ],
+    "7.3 `CapabilityRegistry`, `register_agent_type` and `TokenCounter.register_tokenizer` as views; the registrar holds the default": [
+      {
+        "executionId": "c143be33-2d95-4920-8832-bb04772aeb1b",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794476626934
+      }
+    ],
+    "8.1 `CounterStore.count(key)` on the Port and in all six backends; `check_backend` checks it": [
+      {
+        "executionId": "2200bc59-da23-4a33-b375-8ddcd83f384a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794476626934
+      }
+    ]
+  }
+}

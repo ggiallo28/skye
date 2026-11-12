@@ -1,7 +1,15 @@
+<p align="center">
+  <img src=".github/assets/banner.png" alt="Skye, intelligence that travels light" width="100%">
+</p>
+
 # Skye AI
 
-**A GenAI library for AWS Lambda that deploys as a 0.56 MB zip.** Standard library only: no container, no layer, no
-dependency to vendor. The size limits are in [`budgets.toml`](https://github.com/ggiallo28/skye/blob/main/budgets.toml) and the CI fails any change that exceeds them.
+**A GenAI library for Python with no third-party dependencies.** One client for OpenAI, Anthropic, Bedrock, Azure OpenAI and
+Google, with routing, fallbacks, tools and state on top, all written on the standard library alone.
+
+It installs at 1.8 MB and imports in about 60 ms, so it fits wherever size and start-up time matter: serverless functions,
+containers, scripts and edge. There is nothing to vendor, no layer and no image to build. AWS Lambda is the tightest case we
+measure, and there a complete function deploys as a 0.56 MB zip. The limits are in [`budgets.toml`](https://github.com/ggiallo28/skye/blob/main/budgets.toml) and the CI fails any change that exceeds them.
 
 [![PyPI](https://img.shields.io/pypi/v/skyeai?label=PyPI)](https://pypi.org/project/skyeai/)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB)](https://www.python.org/downloads/)

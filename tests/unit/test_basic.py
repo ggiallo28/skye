@@ -5,7 +5,7 @@ def test_import_skye():
     """Test that skye package can be imported."""
     import skye
 
-    assert skye.__version__ == "0.1.1"
+    assert skye.__version__ == "0.2.0"
 
 
 def test_import_interfaces():

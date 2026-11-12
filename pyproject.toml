@@ -1,6 +1,6 @@
 [project]
 name = "skyeai"
-version = "0.1.1"
+version = "0.2.0"
 description = "Modular GenAI library with optional extras for building AI agents and intelligent applications"
 readme = "README.md"
 license = {text = "MIT"}
@@ -120,6 +120,9 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["skye"]  # the same sorting whether or not a module of skye exists in the checkout
 
 [tool.mypy]
 python_version = "3.11"

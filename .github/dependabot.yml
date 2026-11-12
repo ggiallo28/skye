@@ -1,0 +1,20 @@
+# Updates to the dependencies and to the actions of the workflows, one pull request a month for each group.
+# Every pull request runs the CI, so a dependency that grows an extra past its budget fails `footprint`.
+# See docs/project/budgets.md.
+version: 2
+
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      dev-tools:
+        patterns: ["ruff", "black", "mypy", "pytest*"]
+    labels: ["dependencies"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels: ["dependencies"]

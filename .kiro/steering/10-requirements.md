@@ -792,33 +792,38 @@ Written without the project name (it is being chosen); `<pkg>` is the import pac
 
 ### Requirement 56: Plugins and the registrar
 
-**User Story:** As a third-party author, I want to add an integration to Skye with one object, so that I change nothing inside Skye (decision D107; it carries out Requirement 16.3).
+**User Story:** As a third-party author, I want to add an integration to Skye with one decorator or one call on one object, so that I change nothing inside Skye (decisions D107 and D111; it carries out Requirement 16.3).
 
 #### Acceptance Criteria
 
-1. THE `base` component SHALL define the Port `PluginInterface` as a `Protocol` with a `name` attribute and one method `register(registrar)`, replacing the lifecycle methods `initialize`, `shutdown` and `get_metadata`, which nothing calls (decision D37).
-2. THE `base` component SHALL define the Port `RegistrarInterface` with one method per kind of integration: `model_provider`, `embedding_provider`, `store_backend`, `credential_source`, `routing_strategy`, `mcp_client`, `decision_model`, `tokenizer`, `capability`, `prompt_filter` and `agent_type`; each method takes a name and the object or factory to register.
+1. THE `skye` package SHALL export the class `Plugins`; `plugins = skye.Plugins()` SHALL give a handle on the one default table of registrations of the process, so that every handle sees the same registrations; THE methods of `Plugins` SHALL be decorators and SHALL also work as direct calls (`plugins.provider("acme", Cls, profile=...)`); THERE SHALL be no plugin object with a `register(registrar)` method, no `PluginInterface` and no `skye.use`, which replaces the lifecycle methods `initialize`, `shutdown` and `get_metadata` that nothing calls (decisions D37 and D111).
+2. THE `base` component SHALL define the Port `RegistrarInterface` with one method per kind of integration: `provider`, `backend`, `credential_source`, `routing_strategy`, `mcp_client`, `tokenizer`, `template_filter`, `agent` and `toolkit`, and the call `profile` of Requirement 59.11; each kind method SHALL take a name and the object or factory to register, and SHALL return a decorator when the object is omitted.
 3. THE registrar SHALL keep its registrations in the memory of the process, with no file, no thread and no state that must survive between invocations (decision D27).
-4. IF a registration uses a name already registered for the same kind, THEN THE registrar SHALL raise a `ConfigurationError` naming the kind and the name, unless the call passes `replace=True`.
+4. IF a registration uses a name already registered for the same kind, THEN THE registrar SHALL raise a `ConfigurationError` naming the kind and the name, unless the call passes `replace=True`; THE concrete `Registrar` SHALL have `unregister(kind, name)` so that a test removes what it registered; THERE SHALL be no namespace of plugins and no scope for tests.
 5. WHERE a registration gives its class or factory as a `"module:attribute"` text, THE registrar SHALL import that module at the first use of the name and not at registration.
-6. THE built-in integrations SHALL register through `RegistrarInterface` with the same calls as a third-party plugin.
-7. THE existing registries (`ProviderRegistry`, `skye.store.register_backend`, `skye.auth.register_credential_source`, the capability registry, `TokenCounter.register_tokenizer`, `register_agent_type`) SHALL remain as views of the registrar, so that every call that works today keeps working.
-8. WHERE a kind is held per instance today (the prompt filters of a prompt builder), THE registrar SHALL hold the default set that every new instance starts with, and a registration on an instance SHALL stay local to that instance.
+6. WHEN a decorator or a call of `Plugins` runs, THE registration SHALL be made at once, wherever that code runs (the top of a module, a function, a method), and SHALL be safe to make from several threads.
+7. THE built-in integrations SHALL register with the same calls as a third-party plugin.
+8. THE existing registries (`ProviderRegistry`, `skye.store.register_backend`, `skye.auth.register_credential_source`, `register_agent_type`) SHALL remain as views of the registrar, so that every call that works today keeps working; THE capability registry SHALL NOT be a view of the registrar (Requirement 62.1), and `TokenCounter.register_tokenizer` SHALL be outside the plugin interface (Requirement 59.11).
+9. WHERE a component has built-in integrations, THE component SHALL keep them in `<component>/plugins/`, one folder per implementation or provider; THE `__init__.py` of that folder SHALL be the only module that code outside the folder imports, SHALL resolve its public names lazily and SHALL have the internal function `register(registrar)` of what the folder offers, which makes the same calls as a third party (decision D110).
+10. THE profile of a built-in provider SHALL be a data file `profile.toml` in its folder, read with the standard library and built by `profile_from_mapping` in `base`; THE files of every implementation folder SHALL use the same names, only those the implementation needs: `provider.py` (language model), `request.py`, `response.py`, `capabilities.py`, `embeddings.py`, `multimodal_embeddings.py`, `decision.py` and `profile.toml` in `models`; `backend.py` in `store`; `source.py` in `auth`; `client.py` in `tools`; `agent.py` in `agents`; WHERE more than one provider uses a part, or a third-party plugin is written with it, it SHALL be in `models/utilities/` and not in `plugins/` (decision D110).
+11. THE word that adds a kind SHALL be the word that builds it: `plugins.agent` and `skye.agent`, `plugins.backend` and `skye.backend`, `plugins.mcp_client` and `skye.mcp_client`, `plugins.credential_source` and `skye.credential_source`, `plugins.routing_strategy` and `skye.routing_strategy`, `plugins.provider` and `skye.provider`, `plugins.toolkit` and `skye.toolkit`; `plugins.names(kind_word)` SHALL list the names of a kind (`plugins.names("agent")`) and `plugins.get(kind_word, name)` SHALL return what was registered; the typed accessors that exist (`create_decision_model`, `create_embedding_provider`) MAY stay.
+12. THE kind `provider` SHALL cover language models, embeddings and decisions: Skye SHALL tell the function from the method of the class (`generate`, `encode`, `decide`) and SHALL key the table by name and function, so that one name can have several classes; a class that has the methods of two functions SHALL be an error; `skye.provider(name)` SHALL build a model provider, and `provider_type="embedding"` or `provider_type="decision"` the others.
+13. WHERE a Port has a sync and an async method, THE plugin author SHALL write only the async one (`acomplete`, `astream`, `aencode`, `aencode_batch`, `invoke`), and Skye SHALL derive the sync one with `run_sync` and `iterate_sync` in `base` (a stream runs on its own loop in one thread, with a bounded queue, raises the error in the caller and closes the generator when the caller stops).
 
 ### Requirement 57: Discovery and control of plugins
 
-**User Story:** As a user, I want installed plugins found without code, or added with one call, and I want to choose which ones load, so that I control what runs in my function (decision D107).
+**User Story:** As a user, I want installed plugins found without code, and I want to choose which ones load, so that I control what runs in my function (decisions D107 and D111).
 
 #### Acceptance Criteria
 
-1. WHEN a lookup of any kind finds no registration under the requested name, THE library SHALL scan the entry-point group `skye.plugins` with the standard-library `importlib.metadata`, register what the scan finds and repeat the lookup once.
+1. WHEN a lookup of any kind finds no registration under the requested name, THE library SHALL scan the entry-point group `skye.plugins` with the standard-library `importlib.metadata`, import the module that each entry point names (its decorators register) and repeat the lookup once.
 2. THE library SHALL scan the group at most once per process.
 3. WHEN `import <pkg>` runs, THE library SHALL NOT scan the group and SHALL NOT load a plugin (Requirements 7.8 and 7.9).
-4. WHEN `<pkg>.use(plugin)` is called, THE library SHALL call `plugin.register(registrar)` at once; THE argument SHALL be an object with a `register` method or a function of one parameter.
+4. THE value of an entry point SHALL be a module; WHEN a module that registers is imported by the scan or by the program, its registrations SHALL be the same, so that the entry point is a convenience and not a condition.
 5. WHERE the configuration file has the key `plugins` (a list of entry-point names), THE scan SHALL load only those entry points; WHERE the key is absent, THE scan SHALL load every entry point of the group.
-6. IF an entry point fails to load or its `register` raises, THEN THE library SHALL log the failure once with structured `extra` (entry-point name, distribution, error) and SHALL continue with the other entry points (decision D105).
+6. IF an entry point fails to load or its module raises, THEN THE library SHALL log the failure once with structured `extra` (entry-point name, distribution, error) and SHALL continue with the other entry points (decision D105).
 7. IF the name is still unknown after the scan, THEN THE library SHALL raise a `ConfigurationError` that lists the names registered for that kind and the failures of the scan.
-8. IF a call to `<pkg>.use(plugin)` raises in `register`, THEN THE library SHALL raise a `ConfigurationError` naming the plugin and keeping the cause.
+8. WHEN a module that registers is imported, the registration SHALL be an effect of the import; THE tests of a plugin SHALL remove what they registered with `unregister` or register with `replace=True`.
 9. THE command `skye plugins` SHALL list the built-in registrations and each entry point of the group (name, distribution, version, loaded or failed with the error) with the names each one registered per kind, and SHALL accept `--format json`.
 
 ### Requirement 58: Open kinds and conformance suites
@@ -827,9 +832,9 @@ Written without the project name (it is being chosen); `<pkg>` is the import pac
 
 #### Acceptance Criteria
 
-1. THE `router` SHALL select a routing strategy by name through the registrar, THE built-in strategies SHALL register as built-in plugins, and the `if`/`elif` chain over the `RoutingStrategy` enum SHALL be removed; every `RoutingStrategy` member SHALL keep working as the name of its strategy.
+1. THE `router` SHALL select a routing strategy by name through the registrar, THE built-in strategies SHALL register as built-in plugins, and the `if`/`elif` chain over the `RoutingStrategy` enum SHALL be removed; every `RoutingStrategy` member SHALL keep working as the name of its strategy. A registered name SHALL be valid wherever the name of a built-in strategy is (the `strategy` of a router, of a route and of a `.skye` file).
 2. THE `tools` component SHALL create an MCP client by the `impl` name through the registrar; the default SHALL stay `"builtin"` (decision D16) and `"fastmcp"` SHALL register as a built-in plugin that imports `fastmcp` only when chosen (Requirement 10.7).
-3. THE `models` component SHALL create a decision model by name through the registrar, and Jev SHALL register as a built-in plugin.
+3. THE `models` component SHALL create a decision model by name through the registrar, as a provider with the function `decide` (`skye.provider(name, provider_type="decision")` and `create_decision_model`), and Jev SHALL register as a built-in plugin with the profile of its provider TypeSafe (Requirement 59.12).
 4. FOR each kind that has a method in `RegistrarInterface`, THE owner of the kind SHALL ship a public function `check_<kind>` (as `skye.store.check_backend` does, decision D98) that runs offline against fakes, returns the names of the checks it passed and raises an error naming the first check that fails.
 5. ONE test SHALL run every built-in registration of a kind through the `check_<kind>` function of that kind.
 6. WHEN a Port of a planned component (content reader, observer, safety filter, authorizer, memory) gets a registry, THE registrar SHALL gain its method in the same change.
@@ -846,10 +851,12 @@ Written without the project name (it is being chosen); `<pkg>` is the import pac
 4. THE function that finds a `ModelProfile` SHALL be one function in `base`: the exact model name first, then the longest registered name followed by a date or a version suffix.
 5. THE `RegionRule` SHALL name the environment variables that hold the region and whether the region is required, and ONE function `resolve_region` in `base` SHALL apply it in this order: the region passed, the region of the authenticator, then the variables in order.
 6. IF no region is found for a provider whose profile requires one, THEN THE library SHALL raise a `ConfigurationError` naming the variables, and SHALL NOT use a default region.
-7. THE registrar methods `model_provider` and `embedding_provider` SHALL accept `profile=`; a provider name SHALL have one profile whether it is registered with a model class, an embedding class or both.
-8. IF two registrations give different profiles for the same provider name, THEN THE registrar SHALL raise a `ConfigurationError` naming the provider, unless the call passes `replace=True`.
+7. THE registrar method `provider` SHALL accept `profile=`; a provider name SHALL have one profile whether the name is registered with a model class, an embedding class, a decision class or several of them, and a profile SHALL be kept under its own `name`.
+8. IF two registrations give different profiles for the same provider name, THEN THE registrar SHALL raise a `ConfigurationError` naming the provider, unless the call passes `replace=True`; the call of criterion 11 is the way to change a part of a profile.
 9. WHERE a provider speaks the OpenAI chat-completions format, THE plugin author SHALL be able to register it with `OpenAICompatibleProvider` and a `ProviderProfile`, and no new class.
 10. IF a provider has no profile or its profile lacks the model, THEN THE `CostCalculator` SHALL report the cost as unknown, THE `TokenCounter` SHALL use the standard-library estimate, and `get_model_info()` SHALL return the keys the adapter itself knows.
+11. THE call `plugins.profile(provider, models={model: ModelProfile(...)})` SHALL merge the given `ModelProfile` entries into the profile of an existing provider and SHALL change nothing else of it (the prices, the endpoint and the other models stay), so that a plugin changes one fact of a model, for example its tokenizer, without registering the provider again; a new provider SHALL name the tokenizer in its own profile; the tokenizer functions SHALL be registered by name (`@plugins.tokenizer("words")`) and a model SHALL use one through `ModelProfile(tokenizer=...)`, and not by a prefix of the model name.
+12. THE price of a decision model SHALL be declared in the profile of its provider (for Jev, 0.042 USD per million input tokens and output free, decision D110) and THE `CostCalculator` SHALL read it like any other price.
 
 ### Requirement 60: Provider and storage knowledge in one place
 
@@ -861,8 +868,8 @@ Written without the project name (it is being chosen); `<pkg>` is the import pac
 2. THE `TokenCounter` SHALL hold no table of model prefixes, tokenizers or message overheads.
 3. THE variable that holds the API key of a provider SHALL be written once, in its profile; `STANDARD_ENV_VARS` of `auth`, `API_KEY_VARIABLES` of `router` and the variable names written in the adapters SHALL be removed and read the profile, and the variable names SHALL stay the provider-standard ones (Requirement 11.6).
 4. THE `router` SHALL apply `client_settings` and `model_is_deployment` of the profile of a target, and SHALL contain no provider name.
-5. EACH adapter module SHALL hold the error handler of its provider and its schema conversion (the Gemini `responseSchema` in the Google adapter); `models/transport/error_mapping.py` SHALL keep only the mapping of an HTTP status (decision D104) and SHALL call `map_error` of the profile.
-6. THE AWS region SHALL be resolved only by `resolve_region` in `auth/aws.py`, `auth/sts.py`, the `models` adapters and the `store` backends that need one.
+5. EACH adapter module SHALL hold the error handler of its provider and its schema conversion (the Gemini `responseSchema` in the Google adapter); `models/utilities/error_mapping.py` SHALL keep only the mapping of an HTTP status (decision D104) and SHALL call `map_error` of the profile.
+6. THE AWS region SHALL be resolved only by `resolve_region` in `auth/plugins/aws/source.py`, `auth/plugins/aws/sts.py`, the `models` adapters and the `store` backends that need one.
 7. THE Bedrock adapter SHALL take its native-JSON-output capability from `get_model_info()` and not from a function of its own.
 8. THE test `tests/budget/test_provider_knowledge.py` SHALL fail on a built-in provider name, a key variable or a price used as a literal outside the adapter and the profile of that provider, with an allowlist that only shrinks (as `tests/budget/test_provider_agnostic_core.py` does).
 9. THE `CounterStore` Port SHALL have a method `count(key)` that returns the count as an integer, and 0 when the key is absent or expired; THE `router` SHALL call it and SHALL NOT read the key `"count"` of a stored value.
@@ -876,7 +883,23 @@ Written without the project name (it is being chosen); `<pkg>` is the import pac
 
 #### Acceptance Criteria
 
-1. THE example of how a user writes and registers a plugin SHALL be written in `examples/plugins/` before the design of any component changes, SHALL show a provider with its profile, a store backend, `<pkg>.use(plugin)` and the entry-point declaration in `pyproject.toml`, and SHALL be run offline by `tests/examples` (Requirement 24.11).
-2. THE documentation page that lists every kind of extension (Requirement 15.10) SHALL add the registrar method of each kind, and THE wiki SHALL hold a guide "Write a plugin" and a reference of `ProviderProfile`.
-3. WHEN a change touches `skye plugins`, `<pkg>.use`, the `plugins` configuration key, the registrar or the profile, THE Claude skill that ships with the package SHALL be updated in the same change, with an eval for the rule that a provider is declared once, in its profile.
+1. THE examples of how a user writes and registers a plugin SHALL be written in `examples/plugins/` before the design of any component changes, SHALL use `plugins = skye.Plugins()` with one decorator for each kind, SHALL show a provider with its profile, a store backend, a toolkit, an agent and a tokenizer, and the entry-point declaration of a module in `pyproject.toml`, and SHALL be run offline by `tests/examples` (Requirement 24.11) once the interface exists.
+2. THE documentation page that lists every kind of extension (Requirement 15.10) SHALL add the decorator of each kind, and THE wiki SHALL hold a guide "Write a plugin" and a reference of `ProviderProfile`.
+3. WHEN a change touches `skye plugins`, `Plugins`, the `plugins` configuration key, the registrar or the profile, THE Claude skill that ships with the package SHALL be updated in the same change, with an eval for the rule that a provider is declared once, in its profile.
 4. THE plugin machinery SHALL add no third-party dependency to the core and no extra to `pyproject.toml`; THE size, import time and cold start of `budgets.toml` SHALL NOT rise (Requirement 7.9).
+
+### Requirement 62: Tools, toolkits and the agent call
+
+**User Story:** As an agent developer, I want my own tools apart from the tools that ship with Skye, and one call to build an agent, so that an agent has only the tools I gave it (decision D111).
+
+#### Acceptance Criteria
+
+1. THE capability registry `CapabilityRegistry` SHALL keep its name and stay in `tools`; THE capabilities SHALL NOT be a kind of plugin and THERE SHALL be no default set of capabilities held by the registrar, so that a tool belongs to the agent that is given it; THE registry SHALL NOT move into the `gateway` (open decision O19 stays open).
+2. THE decorator `@capability` SHALL be required to make a function a tool, and SHALL take `name`, `description` and `return_direct`; WHERE `name` or `description` is omitted, THE name SHALL be the name of the function and THE description its docstring.
+3. WHEN a tool has `return_direct=True` and the model calls it, THE agent SHALL give the result of the tool as its answer and SHALL NOT ask the model again; THE default SHALL be `False`; the flag SHALL be read through the `ToolProvider` Port.
+4. AN agent SHALL take its own tools in `tools=` and the built-in tools in `toolkits=`; A toolkit SHALL be a `ToolProvider`.
+5. A toolkit SHALL be a class that extends `skye.Toolkit`, registered with `@plugins.toolkit("name")`, whose methods carry `@capability`; THE name of a tool of a toolkit SHALL be `<toolkit name>.<name>` with the prefix added by `skye.Toolkit`; WHERE one toolkit is built twice, EACH instance SHALL take an `alias`; WHERE a toolkit has functions written outside the class, THEY SHALL be added with `tools=[...]` in the decorator, and a toolkit with no state MAY be a function that returns a `CapabilityRegistry`.
+6. A toolkit SHALL be built by `skye.toolkit(name, **options)`; A user SHALL be able to add a toolkit, replace a built-in one with `replace=True` and build on a built-in one (`plugins.get("toolkit", name)` returns its class).
+7. THE built-in toolkits SHALL be `files` (the folder `root` is required and nothing outside it can be read), `openapi` (one tool for each operation of a document, `spec`), `mcp` (the tools of an MCP server, `target`) and `a2a`; NO built-in toolkit SHALL be active unless the user asks for it or a feature of the agent needs it.
+8. WHEN a `SKILL.md` is given in `skills=[...]`, THE agent SHALL add the toolkit `files` by itself, limited to the folder of that skill.
+9. AN agent SHALL be built only with `skye.agent(name, **options)`, THERE SHALL be no `Agent` class, and THE built-in agent SHALL be `REACT` from `skye.agents` (the loop is the work of the agents spec) with the options `model=`, `tools=`, `toolkits=` and `skills=`.

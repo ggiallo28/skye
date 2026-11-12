@@ -60,7 +60,7 @@
       "alias": "claude",
       "targets": [
         {
-          "model": "claude-3-sonnet-20240229",
+          "model": "claude-sonnet-4-5-20250929",
           "provider": "anthropic",
           "api_key": "${ANTHROPIC_API_KEY}",
           "tpm": 80000,
@@ -71,7 +71,7 @@
           ]
         },
         {
-          "model": "claude-3-sonnet-20240229",
+          "model": "claude-sonnet-4-5-20250929",
           "provider": "anthropic",
           "api_key": "${ANTHROPIC_API_KEY_SECONDARY}",
           "tpm": 80000,
@@ -193,7 +193,7 @@
           }
         },
         {
-          "model": "claude-3-sonnet-20240229",
+          "model": "claude-sonnet-4-5-20250929",
           "provider": "anthropic",
           "api_key": "${ANTHROPIC_API_KEY}",
           "priority": 50,
@@ -221,7 +221,7 @@
       "alias": "bedrock-claude",
       "targets": [
         {
-          "model": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "model": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
           "provider": "bedrock",
           "region": "us-east-1",
           "metadata": {
@@ -229,7 +229,7 @@
           }
         },
         {
-          "model": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "model": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
           "provider": "bedrock",
           "region": "us-west-2",
           "metadata": {
@@ -237,7 +237,7 @@
           }
         },
         {
-          "model": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "model": "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
           "provider": "bedrock",
           "region": "eu-west-1",
           "metadata": {

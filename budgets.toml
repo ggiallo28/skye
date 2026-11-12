@@ -133,6 +133,19 @@ target_over_core_mb = 4
 # Extras that have no dependencies today. They are modules, not extras: remove them
 # from pyproject.toml and from this list. The test fails if an extra is empty and
 # not listed here, and if a listed extra stops being empty.
+[tokens]
+# The tokens Skye adds to what the caller wrote when it calls a model, counted offline on the request it builds (the estimate of
+# TokenCounter, the same on every machine): the text of the wire messages minus the text of the caller. See tests/budget/test_token_overhead.py.
+# Skye's own prompt templates are not counted (they are text the caller chose). The call through an agent has no row until the agent
+# loop exists (3-runtime-agents).
+# While enforce is false the test only reports in the job summary and never fails; set it to true when the limits are agreed.
+# Measured 2026-11-12 (OpenAI-compatible request, estimate counter). Like the other budgets, a limit only goes down.
+enforce = false
+
+direct_plain = { now = 0, max = 0 }                    # one user message: Skye adds nothing
+direct_system_and_user = { now = 0, max = 0 }          # a system and a user message: Skye adds nothing
+direct_forced_choice_emulated = { now = 17, max = 20 } # the instruction added for a model that refuses a forced tool (D109)
+
 [extras_policy]
 known_empty = ["agents", "memory", "guard", "observe", "prompts", "teams", "flows", "tools", "openai", "bedrock", "anthropic", "google", "cohere"]   # provider extras are empty: one built-in stdlib REST adapter each (Requirement 20); "observe" has no telemetry import yet. "tools" carries no third-party library: fastmcp lives in the separate "mcp" extra (Requirement 15).
 # Convenience bundles. They are not budgeted one by one: each member extra is.
