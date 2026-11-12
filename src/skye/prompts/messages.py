@@ -33,6 +33,7 @@ import math
 import random
 import re
 import string
+import threading
 import types
 from collections import OrderedDict
 from collections.abc import Callable, Iterable, Mapping, Sequence
@@ -60,7 +61,9 @@ from skye.base.messages import (
     SystemMessage,
     UserMessage,
 )
+from skye.base.plugins import get_registrar
 from skye.base.prompt_parts import OutputSchema, PromptParts
+from skye.base.validated import trusted
 from skye.prompts.engine import CompiledTemplate, TemplateSyntaxError, compile_template
 from skye.prompts.loaders import load_default_templates
 from skye.prompts.output_format import check_format, format_instructions
@@ -113,6 +116,12 @@ class _TemplateEntry:
     spec: Any = None  # a ``PromptSpec`` for ``kind == "skye"``
 
 
+#: The compiled bundled templates of the process, so that a second builder compiles nothing. The key is the name, the version, the path, the size and the
+#: modification time of the file. An entry is immutable and a cached ``.skye`` spec is read-only (see ``skye.base.dsl.cache``), so builders can share them.
+_BUNDLED_ENTRIES: dict[tuple[str, str, str, int, int], _TemplateEntry] = {}
+_BUNDLED_LOCK = threading.RLock()
+
+
 def _wants_example_list(spec: Any) -> bool:
     """False when the ``.skye`` prompt declares ``examples`` as a string (formatted text)."""
     for var in getattr(spec, "variables", None) or []:
@@ -143,11 +152,11 @@ _BLANK = _Blank()
 class BasePromptBuilder(PromptBuilderInterface):
     """Base implementation of PromptBuilderInterface.
 
-    Loads the bundled templates (the ``.skye`` files of the templates folder) and renders
+    Registers the bundled templates (the ``.skye`` files of the templates folder; each is compiled at its first use) and renders
     templates into ``SkyeMessage`` objects that every provider accepts.
 
     Features:
-    - Versioned registry (``name:version``), templates parsed once at registration
+    - Versioned registry (``name:version``), templates parsed once: at registration, and the bundled ones at their first use
     - Block templates (stdlib engine), simple ``{name}`` templates and ``.skye`` prompts
     - Default values (``${VAR}`` substituted), callable defaults, allowed-missing variables
     - Few-shot examples with fixed, random and semantic (embedder callable) selectors
@@ -167,9 +176,11 @@ class BasePromptBuilder(PromptBuilderInterface):
     """
 
     def __init__(self, *, max_cached_examples: int = DEFAULT_EXAMPLE_CACHE_SIZE) -> None:
-        """Initialize with the bundled templates."""
+        """Initialize with the bundled templates (registered now, compiled at their first use)."""
         self._templates: dict[str, str] = {}
         self._entries: dict[str, _TemplateEntry] = {}
+        # Bundled ``.skye`` templates that are registered and not compiled yet: key -> (path, size, modification time). See ``_entry``.
+        self._pending: dict[str, tuple[Path, int, int]] = {}
         self._latest: dict[str, str] = {}
         self._template_metadata: dict[str, dict[str, Any]] = {}
         self._defaults: dict[str, Any] = {}
@@ -189,7 +200,9 @@ class BasePromptBuilder(PromptBuilderInterface):
         self._output_schemas: dict[str, Any] = {}
         self._schema_json: dict[str, dict[str, Any]] = {}
         self._output_formats: dict[str, str] = {}
-        self._custom_filters: dict[str, Callable[..., Any]] = {}
+        # The default set (Requirement 56.8): the filters that plugins registered with ``registrar.template_filter``. It is read at the first use of
+        # the filters (see ``_custom_filters``), so a builder that only lists or reads templates does not wait for the registrar to load its built-ins.
+        self._filters: dict[str, Callable[..., Any]] | None = None
 
         # Default allowed missing variables for block templates
         self.set_allowed_missing_variables([
@@ -210,6 +223,21 @@ class BasePromptBuilder(PromptBuilderInterface):
         ])  # fmt: skip
 
         self._register_default_templates()
+
+    @property
+    def _custom_filters(self) -> dict[str, Callable[..., Any]]:
+        """The filters of this builder: the default set (read once, at the first use) and the filters added with ``register_filter``.
+
+        A filter added with ``register_filter`` stays local to this builder and wins over a default of the same name.
+        """
+        filters = self._filters
+        if filters is None:
+            filters = self._filters = dict(get_registrar().default_set("template_filter"))
+        return filters
+
+    @_custom_filters.setter
+    def _custom_filters(self, value: dict[str, Callable[..., Any]]) -> None:
+        self._filters = value
 
     # ------------------------------------------------------------------------------------------
     # Rendering
@@ -279,7 +307,7 @@ class BasePromptBuilder(PromptBuilderInterface):
     ) -> tuple[list[SkyeMessage], _TemplateEntry, dict[str, Any]]:
         """The messages, the entry and the merged variables of one rendering."""
         key = self._latest_key(template_name)
-        entry = self._entries[key]
+        entry = self._entry(key)
         merged = self._merge_variables(list(entry.variables), variables)
         as_messages = template_name in self._examples_as_messages
         if template_name in self._examples and "examples" not in variables and not as_messages:
@@ -356,6 +384,7 @@ class BasePromptBuilder(PromptBuilderInterface):
 
         entry = self._compile_entry(name, content, filename)
         key = f"{name}:{version}"
+        self._pending.pop(key, None)
         self._templates[key] = content
         self._entries[key] = entry
         self._template_metadata[key] = {"name": name, "version": version, "format": entry.kind}
@@ -366,6 +395,69 @@ class BasePromptBuilder(PromptBuilderInterface):
             "Registered prompt template",
             extra={"template": name, "version": version, "format": entry.kind},
         )
+
+    def register_bundled_template(
+        self,
+        name: str,
+        text: str,
+        path: Path,
+        version: str = "1.0",
+        stamp: tuple[int, int] | None = None,
+    ) -> None:
+        """Register a bundled ``.skye`` template without compiling it; it is compiled at its first use.
+
+        The text, the name and the version are kept now, so listing and reading the template cost nothing. A mistake in the
+        template shows at the first use, as the same ``ValidationError`` that ``register_template`` raises. The build of a
+        bundled template does not validate its objects (``skye.base.validated.trusted``): it was checked in development.
+
+        Args:
+            name: Template name.
+            text: The text of the file.
+            path: The file, also used as the name in the diagnostics (for an entry of the archive of an installed wheel, the
+                name of the archive and of the entry).
+            version: Version; the latest is the greatest in string order.
+            stamp: The size and the modification time of the source, for the cache of the process; read from ``path`` when
+                omitted (an entry of an archive has no file of its own, so the caller gives it).
+        """
+        key = f"{name}:{version}"
+        if stamp is None:
+            status = path.stat()
+            stamp = (status.st_size, status.st_mtime_ns)
+        self._entries.pop(key, None)
+        self._pending[key] = (path, stamp[0], stamp[1])
+        self._templates[key] = text
+        self._template_metadata[key] = {"name": name, "version": version, "format": "skye"}
+        latest = self._latest.get(name)
+        if latest is None or version >= latest:
+            self._latest[name] = version
+
+    def _entry(self, key: str) -> _TemplateEntry:
+        """The compiled entry of ``name:version``; a pending bundled template is compiled now, once, and kept.
+
+        Raises:
+            ValidationError: The pending template does not compile (the error is not kept: the next use raises it again).
+        """
+        entry = self._entries.get(key)
+        if entry is not None:
+            return entry
+        pending = self._pending.get(key)
+        if pending is None:
+            raise KeyError(key)
+        path, size, mtime = pending
+        meta = self._template_metadata[key]
+        with _BUNDLED_LOCK:
+            entry = self._entries.get(key)
+            if entry is not None:  # another thread compiled it while this one waited
+                return entry
+            cache_key = (meta["name"], meta["version"], str(path), size, mtime)
+            entry = _BUNDLED_ENTRIES.get(cache_key)
+            if entry is None:
+                with trusted():
+                    entry = _compile_skye(meta["name"], self._templates[key], str(path))
+                _BUNDLED_ENTRIES[cache_key] = entry
+            self._entries[key] = entry
+            self._pending.pop(key, None)
+        return entry
 
     def get_template(self, name: str, version: str | None = None) -> str:
         """Return the template text (the latest version, or the given one).
@@ -387,7 +479,7 @@ class BasePromptBuilder(PromptBuilderInterface):
         ``{{ user.name }}``, the operands of filters and conditional expressions); for a ``.skye``
         prompt the declared variables.
         """
-        return list(self._entries[self._latest_key(template_name)].variables)
+        return list(self._entry(self._latest_key(template_name)).variables)
 
     def set_default_values(self, defaults: dict[str, Any]) -> None:
         """Set default values (a callable is called at each rendering).
@@ -417,7 +509,7 @@ class BasePromptBuilder(PromptBuilderInterface):
         parts: list[str] = []
         for part in template_parts:
             key = self._latest_key(part)
-            if self._entries[key].kind == "skye":
+            if self._entry(key).kind == "skye":
                 raise ValidationError(
                     f"Cannot compose the .skye prompt '{part}' as text",
                     field="template_parts",
@@ -733,7 +825,7 @@ class BasePromptBuilder(PromptBuilderInterface):
         """The instructions of the ``output`` block of a ``.skye`` prompt ("" if there is none)."""
         if template_name not in self._latest:
             return ""
-        entry = self._entries[self._latest_key(template_name)]
+        entry = self._entry(self._latest_key(template_name))
         if entry.kind != "skye" or not entry.spec.output_variants():
             return ""
         from skye.prompts.skye_prompts import output_instructions
@@ -744,7 +836,7 @@ class BasePromptBuilder(PromptBuilderInterface):
     def get_template_metadata(self, template_name: str) -> dict[str, Any]:
         """Return metadata; ``variables`` and ``optional_variables`` together list exactly the
         variables found in the template."""
-        entry = self._entries[self._latest_key(template_name)]
+        entry = self._entry(self._latest_key(template_name))
         required = self._required_names(entry)
         variables = [v for v in entry.variables if v in required]
         return {
@@ -773,7 +865,7 @@ class BasePromptBuilder(PromptBuilderInterface):
             KeyError: If the template is not registered.
         """
         key = self._latest_key(template_name)
-        entry = self._entries[key]
+        entry = self._entry(key)
         version = self._template_metadata[key]["version"]
         if entry.kind == "skye":
             metadata, _, _ = split_metadata(self._templates[key], template_name)
@@ -871,7 +963,7 @@ class BasePromptBuilder(PromptBuilderInterface):
     # ------------------------------------------------------------------------------------------
 
     def _register_default_templates(self) -> None:
-        """Register the bundled templates of the templates folder."""
+        """Register the bundled templates of the templates folder; the ``.skye`` ones are compiled at their first use."""
         load_default_templates(self)
 
     def _is_block_template(self, template: str) -> bool:

@@ -15,14 +15,14 @@ from skye.agents.registry import (
 )
 from skye.base.exceptions import ConfigurationError, SkyeError
 from skye.base.interfaces.runnable import Runnable
+from skye.base.plugins import Registrar
 
 
 @pytest.fixture(autouse=True)
-def _isolated_registry():
-    saved = dict(registry._REGISTRY)
-    yield
-    registry._REGISTRY.clear()
-    registry._REGISTRY.update(saved)
+def _isolated_registry(monkeypatch):
+    """Each test works on a private registrar that has the built-in agent types, so the default one is left untouched."""
+    private = Registrar(builtin_plugins=("skye.agents.plugins:register",))
+    monkeypatch.setattr(registry, "_registrar", lambda: private)
 
 
 class _Echo:
