@@ -20,10 +20,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from skye.auth import aws_profile, sts
-from skye.auth.sigv4 import sign_request
+from skye.auth.plugins.aws import aws_profile, sts
+from skye.auth.plugins.aws.sigv4 import sign_request
 from skye.base import http
 from skye.base.exceptions import ConfigurationError
+from skye.base.regions import region_for
 
 _IMDS = "http://169.254.169.254"
 _ECS_HOST = "http://169.254.170.2"
@@ -135,7 +136,7 @@ class CredentialProvider:
         role_arn: str | None = None,
         role_session_name: str = "skye",
         external_id: str | None = None,
-        region: str = "us-east-1",
+        region: str | None = None,
         sts_endpoint: str | None = None,
         sso_endpoint: str | None = None,
         env: Mapping[str, str] | None = None,
@@ -198,6 +199,14 @@ class CredentialProvider:
             )
         return found
 
+    def _sts_region(self, *, signed: bool) -> str | None:
+        """The region of an STS call: the one passed, else the variables of the AWS profile (never a default).
+
+        ``AssumeRole`` is signed and always needs one; ``AssumeRoleWithWebIdentity`` needs one only to build the endpoint.
+        """
+        needed = signed or self._sts_endpoint is None
+        return region_for("bedrock", self._region, required=needed, environ=self._env)
+
     def _assume(
         self, source: AwsCredentials, role_arn: str, session_name: str, external_id: str | None
     ) -> AwsCredentials:
@@ -207,7 +216,7 @@ class CredentialProvider:
             secret_key=source.secret_key,
             session_token=source.session_token,
             session_name=session_name,
-            region=self._region,
+            region=self._sts_region(signed=True),
             external_id=external_id,
             endpoint=self._sts_endpoint,
         )
@@ -225,7 +234,7 @@ class CredentialProvider:
             role_arn,
             token,
             session_name=session_name,
-            region=self._region,
+            region=self._sts_region(signed=False),
             endpoint=self._sts_endpoint,
         )
         return AwsCredentials(key, secret, session, expires)

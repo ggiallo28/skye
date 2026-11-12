@@ -10,13 +10,19 @@ from pathlib import Path
 
 import pytest
 
-from skye.auth import aws, azure, google, oauth2, openai_compatible, secrets
+from skye.auth.plugins.aws import source as aws
+from skye.auth.plugins.azure import source as azure
+from skye.auth.plugins.google import source as google
+from skye.auth.plugins.oauth2 import source as oauth2
+from skye.auth.plugins.openai_compatible import source as openai_compatible
+from skye.auth.plugins.secrets import source as secrets
 from skye.auth.cache import CachedBearerAuth
 from skye.base.config import ALL_ENV_VARS
 from skye.base.exceptions import ConfigurationError, SkyeError
 
 AUTH = Path(__file__).resolve().parents[3] / "src" / "skye" / "auth"
-MODULES = sorted(AUTH.glob("*.py"))
+# Every module of ``auth``, the plugin folders included (D110): the scan must not stop at the root.
+MODULES = sorted(p for p in AUTH.rglob("*.py") if "__pycache__" not in p.parts)
 FORBIDDEN_CALLS = {
     "Thread",
     "Timer",
@@ -91,7 +97,8 @@ def _env_names():
             c.value
             for node in ast.walk(tree)
             if isinstance(node, ast.Assign)
-            and any(getattr(t, "id", "") == "__all__" for t in node.targets)
+            # the public names a module or a plugin door exports: ``__all__``, and the keys of the ``_LAZY`` table of a door (D110)
+            and any(getattr(t, "id", "") in {"__all__", "_LAZY"} for t in node.targets)
             for c in ast.walk(node.value)
             if isinstance(c, ast.Constant)
         }

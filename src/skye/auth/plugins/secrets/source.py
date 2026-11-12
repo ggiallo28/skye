@@ -18,7 +18,7 @@ import urllib.parse
 from collections.abc import Mapping
 from typing import Any
 
-from skye.auth.aws import CredentialProvider, SigV4Authenticator
+from skye.auth.plugins.aws import CredentialProvider, SigV4Authenticator
 from skye.auth.refresh import send_with_refresh
 from skye.base import http
 from skye.base.exceptions import ConfigurationError, ProviderError
@@ -147,7 +147,7 @@ class AzureKeyVault:
             raise ConfigurationError("Azure Key Vault needs the vault URL")
         self._vault = vault_url.rstrip("/")
         if authenticator is None:
-            from skye.auth.azure import resolve_azure_auth
+            from skye.auth.plugins.azure import resolve_azure_auth
 
             authenticator = resolve_azure_auth(scope=KEY_VAULT_SCOPE)
         self._auth = authenticator
@@ -195,7 +195,7 @@ class GoogleSecretManager:
         self._project = project
         self._endpoint = endpoint.rstrip("/")
         if authenticator is None:
-            from skye.auth.google import resolve_google_auth
+            from skye.auth.plugins.google import resolve_google_auth
 
             authenticator = resolve_google_auth()
         self._auth = authenticator

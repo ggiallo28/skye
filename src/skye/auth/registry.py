@@ -10,34 +10,27 @@ nothing.
 
 from __future__ import annotations
 
-import importlib
 import threading
 from collections.abc import Callable
 from typing import Any
 
+from skye.auth import plugins as _plugin
 from skye.base.exceptions import ConfigurationError
+from skye.base.plugins import Registrar, get_registrar
 
 CredentialSourceFactory = Callable[..., Any]
 
-#: The sources that ship with ``auth``: name -> ``module:attribute`` of the factory.
-BUILTIN_SOURCES: dict[str, str] = {
-    "openai": "skye.auth.openai_compatible:openai_authenticator",
-    "anthropic": "skye.auth.openai_compatible:anthropic_authenticator",
-    "cohere": "skye.auth.openai_compatible:cohere_authenticator",
-    "aws": "skye.auth.aws:aws_authenticator",
-    "bedrock": "skye.auth.aws:bedrock_authenticator",
-    "google": "skye.auth.google:resolve_google_auth",
-    "azure": "skye.auth.azure:resolve_azure_auth",
-    "client-credentials": "skye.auth.oauth2:ClientCredentialsAuth",
-    "token-exchange": "skye.auth.oauth2:TokenExchangeAuth",
-    "aws-secrets-manager": "skye.auth.secrets:AwsSecretsManager",
-    "aws-ssm": "skye.auth.secrets:AwsParameterStore",
-    "azure-key-vault": "skye.auth.secrets:AzureKeyVault",
-    "google-secret-manager": "skye.auth.secrets:GoogleSecretManager",
-}
-
-_custom: dict[str, CredentialSourceFactory] = {}
+_KIND = "credential_source"
 _lock = threading.Lock()
+
+
+def _registrar() -> Registrar:
+    """The default registrar with the built-in sources in it: this module keeps no table of its own (Requirement 56.7)."""
+    registrar = get_registrar()
+    _plugin.register(
+        registrar
+    )  # a name already there is skipped, so this is cheap and safe to repeat
+    return registrar
 
 
 def _check_name(name: str) -> None:
@@ -67,23 +60,28 @@ def register_credential_source(
             "A credential source factory must be callable", details={"name": name}
         )
     with _lock:
-        if (name in _custom or name in BUILTIN_SOURCES) and not replace:
+        registrar = _registrar()
+        if registrar.has(_KIND, name) and not replace:
             raise ConfigurationError(
                 f"A credential source named {name!r} is already registered", details={"name": name}
             )
-        _custom[name] = factory
+        registrar.credential_source(name, factory, replace=True)
 
 
 def unregister_credential_source(name: str) -> None:
-    """Remove a source registered with :func:`register_credential_source` (built-in ones stay)."""
+    """Remove a source registered with :func:`register_credential_source` (built-in ones stay).
+
+    A built-in name that was replaced goes back to the built-in source.
+    """
     with _lock:
-        _custom.pop(name, None)
+        registrar = _registrar()
+        registrar.unregister(_KIND, name)
+        _plugin.register(registrar)  # puts a built-in name back
 
 
 def list_credential_sources() -> list[str]:
-    """The names of every source: the built-in ones and those registered by user code."""
-    with _lock:
-        return sorted({*BUILTIN_SOURCES, *_custom})
+    """The names of every source: the built-in ones and those registered by user code or by a plugin."""
+    return _registrar().names(_KIND)
 
 
 def resolve_credential_source(name: str, **config: Any) -> Any:
@@ -92,21 +90,17 @@ def resolve_credential_source(name: str, **config: Any) -> Any:
     Raises:
         ConfigurationError: No source has that name (the message lists the names).
     """
-    with _lock:
-        factory = _custom.get(name)
-    if factory is None and name in BUILTIN_SOURCES:
-        module, _, attribute = BUILTIN_SOURCES[name].partition(":")
-        factory = getattr(importlib.import_module(module), attribute)
-    if factory is None:
+    registrar = _registrar()
+    if not registrar.has(_KIND, name):
         raise ConfigurationError(
-            f"No credential source named {name!r}; known: {', '.join(list_credential_sources())}",
+            f"No credential source named {name!r}; known: {', '.join(registrar.names(_KIND))}",
             details={"name": name},
         )
+    factory = registrar.get(_KIND, name)
     return factory(**config)
 
 
 __all__ = [
-    "BUILTIN_SOURCES",
     "register_credential_source",
     "unregister_credential_source",
     "list_credential_sources",

@@ -12,16 +12,24 @@ import urllib.parse
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
 
-from skye.auth.sigv4 import sign_request
+from skye.auth.plugins.aws.sigv4 import sign_request
 from skye.base import http
 from skye.base.exceptions import ProviderError
+from skye.base.regions import region_for
 
 STS_VERSION = "2011-06-15"
 _FORM = "application/x-www-form-urlencoded; charset=utf-8"
 
 
-def _endpoint(region: str, endpoint: str | None) -> str:
-    return endpoint or f"https://sts.{region}.amazonaws.com/"
+def _region(region: str | None) -> str:
+    """The region to sign with: the one given, else the variables of the AWS profile; no default (Requirement 59.6)."""
+    found = region_for("bedrock", region, required=True)
+    assert found is not None  # a required region is found or the call raised
+    return found
+
+
+def _endpoint(region: str | None, endpoint: str | None) -> str:
+    return endpoint or f"https://sts.{_region(region)}.amazonaws.com/"
 
 
 def _parse(xml_text: str) -> tuple[str, str, str, _dt.datetime]:
@@ -47,7 +55,7 @@ def assume_role(
     secret_key: str,
     session_token: str | None = None,
     session_name: str = "skye",
-    region: str = "us-east-1",
+    region: str | None = None,
     external_id: str | None = None,
     duration: int = 3600,
     endpoint: str | None = None,
@@ -58,6 +66,7 @@ def assume_role(
     Returns:
         ``(access key, secret key, session token, expiry)`` of the role session.
     """
+    region = _region(region)
     form = {
         "Action": "AssumeRole",
         "Version": STS_VERSION,
@@ -89,7 +98,7 @@ def assume_role_with_web_identity(
     token: str | Callable[[], str],
     *,
     session_name: str = "skye",
-    region: str = "us-east-1",
+    region: str | None = None,
     duration: int = 3600,
     endpoint: str | None = None,
     timeout: float = 10.0,

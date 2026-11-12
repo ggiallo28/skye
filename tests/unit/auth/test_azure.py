@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from skye.auth import azure as az
+from skye.auth.plugins.azure import source as az
 from skye.auth.errors import LoginRequiredError
 from skye.base.exceptions import ConfigurationError
 

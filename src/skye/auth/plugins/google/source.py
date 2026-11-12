@@ -37,7 +37,7 @@ from typing import Any
 from skye.auth import rsa_signing
 from skye.auth.cache import CachedBearerAuth
 from skye.auth.errors import LoginRequiredError
-from skye.auth.oauth2 import TOKEN_EXCHANGE_GRANT, token_request
+from skye.auth.plugins.oauth2 import TOKEN_EXCHANGE_GRANT, token_request
 from skye.base import http
 from skye.base.exceptions import ProviderError
 from skye.base.interfaces.authentication import AuthenticationInterface

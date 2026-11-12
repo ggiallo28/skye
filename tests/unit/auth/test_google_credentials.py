@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from skye.auth import google as g
+from skye.auth.plugins.google import source as g
 from skye.auth.errors import LoginRequiredError
 from skye.base.exceptions import MissingExtraError
 

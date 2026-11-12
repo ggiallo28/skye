@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from skye.auth import google as g
+from skye.auth.plugins.google import source as g
 from skye.base.interfaces.authentication import AuthenticationInterface
 
 ENV = (*g.TOKEN_ENV_VARS, g.API_KEY_ENV_VAR, "GOOGLE_APPLICATION_CREDENTIALS")  # noqa: E501

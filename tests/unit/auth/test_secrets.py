@@ -5,7 +5,8 @@ import json
 
 import pytest
 
-from skye.auth import registry, secrets
+from skye.auth import registry
+from skye.auth.plugins.secrets import source as secrets
 from skye.auth.cache import CachedBearerAuth
 from skye.base.exceptions import ProviderError
 
