@@ -42,7 +42,7 @@ def server():
 @pytest.fixture(autouse=True)
 def _no_retry_wait(monkeypatch):
     """The adapters retry a failure with a wait of seconds; the comparison does not need to wait."""
-    monkeypatch.setattr("skye.models.transport.retry.time.sleep", lambda seconds: None)
+    monkeypatch.setattr("skye.models.utilities.retry.time.sleep", lambda seconds: None)
 
 
 def _rest(provider: str, server: FakeModelServer):

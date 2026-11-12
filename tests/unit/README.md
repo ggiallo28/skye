@@ -118,7 +118,7 @@ def test_router_selection(sample_router):
 from unittest.mock import Mock, patch
 import pytest
 
-@patch('skye.models.llm.openai.OpenAI')
+@patch('skye.models.plugins.openai.provider.OpenAI')
 def test_openai_provider_completion(mock_openai):
     """Test OpenAI provider with mocked API."""
     # Setup mock

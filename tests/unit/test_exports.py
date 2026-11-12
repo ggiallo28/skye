@@ -126,7 +126,6 @@ def test_interface_exports():
         ModelInterface,
         ModelRouterInterface,
         ObserverInterface,
-        PluginInterface,
         PromptBuilderInterface,
         RoutingStrategy,
         SafetyFilterInterface,
@@ -144,7 +143,6 @@ def test_interface_exports():
     assert isinstance(SafetyResult, type)
     assert isinstance(ObserverInterface, type)
     assert isinstance(EventType, type)
-    assert isinstance(PluginInterface, type)
     assert isinstance(EventHandlerInterface, type)
     assert isinstance(VectorEncoderInterface, type)
     assert isinstance(ContentReaderInterface, type)
@@ -153,6 +151,10 @@ def test_interface_exports():
 
 
 CURATED = ["messages", "completion", "exceptions", "config"]
+# The builders: the word that adds a kind is the word that builds it (task 16.1, Requirement 56.11).
+BUILDERS = [
+    "provider", "agent", "backend", "mcp_client", "credential_source", "routing_strategy", "toolkit",
+]
 # The commonest names, loaded lazily on first access (decision D34).
 LAZY_NAMES = {
     "UserMessage", "SystemMessage", "AssistantMessage", "CapabilityMessage", "CompleteRequest", "CompleteResponse",
@@ -163,15 +165,20 @@ LAZY_NAMES = {
     "load", "Flow",
     # The configuration file is read in `skye.utils` (decision D91): `skye.load_config(path)`.
     "load_config",
+    # The object that adds an integration (task 14.3 of the plugins spec, decision D111): `skye.Plugins()`.
+    "Plugins",
+    # The base class of a toolkit (task 18.4, decision D111): `class JiraToolkit(skye.Toolkit)`.
+    "Toolkit",
 }
 
 
 def test_all_exports_in_all_list():
-    """__all__ is the version, the four curated modules, the lazy `provider` function and the lazy common names (Requirement 7.8, decisions D28 and D34)."""
+    """__all__ is the version, the four curated modules, the builders and the lazy common names (Requirement 7.8, decisions D28 and D34)."""
     from skye import __all__
 
-    assert __all__[: 2 + len(CURATED)] == ["__version__", *CURATED, "provider"]
-    assert set(__all__[2 + len(CURATED):]) == LAZY_NAMES
+    head = 1 + len(CURATED) + len(BUILDERS)
+    assert __all__[:head] == ["__version__", *CURATED, *BUILDERS]
+    assert set(__all__[head:]) == LAZY_NAMES
 
 
 def test_curated_top_level_modules():

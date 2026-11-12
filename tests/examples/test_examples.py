@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pytest
 
-from skye.models.registry import ProviderRegistry
 from tests.budget.measure import ROOT, load_budgets
 from tests.examples.fake_network import patched
+from tests.unit.plugins.registrar_state import restored_default_registrar
 
 EXAMPLES = ROOT / "examples"
 SCRIPTS = sorted(p for p in EXAMPLES.rglob("*.py") if p.name != "__init__.py" and "__pycache__" not in p.parts)
@@ -45,7 +45,21 @@ EXPECTED_TO_FAIL = {
     "agents/hooks.py": "waits for the hooks of the agents spec (3-runtime-agents); remove this entry when they exist",
     "agents/hooks_memory.py": "waits for the hooks of the agents spec (3-runtime-agents); remove this entry when they exist",
 }
-NOT_EXPECTED_TO_FAIL: set[str] = set()  # scripts of those folders that already pass
+NOT_EXPECTED_TO_FAIL: set[str] = {  # scripts of those folders that already pass (they only need `skye.Plugins`, task 14.3)
+    "plugins/template_filter.py",
+    "plugins/template_filter_text.py",
+    "plugins/tokenizer_provider.py",  # task 15.1: `plugins.provider` with a profile (it needs the kind `provider`)
+    "plugins/model_provider.py",  # task 15.2: `plugins.provider` for a model provider (the old kinds are gone)
+    "plugins/embedding_provider.py",  # task 15.2: `@plugins.provider` for an embedding provider
+    "plugins/decision_model.py",  # task 15.3: `skye.provider(name, provider_type="decision")`
+    "plugins/tokenizer.py",  # task 17.1: `plugins.profile` merges a tokenizer into the profile of `openai`
+    "plugins/agent_type.py",  # task 16.1: `skye.agent` builds what `plugins.agent` registered
+    "plugins/credential_source.py",  # task 16.1: `skye.credential_source` builds what `plugins.credential_source` registered
+    "plugins/mcp_client.py",  # task 16.1: `skye.mcp_client` builds what `plugins.mcp_client` registered
+    "plugins/routing_strategy.py",  # task 16.1: `skye.routing_strategy` builds what `plugins.routing_strategy` registered
+    "plugins/store_backend.py",  # task 16.1: `skye.backend` builds what `plugins.backend` registered
+    "plugins/custom_toolkit.py",  # task 18.4: `skye.Toolkit` and `skye.toolkit` build what `plugins.toolkit` registered
+}
 
 
 def with_expected_failures(scripts):
@@ -82,14 +96,11 @@ def run_offline(script, monkeypatch, capsys) -> str:
     monkeypatch.chdir(script.parent)
     monkeypatch.syspath_prepend(str(script.parent))
     before = set(sys.modules)
-    registry = ProviderRegistry
-    saved = (dict(registry._model_providers), dict(registry._embedding_providers))
     try:
-        with patched():
+        # An example may register a provider of its own (`custom_providers.py`): put the default registrar back as it was.
+        with restored_default_registrar(), patched():
             runpy.run_path(str(script), run_name="__main__")
     finally:
-        # An example may register a provider of its own (`custom_providers.py`): put the registry back as it was.
-        registry._model_providers, registry._embedding_providers = saved
         # An example may import an optional library (boto3 for DynamoDB, ...): do not leave it loaded for the tests that follow.
         for name in set(sys.modules) - before:
             if name.split(".")[0] in _optional_libraries():

@@ -1,11 +1,11 @@
-"""models/transport/rest.py: JsonObject view, authenticated body signing, SSE JSON stream."""
+"""models/utilities/rest.py: JsonObject view, authenticated body signing, SSE JSON stream."""
 
 import io
 from unittest.mock import patch
 
 import pytest
 
-from skye.models.transport import rest
+from skye.models.utilities import rest
 
 
 def test_json_object_attribute_and_item_access():

@@ -186,3 +186,64 @@ def test_an_enum_field_has_a_schema_and_serializes_to_its_value():
     assert json_schema(Paint)["properties"]["color"] == {"enum": ["red", "blue"]}
     assert Paint(color="red").to_dict() == {"color": "red"}
     assert Paint(color="red").to_json() == '{"color": "red"}'
+
+
+# -- trusted() (task 24.8) -------------------------------------------------------------------------------------------------
+
+
+@validated
+class _Timeout(Validated):
+    seconds: int = field(default=60, ge=1)
+
+
+def test_trusted_builds_without_checking_or_converting():
+    from skye.base.validated import trusted
+
+    with trusted():
+        assert _Timeout(seconds="30").seconds == "30"  # not converted
+        assert _Timeout(seconds=0).seconds == 0  # a constraint is not checked
+    assert _Timeout(seconds="30").seconds == 30  # outside the block the object is validated again
+    with pytest.raises(ValidationError):
+        _Timeout(seconds=0)
+
+
+def test_trusted_can_be_nested_and_leaves_the_state_as_it_was():
+    from skye.base import validated as module
+    from skye.base.validated import trusted
+
+    with trusted():
+        with trusted():
+            assert module._TRUSTED.get() is True
+        assert module._TRUSTED.get() is True
+    assert module._TRUSTED.get() is False
+
+
+def test_trusted_is_put_back_when_the_block_raises():
+    from skye.base import validated as module
+    from skye.base.validated import trusted
+
+    with pytest.raises(RuntimeError):
+        with trusted():
+            raise RuntimeError("boom")
+    assert module._TRUSTED.get() is False
+
+
+def test_trusted_does_not_reach_another_thread():
+    import threading
+
+    from skye.base.validated import trusted
+
+    seen: list[object] = []
+
+    def build() -> None:
+        try:
+            _Timeout(seconds=0)
+            seen.append("no error")
+        except ValidationError:
+            seen.append("validated")
+
+    with trusted():
+        thread = threading.Thread(target=build)
+        thread.start()
+        thread.join()
+    assert seen == ["validated"]
