@@ -12,7 +12,7 @@ What you learn: prompts written in the `.skye` language (the library's bundled p
 8. `validation.py`: `skye.dsl.check_text` lists the mistakes (line, column, fix) of a badly written prompt, as `skye check` does, and `format_text` lays it out, as `skye fmt` does
 9. `bundled_templates.py`: every bundled prompt rendered from its own sample variables, one JSON file each in `bundled/` (an object for one render, a list for several)
 10. `catalogue.py`: the 26 prompts of the gallery `catalogue/` (agents, supervisors, group chat, memory upkeep, `chat_assistant` and more) rendered from their own sample variables, `.skye` and `.json` side by side; copy one and change it
-11. `shared_parts.py` with `shared_parts/`: a partial `lib/tone.skye` taken by two prompts, by `from ... import` and `use` in one and by `include ... as` and `override` in the other
+11. `shared_parts.py` with `shared_parts/`: a partial `shared/tone.skye` taken by two prompts, by `from ... import` and `use` in one and by `include ... as` and `override` in the other
 
 Run: `python examples/prompts/control_flow.py`
 

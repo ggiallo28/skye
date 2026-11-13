@@ -1,7 +1,7 @@
 """Shared parts of a prompt: one file holds the tone, two prompts take it.
 
-`lib/tone.skye` is a partial (`partial = true`): a prompt-shaped file that no one renders alone.
-`support.skye` takes two names from it (`from "lib/tone.skye" import tone, signature`) and writes
+`shared/tone.skye` is a partial (`partial = true`): a prompt-shaped file that no one renders alone.
+`support.skye` takes two names from it (`from "shared/tone.skye" import tone, signature`) and writes
 `use tone` where the text must stand, in `variables` and in the system message.
 `support_formal.skye` takes the whole file (`include ... as tone`) and changes a default with
 `override`. A prompt registered from a path resolves its includes from that path.

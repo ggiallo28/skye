@@ -3,7 +3,7 @@ title   = "Support"
 version = "1.0"
 ---
 
-from "lib/tone.skye" import tone, signature
+from "shared/tone.skye" import tone, signature
 
 prompt "support" {
   variables = {

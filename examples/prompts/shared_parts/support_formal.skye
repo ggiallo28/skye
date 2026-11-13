@@ -3,7 +3,7 @@ title   = "Support, formal"
 version = "1.0"
 ---
 
-include "lib/tone.skye" as tone
+include "shared/tone.skye" as tone
 
 prompt "support_formal" {
   variables = {
