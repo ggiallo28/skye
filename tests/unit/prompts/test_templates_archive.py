@@ -7,6 +7,7 @@ A source checkout keeps the loose `.skye` files in `skye/prompts/templates`. An 
 from __future__ import annotations
 
 import importlib.util
+import json
 import threading
 import zipfile
 from pathlib import Path
@@ -17,15 +18,18 @@ import pytest
 from skye.base.exceptions import ValidationError
 from skye.dsl import build
 from skye.prompts import BasePromptBuilder, loaders
+from skye.prompts.skye_prompts import render_prompt
 from tests.budget import measure
+from tests.unit.prompts.bundled import build_template
 
 ROOT = measure.ROOT
 SOURCE = ROOT / "src" / "skye" / "prompts" / "templates"
-NAMES = ("chat", "classification", "summarization")
+NAMES = ("text_classification", "text_explanation", "text_summarization")
+PARTIALS = sorted((SOURCE / "common").glob("*.skye"))
 
 
 def _hook() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("hatch_build", ROOT / "hatch_build.py")
+    spec = importlib.util.spec_from_file_location("hatch_build", ROOT / "scripts" / "hatch_build.py")
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -36,6 +40,7 @@ def _hook() -> ModuleType:
 def archive(tmp_path, monkeypatch) -> Path:
     """An installed wheel: no loose file in the folder, and `templates.zip` made with the packing of the build hook."""
     templates = {f"{name}.skye": (SOURCE / f"{name}.skye").read_bytes() for name in NAMES}
+    templates.update({f"common/{p.name}": p.read_bytes() for p in PARTIALS})
     empty = tmp_path / "templates"
     empty.mkdir()
     path = tmp_path / "templates.zip"
@@ -49,16 +54,16 @@ def archive(tmp_path, monkeypatch) -> Path:
 def test_a_source_checkout_reads_the_folder() -> None:
     assert loaders._folder_has_templates()
     names = loaders.bundled_names()
-    assert len(names) == 40 and names == sorted(names)
-    assert loaders.read_bundled("chat") == (SOURCE / "chat.skye").read_text(encoding="utf-8")
-    assert loaders.bundled_origin("chat") == str(SOURCE / "chat.skye")
+    assert len(names) == 11 and names == sorted(names)
+    assert loaders.read_bundled("text_summarization") == (SOURCE / "text_summarization.skye").read_text(encoding="utf-8")
+    assert loaders.bundled_origin("text_summarization") == str(SOURCE / "text_summarization.skye")
 
 
 def test_a_wheel_reads_the_archive(archive) -> None:
     assert not loaders._folder_has_templates()
     assert loaders.bundled_names() == sorted(NAMES)
-    assert loaders.read_bundled("chat") == (SOURCE / "chat.skye").read_text(encoding="utf-8")
-    assert loaders.bundled_origin("chat") == f"{archive}/chat.skye"
+    assert loaders.read_bundled("text_summarization") == (SOURCE / "text_summarization.skye").read_text(encoding="utf-8")
+    assert loaders.bundled_origin("text_summarization") == f"{archive}/text_summarization.skye"
 
 
 def test_a_missing_entry_names_the_template(archive) -> None:
@@ -102,24 +107,28 @@ def test_a_builder_registers_the_archive_and_compiles_at_the_first_use(
     monkeypatch.setattr(messages, "_BUNDLED_ENTRIES", {})
     builder = BasePromptBuilder()
     assert calls == []  # registered, not compiled
-    assert builder.get_template("chat") == (SOURCE / "chat.skye").read_text(encoding="utf-8")
+    assert builder.get_template("text_summarization") == (SOURCE / "text_summarization.skye").read_text(encoding="utf-8")
     assert calls == []  # the text is there with no compile
-    assert builder.render("chat", {"user_message": "hi"})
-    assert calls == ["chat"]
+    assert builder.render("text_summarization", {"text": "hi"})
+    assert calls == ["text_summarization"]
 
 
 def test_a_template_of_the_archive_builds_to_the_objects_of_the_file(archive) -> None:
     for name in NAMES:
-        from_archive = loaders.read_bundled(name)
-        from_file = (SOURCE / f"{name}.skye").read_text(encoding="utf-8")
-        assert build(from_archive) == build(from_file)
+        from_archive = build(loaders.read_bundled(name), resolver=loaders.catalogue_resolver, key=name)
+        from_file = build_template(SOURCE / f"{name}.skye")
+        values = json.loads((ROOT / "examples" / "prompts" / "bundled" / f"{name}.json").read_text(encoding="utf-8"))
+        archive_messages = render_prompt(from_archive.prompt(name), values)
+        assert [(m.role, m.content) for m in archive_messages] == [
+            (m.role, m.content) for m in render_prompt(from_file.prompt(name), values)
+        ]
 
 
 def test_the_archive_and_the_folder_render_the_same_messages(archive, monkeypatch) -> None:
-    values = {"user_message": "hello", "context": "ctx"}
-    from_archive = [(m.role, m.content) for m in BasePromptBuilder().render("chat", values)]
+    values = {"text": "hello", "style": "formal"}
+    from_archive = [(m.role, m.content) for m in BasePromptBuilder().render("text_summarization", values)]
     monkeypatch.undo()
-    from_folder = [(m.role, m.content) for m in BasePromptBuilder().render("chat", values)]
+    from_folder = [(m.role, m.content) for m in BasePromptBuilder().render("text_summarization", values)]
     assert from_archive == from_folder
 
 
@@ -168,8 +177,12 @@ def test_the_archive_is_read_once_for_the_process_and_by_threads(archive, monkey
 
 def test_a_changed_archive_is_read_again(archive) -> None:
     assert loaders.bundled_names() == sorted(NAMES)
-    archive.write_bytes(_hook().pack_templates({"chat.skye": (SOURCE / "chat.skye").read_bytes()}))
-    assert loaders.bundled_names() == ["chat"]
+    archive.write_bytes(
+        _hook().pack_templates(
+            {"text_summarization.skye": (SOURCE / "text_summarization.skye").read_bytes(), **{f"common/{p.name}": p.read_bytes() for p in PARTIALS}}
+        )
+    )
+    assert loaders.bundled_names() == ["text_summarization"]
 
 
 def test_the_packing_is_the_same_bytes_every_time_and_sorted() -> None:
@@ -188,9 +201,7 @@ def test_the_packing_is_the_same_bytes_every_time_and_sorted() -> None:
 def test_a_user_folder_still_reads_a_real_directory(tmp_path, archive) -> None:
     folder = tmp_path / "mine"
     folder.mkdir()
-    (folder / "mine.skye").write_text(
-        (SOURCE / "chat.skye").read_text(encoding="utf-8"), encoding="utf-8"
-    )
+    (folder / "mine.skye").write_text('prompt "mine" { message "user" { text = "hi" } }\n', encoding="utf-8")
     builder = BasePromptBuilder.__new__(BasePromptBuilder)
     registered = []
 

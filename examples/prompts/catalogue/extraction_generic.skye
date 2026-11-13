@@ -1,0 +1,80 @@
+---
+title       = "Generic extraction"
+description = "Extracts entities, relations or a table from a text with one prompt: the fields of the `schema` variable and the allowed `labels` say what to extract, the `format` variable (json by default, table, xml or text) how to write it."
+version     = "1.0"
+tags        = ["extraction", "structured-output"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+
+prompt "extraction_generic" {
+  variables = {
+    use system_prompt
+    input        = string           "The text to extract from"
+    schema       = map({})          "Output fields, optional (empty: the fields name and value): {name: \"string\"|\"number\"|\"bool\"|\"list\"|\"map\", [type], {nested} or {\"type\": ..., \"description\": ...}}"
+    labels       = list({
+      name        = string      "An allowed type, e.g. PERSON or WORKS_FOR"
+      description = string("")  "What it covers"
+    }, [])                      "Allowed entity or relation types, optional; the answer uses only these"
+    format       = string("json")   "\"json\", \"table\" (scalar fields only), \"xml\" or \"text\""
+    instructions = list(string, []) "What to extract and extra rules"
+    constraints  = list(string, []) "Limits to respect"
+    context      = string("")       "Background that helps to read the text"
+    examples     = list({
+      input  = string  "Example input"
+      output = string  "The expected answer for it"
+    }, [])              "Worked examples, sent as user/assistant turns"
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You are a precise data extractor. You turn the input you are given into structured data that follows the requested format exactly."
+    }
+    text = """
+      ## Rules
+      - Take every value from the input; never invent, guess or fill in a value that the input does not support.
+      - When a value is not in the input, leave it empty instead of making one up: null in JSON (an empty list for a list field), an empty cell in a table, an empty element in XML.
+      - Keep the field names and the types exactly as requested; do not add fields that were not asked for.
+      - Reply with the structured data only, with no explanation before or after it.
+      """
+    when instructions {
+      text = "## Instructions"
+      each rule in instructions { text = "- {{ rule }}" }
+    }
+    when labels {
+      text = "## Allowed types"
+      each label in labels {
+        when label.description     { text = "- **{{ label.name }}**: {{ label.description }}" }
+        when not label.description { text = "- **{{ label.name }}**" }
+      }
+    }
+    when constraints {
+      text = "## Constraints"
+      each constraint in constraints { text = "- {{ constraint }}" }
+    }
+    when context {
+      text = "## Context"
+      text = "{{ context }}"
+    }
+  }
+
+  each example in examples {
+    message "user"      { text = "{{ example.input }}" }
+    message "assistant" { text = "{{ example.output }}" }
+  }
+
+  placeholder "history"
+
+  message "user" {
+    text = "{{ input }}"
+  }
+
+  when schema { output format { schema = schema } }
+  when not schema {
+    output format {
+      name  = string  "What the extracted item is"
+      value = string  "Its value, as written in the input"
+    }
+  }
+}

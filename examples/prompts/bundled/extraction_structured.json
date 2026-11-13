@@ -1,0 +1,31 @@
+[
+  {
+    "task": "List every product with its price",
+    "input": "Notebooks cost 4.50 EUR and are in stock; pens cost 1.20 EUR, sold out.",
+    "format": "table",
+    "schema": {
+      "name": {
+        "type": "string",
+        "description": "Product name"
+      },
+      "price": {
+        "type": "number",
+        "description": "Unit price in EUR"
+      },
+      "in_stock": "bool"
+    },
+    "instructions": [
+      "Write prices without the currency symbol."
+    ],
+    "examples": [
+      {
+        "input": "Pens, 1.20 EUR each, in stock.",
+        "output": "| name | price | in_stock |\n| --- | --- | --- |\n| Pens | 1.2 | true |"
+      }
+    ]
+  },
+  {
+    "task": "List every product",
+    "input": "Pens 1.20 EUR, ink 3 EUR."
+  }
+]

@@ -1,4 +1,5 @@
-"""Instructions that ask a model to answer in a given format: JSON, a Markdown table or XML (D70).
+# D70
+"""Instructions that ask a model to answer in a given format: JSON, a Markdown table or XML.
 
 The shape of the answer is a JSON Schema (``type: object`` with ``properties``); it comes from the
 ``output`` block of a ``.skye`` prompt (:func:`fields_schema`), from a map variable given at
@@ -27,14 +28,14 @@ _INDENT = "  "
 
 
 def check_format(output_format: str) -> str:
-    """Return ``output_format`` if it is ``json``, ``table`` or ``xml``; raise otherwise.
+    """Return ``output_format`` if it is ``json``, ``table``, ``xml`` or ``text``; raise otherwise.
 
     Raises:
-        ValidationError: If the format is not one of the three.
+        ValidationError: If the format is not one of the four.
     """
     if output_format not in OUTPUT_FORMATS:
         raise ValidationError(
-            f"Unknown output format {output_format!r}: use json, table or xml",
+            f"Unknown output format {output_format!r}: use json, table, xml or text",
             field="output_format",
             value=output_format,
             supported=list(OUTPUT_FORMATS),
@@ -182,8 +183,9 @@ def format_instructions(schema: Mapping[str, Any], output_format: str, name: str
     """The instructions that ask for an answer of this shape in this format.
 
     Args:
-        schema: A JSON Schema; ``table`` needs an object whose properties are all scalar.
-        output_format: ``json``, ``table`` or ``xml``.
+        schema: A JSON Schema; ``table`` needs an object whose properties are all scalar; for
+            ``text`` it is ``{"style": "..."}`` (the style may be absent or empty).
+        output_format: ``json``, ``table``, ``xml`` or ``text``.
         name: The prompt or template name: the root element of the XML (in snake_case).
 
     Raises:
@@ -191,6 +193,9 @@ def format_instructions(schema: Mapping[str, Any], output_format: str, name: str
             column (the message names it).
     """
     check_format(output_format)
+    if output_format == "text":
+        style = schema.get("style")
+        return "Answer in plain text" + (f": {style}." if style else ", with no JSON, table or markup around it.")
     if output_format == "table":
         return _table(schema)
     if output_format == "xml":

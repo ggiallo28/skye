@@ -1,0 +1,59 @@
+{
+  "task": "Plan a weekend trip to Rome within 500 EUR.",
+  "phase": "execute",
+  "plan": [
+    {
+      "id": 1,
+      "description": "Find train prices",
+      "tool": "web_search",
+      "done_when": "a price is found"
+    },
+    {
+      "id": 2,
+      "description": "Add up the costs",
+      "tool": "calculator",
+      "depends_on": [
+        1
+      ],
+      "done_when": "a total is computed"
+    }
+  ],
+  "current_step": {
+    "id": 2,
+    "description": "Add up the costs",
+    "tool": "calculator",
+    "done_when": "a total is computed"
+  },
+  "completed_steps": [
+    {
+      "id": 1,
+      "result": "Return ticket: 120 EUR"
+    }
+  ],
+  "tools": [
+    {
+      "name": "web_search",
+      "description": "Searches the web and returns the top results.",
+      "parameters": {
+        "query": "What to search for"
+      },
+      "returns": "A list of titles and links"
+    },
+    {
+      "name": "calculator",
+      "description": "Evaluates an arithmetic expression.",
+      "parameters": {
+        "expression": "The expression, e.g. 3 * 4.5"
+      },
+      "returns": "The result as a number"
+    }
+  ],
+  "working_memory": [
+    {
+      "content": "Budget for the trip: 500 EUR."
+    }
+  ],
+  "constraints": [
+    "Stay within 500 EUR."
+  ]
+}

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -12,10 +11,10 @@ import pytest
 from skye.base.dsl import PromptSpec, build
 from skye.base.messages import AssistantMessage, SkyeMessage, SystemMessage, UserMessage
 from skye.prompts.skye_prompts import load_prompt, render_prompt
+from tests.unit.prompts.bundled import build_template, load_template, template_path
 
-TEMPLATES = Path(__file__).resolve().parents[3] / "src" / "skye" / "prompts" / "templates"
 
-NAMES = ("group_chat_participant", "group_chat_manager", "group_chat_summarizer")
+NAMES = ("agent_groupchat_participant", "agent_groupchat_manager", "agent_groupchat_summarizer")
 
 TRANSCRIPT = [
     {"speaker": "user", "content": "We need a launch plan for Monday."},
@@ -23,9 +22,9 @@ TRANSCRIPT = [
 ]
 
 REQUIRED: dict[str, dict[str, Any]] = {
-    "group_chat_participant": {"agent_name": "finance", "goal": "Agree on a launch plan."},
-    "group_chat_manager": {"goal": "Agree on a launch plan."},
-    "group_chat_summarizer": {"transcript": TRANSCRIPT},
+    "agent_groupchat_participant": {"agent_name": "finance", "goal": "Agree on a launch plan."},
+    "agent_groupchat_manager": {"goal": "Agree on a launch plan."},
+    "agent_groupchat_summarizer": {"transcript": TRANSCRIPT},
 }
 
 PARTICIPANTS = [
@@ -53,7 +52,7 @@ MEMORY: dict[str, list[dict[str, Any]]] = {
 
 
 def _spec(name: str) -> PromptSpec:
-    return load_prompt((TEMPLATES / f"{name}.skye").read_text(encoding="utf-8"), name)
+    return load_template(template_path(name), name)
 
 
 def _render(
@@ -69,7 +68,7 @@ def _render(
 
 @pytest.mark.parametrize("name", NAMES)
 def test_has_front_matter(name: str) -> None:
-    metadata = build((TEMPLATES / f"{name}.skye").read_text(encoding="utf-8")).metadata
+    metadata = build_template(template_path(name)).metadata
     assert metadata["title"] and metadata["description"]
     assert metadata["version"] == "1.0"
     assert isinstance(metadata["tags"], list) and metadata["tags"]
@@ -131,12 +130,12 @@ def test_transcript_is_rendered_speaker_colon_content(name: str) -> None:
     assert "planner: @finance can you check the budget?" in user
 
 
-# -- group_chat_participant --------------------------------------------------------------------
+# -- agent_groupchat_participant --------------------------------------------------------------------
 
 
 def test_participant_triggers_mentions_and_tokens() -> None:
     system = _render(
-        "group_chat_participant",
+        "agent_groupchat_participant",
         agent_role="Owns the budget.",
         participants=PARTICIPANTS,
         triggers=["budget", "cost"],
@@ -155,28 +154,28 @@ def test_participant_triggers_mentions_and_tokens() -> None:
 
 
 def test_participant_without_mentions_or_triggers() -> None:
-    system = _render("group_chat_participant", respond_when_mentioned=False)[0].content
+    system = _render("agent_groupchat_participant", respond_when_mentioned=False)[0].content
     assert "mentions you" not in system
     assert "falls within your role" in system
 
 
 def test_participant_custom_tokens() -> None:
-    messages = _render("group_chat_participant", pass_token="<skip>", end_token="<end>")
+    messages = _render("agent_groupchat_participant", pass_token="<skip>", end_token="<end>")
     assert "exactly <skip>" in messages[0].content
     assert "with <end>" in messages[0].content
     assert "<skip>" in messages[-1].content
 
 
 def test_participant_empty_transcript() -> None:
-    assert "(nobody has spoken yet)" in _render("group_chat_participant")[-1].content
+    assert "(nobody has spoken yet)" in _render("agent_groupchat_participant")[-1].content
 
 
-# -- group_chat_manager ------------------------------------------------------------------------
+# -- agent_groupchat_manager ------------------------------------------------------------------------
 
 
 def test_manager_participants_triggers_and_json_shapes() -> None:
     messages = _render(
-        "group_chat_manager",
+        "agent_groupchat_manager",
         participants=PARTICIPANTS,
         transcript=TRANSCRIPT,
         last_message="planner: @finance can you check the budget?",
@@ -194,18 +193,18 @@ def test_manager_participants_triggers_and_json_shapes() -> None:
 
 
 def test_manager_defaults() -> None:
-    messages = _render("group_chat_manager")
+    messages = _render("agent_groupchat_manager")
     assert "choose at most 1" in messages[0].content
     assert "[DONE]" in messages[0].content
     assert "last line of the conversation above" in messages[-1].content
 
 
-# -- group_chat_summarizer ---------------------------------------------------------------------
+# -- agent_groupchat_summarizer ---------------------------------------------------------------------
 
 
 def test_summarizer_markdown_sections() -> None:
     messages = _render(
-        "group_chat_summarizer", goal="Agree on a launch plan.", participants=PARTICIPANTS
+        "agent_groupchat_summarizer", goal="Agree on a launch plan.", participants=PARTICIPANTS
     )
     system = messages[0].content
     for heading in ("### Summary", "### Decisions", "### Open questions", "### Action items"):
@@ -216,7 +215,7 @@ def test_summarizer_markdown_sections() -> None:
 
 def test_summarizer_json_and_options() -> None:
     messages = _render(
-        "group_chat_summarizer",
+        "agent_groupchat_summarizer",
         output_format="json",
         focus_agent="legal",
         max_words=120,
@@ -266,7 +265,7 @@ def _round(model: ScriptedModel, transcript: list[dict[str, str]]) -> list[str]:
     spoke = []
     for name, words in model.triggers.items():
         messages = _render(
-            "group_chat_participant",
+            "agent_groupchat_participant",
             agent_name=name,
             participants=[{"name": n} for n in model.triggers],
             triggers=words,
@@ -302,7 +301,7 @@ def test_simulation_only_triggered_agents_speak() -> None:
 
 def test_manager_output_shape_parses_from_scripted_reply() -> None:
     """The manager's documented shapes are valid JSON a caller can act on."""
-    system = _render("group_chat_manager", participants=PARTICIPANTS)[0].content
+    system = _render("agent_groupchat_manager", participants=PARTICIPANTS)[0].content
     shapes = [
         json.loads(line) for line in system.splitlines() if line.startswith('{"next_speakers"')
     ]

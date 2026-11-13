@@ -1,0 +1,28 @@
+{
+  "input": "Tim Cook presented the new iPhone in Cupertino.",
+  "instructions": [
+    "Find every named entity and give its type."
+  ],
+  "labels": [
+    {
+      "name": "PERSON",
+      "description": "Names of people"
+    },
+    {
+      "name": "ORG",
+      "description": "Organizations and companies"
+    },
+    {
+      "name": "LOC",
+      "description": "Places"
+    }
+  ],
+  "schema": {
+    "entities": [
+      {
+        "text": "string",
+        "type": "string"
+      }
+    ]
+  }
+}

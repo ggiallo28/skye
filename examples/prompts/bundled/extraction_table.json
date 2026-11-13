@@ -1,0 +1,30 @@
+{
+  "text": "Alice is 30 and lives in Rome; Bob is 25 and lives in Milan.",
+  "domain": "people records",
+  "table_schema": [
+    {
+      "name": "name",
+      "description": "First name"
+    },
+    {
+      "name": "age",
+      "description": "Age in years",
+      "type": "number"
+    },
+    {
+      "name": "city",
+      "description": "City of residence"
+    }
+  ],
+  "examples": [
+    {
+      "text": "Carl is 40.",
+      "table": "| name | age |\n| Carl | 40 |"
+    }
+  ],
+  "extraction_rules": [
+    "One row per person",
+    "Leave unknown cells empty"
+  ],
+  "output_format": "markdown"
+}

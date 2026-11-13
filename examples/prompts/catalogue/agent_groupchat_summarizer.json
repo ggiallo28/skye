@@ -1,0 +1,33 @@
+{
+  "goal": "Agree on a launch date for the new app.",
+  "transcript": [
+    {
+      "speaker": "user",
+      "content": "We need a launch date for the new app."
+    },
+    {
+      "speaker": "planner",
+      "content": "@designer, when can the screens be ready?"
+    },
+    {
+      "speaker": "designer",
+      "content": "The screens can be ready by 20 November."
+    }
+  ],
+  "participants": [
+    {
+      "name": "planner",
+      "role": "Keeps the schedule"
+    },
+    {
+      "name": "designer",
+      "role": "Designs the screens"
+    },
+    {
+      "name": "tester",
+      "role": "Tests every release"
+    }
+  ],
+  "output_format": "json",
+  "max_words": 150
+}

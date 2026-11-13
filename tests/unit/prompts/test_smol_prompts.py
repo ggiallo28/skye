@@ -6,7 +6,6 @@ Covers the code agent, the tool-calling agent, the planning step and the managed
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -14,9 +13,9 @@ import pytest
 from skye.base.dsl import build
 from skye.base.messages import SkyeMessage
 from skye.prompts.skye_prompts import load_prompt, render_prompt
+from tests.unit.prompts.bundled import build_template, load_template, template_path
 
-TEMPLATES_DIR = Path(__file__).resolve().parents[3] / "src" / "skye" / "prompts" / "templates"
-NAMES = ["smol_code_agent", "smol_tool_calling_agent", "smol_planning", "smol_managed_agent"]
+NAMES = ["agent_smol_code", "agent_react", "agent_smol_planning", "agent_smol_managed"]
 
 TOOLS = [
     {
@@ -40,14 +39,14 @@ MEMORY_HEADINGS = [
     "## Memory",
     "### Persona",
     "### Known facts",
-    "### Past interactions",
-    "### Procedures you know",
-    "### Working notes for this task",
-]
+    "### Past events",
+    "### Procedures",
+    "### Current notes",
+]  # the standard headings of common/memories.skye (task 24.6)
 
 
 def _spec(name: str) -> Any:
-    return load_prompt((TEMPLATES_DIR / f"{name}.skye").read_text(encoding="utf-8"), name)
+    return load_template(template_path(name), name)
 
 
 def _render(name: str, variables: dict[str, Any], history: Any = None) -> list[SkyeMessage]:
@@ -67,7 +66,7 @@ def _system(messages: list[SkyeMessage]) -> str:
 
 @pytest.mark.parametrize("name", NAMES)
 def test_has_front_matter(name: str) -> None:
-    metadata = build((TEMPLATES_DIR / f"{name}.skye").read_text(encoding="utf-8")).metadata
+    metadata = build_template(template_path(name)).metadata
     assert metadata["title"] and metadata["description"]
     assert metadata["version"] == "1.0"
     assert isinstance(metadata["tags"], list) and metadata["tags"]
@@ -103,9 +102,9 @@ def test_tools_and_every_memory_type(name: str) -> None:
     assert "`clock`: Return the current time." in system
     for heading in MEMORY_HEADINGS:
         assert heading in system, heading
-    assert "- Asked about trains to Turin (2026-10-01)" in system
-    assert "- geo: Turin is in Piedmont (source: atlas)" in system
-    assert "- Book a ticket" in system and "    - pay online" in system
+    assert "- [2026-10-01] Asked about trains to Turin" in system
+    assert "- Turin is in Piedmont (source: atlas)" in system  # the standard line: the name of a fact is not shown
+    assert "- Book a ticket" in system and "  * pay online" in system
     assert "- The user prefers short answers" in system
     assert "- The budget is 50 euros" in system
 
@@ -115,7 +114,7 @@ def test_only_non_empty_memory_types_render(name: str) -> None:
     messages = _render(name, {"task": "t", "working_memory": [{"content": "note"}]})
     system = _system(messages)
     assert "## Memory" in system
-    assert "### Working notes for this task" in system
+    assert "### Current notes" in system
     for heading in MEMORY_HEADINGS[1:-1]:
         assert heading not in system
 
@@ -144,7 +143,7 @@ def test_system_prompt_overrides_role_sentence(name: str) -> None:
 
 
 def test_code_agent_without_tools_mentions_only_final_answer() -> None:
-    system = _system(_render("smol_code_agent", {"task": "t"}))
+    system = _system(_render("agent_smol_code", {"task": "t"}))
     assert "Thought:" in system and "Code:" in system and "Observation:" in system
     assert "final_answer(" in system
     assert "no tools apart from `final_answer(answer)`" in system
@@ -155,7 +154,7 @@ def test_code_agent_without_tools_mentions_only_final_answer() -> None:
 def test_code_agent_with_tools_imports_team_and_instructions() -> None:
     system = _system(
         _render(
-            "smol_code_agent",
+            "agent_smol_code",
             {
                 "task": "t",
                 "tools": TOOLS,
@@ -177,11 +176,11 @@ def test_code_agent_with_tools_imports_team_and_instructions() -> None:
 
 
 def test_tool_calling_agent_uses_json_actions() -> None:
-    system = _system(_render("smol_tool_calling_agent", {"task": "t"}))
+    system = _system(_render("agent_react", {"task": "t"}))
     assert "Action:" in system
     assert '{"name": "final_answer", "arguments": {"answer":' in system
     assert "no tools apart from `final_answer`" in system
-    with_tools = _system(_render("smol_tool_calling_agent", {"task": "t", "tools": TOOLS}))
+    with_tools = _system(_render("agent_react", {"task": "t", "tools": TOOLS}))
     assert "- `final_answer`: ends the task" in with_tools
     assert "no tools apart from" not in with_tools
 
@@ -190,7 +189,7 @@ def test_tool_calling_agent_uses_json_actions() -> None:
 
 
 def test_planning_initial_phase_is_the_default() -> None:
-    user = _render("smol_planning", {"task": "t"})[-1].content
+    user = _render("agent_smol_planning", {"task": "t"})[-1].content
     assert "## 1. Facts" in user and "## 2. Plan" in user
     assert "<end_plan>" in user
     assert "Updated facts" not in user
@@ -198,7 +197,7 @@ def test_planning_initial_phase_is_the_default() -> None:
 
 def test_planning_update_phase() -> None:
     messages = _render(
-        "smol_planning",
+        "agent_smol_planning",
         {"task": "t", "phase": "update", "previous_plan": "1. Search trains", "remaining_steps": 4},
         history={"history": [{"role": "assistant", "content": "step 1 done"}]},
     )
@@ -211,7 +210,7 @@ def test_planning_update_phase() -> None:
 
 
 def test_planning_update_without_optional_parts() -> None:
-    user = _render("smol_planning", {"task": "t", "phase": "update"})[-1].content
+    user = _render("agent_smol_planning", {"task": "t", "phase": "update"})[-1].content
     assert "Previous plan" not in user
     assert "steps left" not in user
 
@@ -221,7 +220,7 @@ def test_planning_update_without_optional_parts() -> None:
 
 def test_managed_agent_report_layout_and_names() -> None:
     messages = _render(
-        "smol_managed_agent",
+        "agent_smol_managed",
         {
             "task": "Check the timetable.",
             "name": "scout",
@@ -238,7 +237,7 @@ def test_managed_agent_report_layout_and_names() -> None:
 
 
 def test_managed_agent_defaults() -> None:
-    messages = _render("smol_managed_agent", {"task": "t"})
+    messages = _render("agent_smol_managed", {"task": "t"})
     assert messages[0].content.startswith("You are an agent working as a member of a team.")
     assert messages[-1].content.startswith("Task from your manager:")
     assert "## Additional context" not in messages[-1].content
@@ -254,5 +253,5 @@ def test_tool_parameters_are_shown_as_json_schema(name: str) -> None:
     tool = {"name": "weather", "description": "Weather now.", "parameters": schema}
     system = _system(_render(name, {"task": "t", "tools": [tool]}))
     assert f"Parameters: {json.dumps(schema)}" in system
-    text = (TEMPLATES_DIR / f"{name}.skye").read_text(encoding="utf-8")
+    text = (template_path(name)).read_text(encoding="utf-8")
     assert "each param in tool.parameters" not in text

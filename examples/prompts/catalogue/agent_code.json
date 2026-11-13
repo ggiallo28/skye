@@ -1,0 +1,77 @@
+{
+  "input": "Why does this function crash on an empty list?",
+  "task_type": "debugging",
+  "programming_language": "python",
+  "code_context": "def average(xs):\n    return sum(xs) / len(xs)",
+  "requirements": [
+    "Return 0.0 for an empty list"
+  ],
+  "constraints": [
+    "No third-party packages"
+  ],
+  "error_message": "ZeroDivisionError: division by zero",
+  "examples": [
+    {
+      "input": "average([2, 4])",
+      "output": "3.0",
+      "language": "python"
+    }
+  ],
+  "output_format": "detailed",
+  "code_style": [
+    "PEP 8",
+    "type hints"
+  ],
+  "tools": [
+    {
+      "name": "run_tests",
+      "description": "Runs the project's unit tests",
+      "parameters": {
+        "path": "test file or directory"
+      },
+      "returns": "the pytest summary"
+    }
+  ],
+  "episodic_memory": [
+    {
+      "content": "The user fixed a similar bug in median()",
+      "timestamp": "2026-11-02"
+    }
+  ],
+  "semantic_memory": [
+    {
+      "content": "The project targets Python 3.11",
+      "source": "pyproject.toml"
+    }
+  ],
+  "procedural_memory": [
+    {
+      "name": "Fix a crash",
+      "steps": [
+        "Reproduce it",
+        "Add a test",
+        "Fix the code"
+      ]
+    }
+  ],
+  "persona_memory": [
+    {
+      "content": "Prefers short explanations"
+    }
+  ],
+  "working_memory": [
+    {
+      "content": "The failing test is test_average_empty"
+    }
+  ],
+  "history": [
+    {
+      "role": "user",
+      "content": "I have a bug in my stats module."
+    },
+    {
+      "role": "assistant",
+      "content": "Share the function and the error, please."
+    }
+  ]
+}

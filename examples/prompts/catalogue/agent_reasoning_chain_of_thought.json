@@ -1,0 +1,25 @@
+{
+  "task": "A train leaves at 9:40 and arrives at 12:15. How long is the trip?",
+  "examples": [
+    {
+      "question": "A film starts at 20:30 and lasts 1 h 50 min. When does it end?",
+      "reasoning": "1. 20:30 + 1 h = 21:30.\n2. 21:30 + 50 min = 22:20.",
+      "answer": "22:20"
+    }
+  ],
+  "tools": [
+    {
+      "name": "calculator",
+      "description": "Evaluates an arithmetic expression.",
+      "parameters": {
+        "expression": "The expression, e.g. 3 * 4.5"
+      },
+      "returns": "The result as a number"
+    }
+  ],
+  "working_memory": [
+    {
+      "content": "Times are in the 24-hour format."
+    }
+  ]
+}

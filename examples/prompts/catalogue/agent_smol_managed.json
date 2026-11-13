@@ -1,0 +1,22 @@
+{
+  "name": "researcher",
+  "manager": "lead",
+  "task": "Find the population of Milan in 2025 and give the source.",
+  "additional_context": "The report is due today.",
+  "tools": [
+    {
+      "name": "web_search",
+      "description": "Searches the web and returns the top results.",
+      "parameters": {
+        "query": "What to search for"
+      },
+      "returns": "A list of titles and links"
+    }
+  ],
+  "semantic_memory": [
+    {
+      "content": "The user lives in Milan.",
+      "source": "profile"
+    }
+  ]
+}

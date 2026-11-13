@@ -1,0 +1,56 @@
+{
+  "input": "What did I say about my sister's birthday?",
+  "personality": [
+    "warm",
+    "brief"
+  ],
+  "tools_output": "calendar.lookup('Anna birthday') -> 2026-12-03",
+  "output_format": "one short paragraph",
+  "tools": [
+    {
+      "name": "calendar_lookup",
+      "description": "Finds events in the user's calendar",
+      "parameters": {
+        "query": "text to search"
+      }
+    }
+  ],
+  "episodic_memory": [
+    {
+      "content": "My sister Anna turns 30 in December",
+      "timestamp": "2026-10-20"
+    }
+  ],
+  "semantic_memory": [
+    {
+      "content": "Anna likes jazz",
+      "source": "chat of 2026-09-14"
+    }
+  ],
+  "procedural_memory": [
+    {
+      "name": "Gift ideas",
+      "content": "Suggest three gifts within the user's budget"
+    }
+  ],
+  "persona_memory": [
+    {
+      "content": "Lives in Turin"
+    }
+  ],
+  "working_memory": [
+    {
+      "content": "The user wants a reminder"
+    }
+  ],
+  "history": [
+    {
+      "role": "user",
+      "content": "Hi again!"
+    },
+    {
+      "role": "assistant",
+      "content": "Welcome back, how can I help?"
+    }
+  ]
+}

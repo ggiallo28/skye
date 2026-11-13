@@ -1,0 +1,36 @@
+---
+title       = "Chat assistant"
+description = "A chat prompt with an optional domain, personality, guidelines and conversation history; takes the user_message and an optional context."
+version     = "1.0"
+tags        = ["chat", "assistant"]
+---
+
+prompt "chat_assistant" {
+  variables = {
+    persona       = string("a helpful AI assistant")  "Who the assistant is, completes 'You are ...'"
+    domain        = string("")                        "Field the assistant specializes in; empty for none"
+    personality   = list(string, [])                  "Personality traits"
+    guidelines    = list(string, [])                  "Rules to follow"
+    user_message  = string                            "The user's message"
+    context       = string("")                        "Extra context appended to the user message"
+    output_format = string("")                        "Free-form response format, e.g. 'a bulleted list'; empty for none"
+  }
+
+  message "system" {
+    when domain     { text = "You are {{ persona }} specialized in {{ domain }}." }
+    when not domain { text = "You are {{ persona }}." }
+    when personality { text = "Your personality traits: {{ personality | join(', ') }}." }
+    when guidelines {
+      text = "Please follow these guidelines:"
+      each guideline in guidelines { text = "- {{ guideline }}" }
+    }
+  }
+
+  placeholder "history"
+
+  message "user" {
+    text = "{{ user_message }}"
+    when context       { text = "Context: {{ context }}" }
+    when output_format { text = "Please format your response as {{ output_format }}." }
+  }
+}

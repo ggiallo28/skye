@@ -1,0 +1,116 @@
+---
+title       = "Code agent"
+description = "A code assistant for generation, review, debugging, explanation and refactoring; takes the task type, language, code context, requirements, error message, tools and memories."
+version     = "1.0"
+tags        = ["agent", "code"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+include "common/tools.skye" as tools
+include "common/memories.skye" as memories
+
+prompt "agent_code" {
+  variables = {
+    use system_prompt
+    task_type            = string("")        "code_generation, code_review, debugging, code_explanation or refactoring"
+    programming_language = string("")        "Language of the code, also used as the code-fence tag"
+    code_context         = string("")        "Existing code to work on"
+    requirements         = list(string, [])  "What the code must do"
+    constraints          = list(string, [])  "Limits to respect"
+    error_message        = string("")        "Error output to debug"
+    examples             = list({
+      input    = string      "Example input"
+      output   = string      "Expected output"
+      language = string("")  "Code-fence tag of both blocks"
+    }, []) "Input/output examples"
+    input                = string("")        "The user's message"
+    output_format        = string("")        "detailed, json, or empty for code plus a short explanation"
+    code_style           = list(string, [])  "Code style guidelines"
+    use tools
+    use memories
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt { text = "You are an intelligent code assistant that can help with programming tasks, code analysis, debugging, and software development. You understand multiple programming languages and can provide accurate, helpful code solutions." }
+    when task_type {
+      text = "## Task: {{ task_type }}"
+      when task_type == "code_generation"  { text = "Please generate code based on the requirements." }
+      when task_type == "code_review"      { text = "Please review the provided code and suggest improvements." }
+      when task_type == "debugging"        { text = "Please help debug the provided code and identify issues." }
+      when task_type == "code_explanation" { text = "Please explain how the provided code works." }
+      when task_type == "refactoring"      { text = "Please refactor the provided code to improve its quality." }
+    }
+    when programming_language { text = "## Programming Language: {{ programming_language }}" }
+    when code_context {
+      text = "## Code Context:"
+      text = "```{{ programming_language }}"
+      text = "{{ code_context }}"
+      text = "```"
+    }
+    when requirements {
+      text = "## Requirements:"
+      each requirement in requirements { text = "- {{ requirement }}" }
+    }
+    when constraints {
+      text = "## Constraints:"
+      each constraint in constraints { text = "- {{ constraint }}" }
+    }
+    when error_message {
+      text = "## Error Message:"
+      text = "```"
+      text = "{{ error_message }}"
+      text = "```"
+    }
+    when examples {
+      text = "## Examples:"
+      each example in examples {
+        text = "**Input:**"
+        text = "```{{ example.language }}"
+        text = "{{ example.input }}"
+        text = "```"
+        text = "**Output:**"
+        text = "```{{ example.language }}"
+        text = "{{ example.output }}"
+        text = "```"
+      }
+    }
+    use tools
+
+    use memories
+  }
+
+  placeholder "history"
+
+  message "user" {
+    text = "{{ input }}"
+    when output_format == "detailed" {
+      text = "Please provide:"
+      text = "1. **Code Solution**: The complete code solution"
+      text = "2. **Explanation**: How the code works"
+      text = "3. **Key Features**: Important aspects of the implementation"
+      text = "4. **Usage Example**: How to use the code"
+      text = "5. **Testing**: Suggestions for testing the code"
+    }
+    when output_format == "json" {
+      text = "Please format your response as JSON:"
+      text = "```json"
+      text = "{"
+      text = "    \"code\": \"the complete code solution\","
+      text = "    \"explanation\": \"how the code works\","
+      text = "    \"language\": \"programming language used\","
+      text = "    \"dependencies\": [\"dependency1\", \"dependency2\"],"
+      text = "    \"usage_example\": \"example of how to use the code\","
+      text = "    \"test_cases\": [\"test case 1\", \"test case 2\"]"
+      text = "}"
+      text = "```"
+    }
+    when output_format != "detailed" and output_format != "json" {
+      text = "Please provide the code solution with appropriate explanation."
+    }
+    when code_style {
+      text = "## Code Style Guidelines:"
+      each guideline in code_style { text = "- {{ guideline }}" }
+    }
+  }
+}

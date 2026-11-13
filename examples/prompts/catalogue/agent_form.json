@@ -1,0 +1,71 @@
+{
+  "input": "My email is ada@example.com",
+  "form_description": "Newsletter sign-up",
+  "form_fields": [
+    {
+      "name": "name",
+      "description": "Full name",
+      "required": true
+    },
+    {
+      "name": "email",
+      "description": "Email address",
+      "required": true,
+      "type": "email",
+      "validation": "must contain @"
+    },
+    {
+      "name": "topics",
+      "description": "Topics of interest",
+      "options": [
+        "tech",
+        "science",
+        "art"
+      ]
+    }
+  ],
+  "current_field": {
+    "name": "email",
+    "description": "Your email address",
+    "examples": [
+      "ada@example.com"
+    ]
+  },
+  "collected_data": {
+    "name": "Ada Lovelace"
+  },
+  "validation_errors": [],
+  "form_progress": {
+    "completed": 1,
+    "total": 3
+  },
+  "form_complete": false,
+  "tools": [
+    {
+      "name": "check_email",
+      "description": "Checks that an email address exists",
+      "returns": "true or false"
+    }
+  ],
+  "persona_memory": [
+    {
+      "content": "Signed up to another list last year",
+      "source": "CRM"
+    }
+  ],
+  "working_memory": [
+    {
+      "content": "Ask for topics last"
+    }
+  ],
+  "history": [
+    {
+      "role": "assistant",
+      "content": "What is your full name?"
+    },
+    {
+      "role": "user",
+      "content": "Ada Lovelace"
+    }
+  ]
+}

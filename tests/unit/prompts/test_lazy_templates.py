@@ -13,6 +13,7 @@ import skye.prompts.messages as messages
 from skye.base.exceptions import ValidationError
 from skye.base.validated import trusted
 from skye.dsl import build
+from skye.utils.skye_files import file_resolver
 from skye.prompts import BasePromptBuilder
 from skye.prompts.loaders import TEMPLATES_DIR, load_default_templates
 
@@ -37,9 +38,9 @@ def compiles(monkeypatch):
     names: list[str] = []
     real = messages._compile_skye
 
-    def counting(name, text, filename):
+    def counting(name, text, filename, *rest):
         names.append(name)
-        return real(name, text, filename)
+        return real(name, text, filename, *rest)
 
     monkeypatch.setattr(messages, "_compile_skye", counting)
     return names
@@ -51,57 +52,57 @@ def compiles(monkeypatch):
 def test_the_construction_compiles_nothing(compiles):
     builder = BasePromptBuilder()
     assert compiles == []
-    assert len(BUNDLED) >= 40
-    assert builder.get_template("planner_agent")  # the text is read at registration
+    assert len(BUNDLED) >= 11
+    assert builder.get_template("agent_react")  # the text is read at registration
     assert compiles == []
 
 
 def test_the_first_use_of_a_template_compiles_it_once(compiles):
     builder = BasePromptBuilder()
-    builder.get_template_variables("chat")
-    builder.get_template_variables("chat")
-    builder.describe("chat")
-    assert compiles == ["chat"]
+    builder.get_template_variables("text_summarization")
+    builder.get_template_variables("text_summarization")
+    builder.describe("text_summarization")
+    assert compiles == ["text_summarization"]
 
 
 def test_a_second_builder_compiles_nothing_through_the_process_cache(compiles):
-    BasePromptBuilder().get_template_variables("chat")
+    BasePromptBuilder().get_template_variables("text_summarization")
     second = BasePromptBuilder()
-    second.get_template_variables("chat")
-    assert compiles == ["chat"]
+    second.get_template_variables("text_summarization")
+    assert compiles == ["text_summarization"]
 
 
 def test_the_metadata_of_the_listing_needs_no_compile(compiles):
     builder = BasePromptBuilder()
-    key = builder._latest_key("chat")
-    assert builder._template_metadata[key] == {"name": "chat", "version": "1.0", "format": "skye"}
-    assert "chat" in builder._latest
+    key = builder._latest_key("text_summarization")
+    assert builder._template_metadata[key] == {"name": "text_summarization", "version": "1.0", "format": "skye"}
+    assert "text_summarization" in builder._latest
     assert compiles == []
 
 
 def test_a_template_of_the_user_under_a_bundled_name_replaces_the_pending_one(compiles):
     builder = BasePromptBuilder()
-    builder.register_template("chat", "Hello {{ name }}", version="1.0", from_string=True)
-    assert builder.render("chat", {"name": "Ada"})[-1].content == "Hello Ada"
+    builder.register_template("text_summarization", "Hello {{ name }}", version="1.0", from_string=True)
+    assert builder.render("text_summarization", {"name": "Ada"})[-1].content == "Hello Ada"
     assert compiles == []
 
 
 def test_a_partial_builder_compiles_for_itself_through_the_cache(compiles):
     builder = BasePromptBuilder()
     part = builder.partial(persona="a poet")
-    part.get_template_variables("chat")
-    builder.get_template_variables("chat")
-    assert compiles == ["chat"]
+    part.get_template_variables("text_summarization")
+    builder.get_template_variables("text_summarization")
+    assert compiles == ["text_summarization"]
 
 
 def test_two_threads_that_use_one_pending_template_compile_it_once(monkeypatch):
     calls: list[str] = []
     real = messages._compile_skye
 
-    def slow(name, text, filename):
+    def slow(name, text, filename, *rest):
         calls.append(name)
         time.sleep(0.05)
-        return real(name, text, filename)
+        return real(name, text, filename, *rest)
 
     monkeypatch.setattr(messages, "_compile_skye", slow)
     builder = BasePromptBuilder()
@@ -111,7 +112,7 @@ def test_two_threads_that_use_one_pending_template_compile_it_once(monkeypatch):
     def use() -> None:
         try:
             barrier.wait()
-            builder.get_template_variables("chat")
+            builder.get_template_variables("text_summarization")
         except Exception as error:  # pragma: no cover - reported below
             errors.append(error)
 
@@ -121,7 +122,7 @@ def test_two_threads_that_use_one_pending_template_compile_it_once(monkeypatch):
     for thread in threads:
         thread.join()
     assert errors == []
-    assert calls == ["chat"]
+    assert calls == ["text_summarization"]
 
 
 # -- a mistake shows at the first use -------------------------------------------------------------------------------------
@@ -174,18 +175,18 @@ def test_a_template_of_the_user_is_validated_not_trusted(monkeypatch):
     seen: list[bool] = []
     real = messages._compile_skye
 
-    def spy(name, text, filename):
+    def spy(name, text, filename, *rest):
         from skye.base import validated
 
         seen.append(validated._TRUSTED.get())
-        return real(name, text, filename)
+        return real(name, text, filename, *rest)
 
     monkeypatch.setattr(messages, "_compile_skye", spy)
     builder = BasePromptBuilder()
     builder.register_template(
         "mine", 'prompt "mine" {\n  message "user" { text = "hi" }\n}\n', from_string=True
     )
-    builder.get_template_variables("chat")
+    builder.get_template_variables("text_summarization")
     assert seen == [
         False,
         True,
@@ -214,9 +215,10 @@ def _sample(variable):
 @pytest.mark.parametrize("path", BUNDLED, ids=lambda p: p.stem)
 def test_the_trusted_build_of_a_bundled_template_equals_the_validated_build(path: Path):
     text = path.read_text(encoding="utf-8")
+    read = {"filename": str(path), "resolver": file_resolver(path), "key": str(path.resolve())}
     with trusted():
-        fast = build(text, filename=str(path))
-    slow = build(text, filename=str(path))
+        fast = build(text, **read)
+    slow = build(text, **read)
     assert fast.diagnostics == slow.diagnostics == []
     assert fast.prompt(path.stem) == slow.prompt(path.stem)
 
@@ -228,7 +230,11 @@ def test_the_bundled_templates_render_the_same_with_and_without_the_validation()
         key = slow._latest_key(path.stem)
         slow._pending.pop(key)
         slow._entries[key] = messages._compile_skye(
-            path.stem, path.read_text(encoding="utf-8"), str(path)
+            path.stem,
+            path.read_text(encoding="utf-8"),
+            str(path),
+            file_resolver(path),
+            str(path.resolve()),
         )  # validated
     rendered = 0
     for path in BUNDLED:
@@ -246,5 +252,5 @@ def test_the_bundled_templates_render_the_same_with_and_without_the_validation()
         assert outcome[0] == outcome[1], path.stem
         rendered += isinstance(outcome[0], list)
     assert (
-        rendered >= 30
+        rendered >= 8
     )  # most templates render with the sample values, so the test sees real output

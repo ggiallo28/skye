@@ -1,0 +1,88 @@
+---
+title       = "Entity extraction"
+description = "Extract named entities of the given types from a text, with optional examples; output as JSON, XML or a plain list."
+version     = "1.0"
+tags        = ["ner", "extraction", "nlp"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+
+prompt "extraction_entities" {
+  variables = {
+    use system_prompt
+    description   = string("")  "Extra task description, shown after the role sentence"
+    domain        = string("")  "Domain to focus on; empty for none"
+    labels = list({
+      name        = string      "Entity type"
+      description = string("")  "What it covers"
+    }, []) "Entity types; empty for PERSON, ORG, LOC, MISC"
+    examples = list({
+      text     = string  "Example text"
+      entities = string  "Entities found in it, as written in the answer"
+    }, []) "Worked examples"
+    text          = string("")  "The text to analyse"
+    output_format = string("")  "json, xml, or empty for plain text"
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You extract named entities from text. Find every mention of the entity types listed below and label each one with its type."
+    }
+    when description { text = "{{ description }}" }
+    when domain {
+      text = "## Domain: {{ domain }}"
+      text = "Please focus on entities relevant to the {{ domain }} domain."
+    }
+
+    text = "## Entity Types to Extract:"
+    when labels {
+      each label in labels {
+        text = "- **{{ label.name }}**: {{ label.description or label.name }}"
+      }
+    }
+    when not labels {
+      text = """
+        - **PERSON**: Names of people
+        - **ORG**: Organizations, companies, institutions
+        - **LOC**: Locations, places, geographical entities
+        - **MISC**: Miscellaneous entities that don't fit other categories
+        """
+    }
+
+    when examples {
+      text = "## Examples:"
+      each example in examples {
+        text = "**Text:** {{ example.text }}"
+        text = "**Entities:** {{ example.entities }}"
+      }
+    }
+
+    text = "## Text to Analyze:"
+    text = "{{ text }}"
+
+    when output_format == "json" {
+      text = """
+        Return a list of objects, one per entity, each with the entity type under 'T' and the exact text of the entity under 'E'; add 'branch' and 'group' entries that classify the whole passage. Return nothing else.
+
+        Please format your response as JSON:
+        ```json
+        [
+          {"T": "PERSON", "E": "entity text"},
+          {"T": "ORG", "E": "entity text"},
+          {"branch": "relevant branch", "group": "relevant group"}
+        ]
+        ```
+        """
+    }
+    when output_format == "xml" {
+      text = """
+        Please format your response as XML:
+        <entities>
+          <entity text="entity text" label="PERSON|ORG|LOC|MISC" start="start_position" end="end_position" />
+        </entities>
+        """
+    }
+    when output_format != "json" and output_format != "xml" { text = "## Extracted Entities:" }
+  }
+}

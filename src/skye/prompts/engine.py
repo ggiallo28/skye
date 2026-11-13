@@ -1,4 +1,5 @@
-"""Tiny standard-library template engine for Skye prompts: interpolation only (decision D76).
+# decision D76
+"""Tiny standard-library template engine for Skye prompts: interpolation only.
 
 Replaces the former Jinja2 dependency with a small, dependency-free subset. Supported syntax:
 
@@ -510,11 +511,12 @@ def _control_tag_error(source: str, start: int, tag: str) -> TemplateSyntaxError
     )
 
 
+# decision D76
 def _lex(source: str) -> list[tuple[str, str]]:
     """Split into ``("text"|"var", payload)`` items applying whitespace control.
 
     Raises:
-        TemplateSyntaxError: For a ``{% %}`` control tag (decision D76).
+        TemplateSyntaxError: For a ``{% %}`` control tag.
     """
     items: list[tuple[str, str]] = []
     pos = 0
@@ -616,6 +618,7 @@ def _render_nodes(nodes: list[Any], ctx: dict[str, Any], out: list[str]) -> None
             out.append(str(node[1](ctx)))
 
 
+# Requirement 30.8
 class CompiledTemplate:
     """A parsed template: render it many times without parsing the text again.
 
@@ -623,7 +626,7 @@ class CompiledTemplate:
         variables: The free variable names the template reads, in first-seen order (constants
             and filter names are not included).
         required_variables: The names read other than through the ``default`` filter; a renderer
-            requires them unless they have a default or are allowed missing (Requirement 30.8).
+            requires them unless they have a default or are allowed missing.
     """
 
     __slots__ = ("_nodes", "required_variables", "variables")
@@ -659,6 +662,7 @@ class CompiledTemplate:
         return f"CompiledTemplate(variables={self.variables!r})"
 
 
+# decision D76
 def compile_template(source: str) -> CompiledTemplate:
     """Parse ``source`` once into a :class:`CompiledTemplate`.
 
@@ -670,7 +674,7 @@ def compile_template(source: str) -> CompiledTemplate:
 
     Raises:
         TemplateSyntaxError: If an expression cannot be parsed, or the text holds a ``{% %}``
-            control tag (its ``line`` is set; decision D76).
+            control tag (its ``line`` is set).
     """
     nodes, variables, required = _parse(source)
     return CompiledTemplate(nodes, variables, required)

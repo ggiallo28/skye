@@ -1,0 +1,46 @@
+{
+  "input": "Should we cache the product catalogue or query it every time?",
+  "reasoning_type": "analytical",
+  "context": "The catalogue has 20,000 items and changes twice a day.",
+  "constraints": [
+    "At most 512 MB of memory",
+    "Prices must be up to date within 10 minutes"
+  ],
+  "examples": [
+    {
+      "problem": "Cache user sessions?",
+      "reasoning": "Read often, small, short-lived.",
+      "solution": "Yes, in Redis with a TTL."
+    }
+  ],
+  "output_format": "structured",
+  "tools": [
+    {
+      "name": "benchmark",
+      "description": "Measures query latency",
+      "returns": "milliseconds"
+    }
+  ],
+  "episodic_memory": [
+    {
+      "content": "Last month the database was slow at peak time",
+      "timestamp": "2026-10-15"
+    }
+  ],
+  "procedural_memory": [
+    {
+      "name": "Decide on caching",
+      "content": "Compare read rate, size and staleness tolerance"
+    }
+  ],
+  "history": [
+    {
+      "role": "user",
+      "content": "I need help with an architecture choice."
+    },
+    {
+      "role": "assistant",
+      "content": "Sure, tell me about it."
+    }
+  ]
+}

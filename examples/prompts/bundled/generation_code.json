@@ -1,0 +1,13 @@
+{
+  "language": "Python",
+  "task": "Parse an ISO 8601 date string and return the weekday name",
+  "requirements": [
+    "Use only the standard library",
+    "Raise ValueError on bad input"
+  ],
+  "examples": "weekday('2026-11-08') -> 'Sunday'",
+  "input_format": "a string such as '2026-11-08'",
+  "output_format": "the English weekday name",
+  "include_tests": true,
+  "include_comments": true
+}

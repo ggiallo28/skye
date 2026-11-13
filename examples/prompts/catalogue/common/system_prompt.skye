@@ -1,0 +1,12 @@
+---
+partial = true
+---
+
+prompt "system_prompt" {
+  variables = {
+    system_prompt = string("")  "Replaces the default system instructions when not empty"
+  }
+  message "system" {
+    when system_prompt     { text = "{{ system_prompt }}" }
+  }
+}

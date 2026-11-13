@@ -1,0 +1,6 @@
+{
+  "text": "The city council met on Monday to discuss the new bike lanes. After a long debate, it approved two of the three proposed routes and asked for a new study on the third.",
+  "max_length": 30,
+  "style": "neutral",
+  "output_format": "bullet_points"
+}

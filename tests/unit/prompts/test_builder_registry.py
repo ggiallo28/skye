@@ -173,7 +173,7 @@ def test_fixed_examples_are_formatted_once_and_cache_is_bounded(shared: BaseProm
 
 
 def test_partial_shares_compiled_entries(shared: BasePromptBuilder) -> None:
-    shared.get_template_variables("chat")  # a bundled template is compiled at its first use (task 24.8)
+    shared.get_template_variables("text_summarization")  # a bundled template is compiled at its first use (task 24.8)
     other = shared.partial(x="1")
     key = next(iter(shared._entries))
     assert other._entries[key] is shared._entries[key]

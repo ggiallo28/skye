@@ -1,4 +1,5 @@
-"""Role-based message building for Skye prompts (structure task 7.3).
+# task 7.3, decision D76, D60
+"""Role-based message building for Skye prompts (structure).
 
 Holds `BasePromptBuilder`, the PromptBuilderInterface implementation that renders
 templates into role-based SkyeMessage objects (formerly `prompts/base.py`).
@@ -11,10 +12,10 @@ serverless runtime needs no compiled or third-party template dependency.
 Three kinds of template text are accepted:
 
 * block templates (``{{ name }}`` with filters), rendered by the engine; interpolation only: a
-  ``{% %}`` control tag is rejected at registration (decision D76), conditions and loops are
+  ``{% %}`` control tag is rejected at registration, conditions and loops are
   written in a ``.skye`` prompt;
 * simple templates (``{name}``), rendered with ``str.format``;
-* ``.skye`` prompt text (a ``prompt "name" { ... }`` block, D60), rendered by
+* ``.skye`` prompt text (a ``prompt "name" { ... }`` block), rendered by
   ``skye.prompts.skye_prompts.render_prompt``.
 
 Every template is parsed once, at registration; the compiled form and its variable names are
@@ -65,7 +66,8 @@ from skye.base.plugins import get_registrar
 from skye.base.prompt_parts import OutputSchema, PromptParts
 from skye.base.validated import trusted
 from skye.prompts.engine import CompiledTemplate, TemplateSyntaxError, compile_template
-from skye.prompts.loaders import load_default_templates
+from skye.base.dsl.include import INCLUDE_LINE, Resolver
+from skye.prompts.loaders import catalogue_resolver, load_default_templates
 from skye.prompts.output_format import check_format, format_instructions
 
 # The role-based message types are re-exported from here so peers (e.g. the `tools` MCP client's
@@ -117,8 +119,9 @@ class _TemplateEntry:
 
 
 #: The compiled bundled templates of the process, so that a second builder compiles nothing. The key is the name, the version, the path, the size and the
-#: modification time of the file. An entry is immutable and a cached ``.skye`` spec is read-only (see ``skye.base.dsl.cache``), so builders can share them.
-_BUNDLED_ENTRIES: dict[tuple[str, str, str, int, int], _TemplateEntry] = {}
+#: modification time of the file, and the fingerprint of the catalogue when the template includes a partial. An entry is immutable and a cached ``.skye``
+#: spec is read-only (see ``skye.base.dsl.cache``), so builders can share them.
+_BUNDLED_ENTRIES: dict[tuple[Any, ...], _TemplateEntry] = {}
 _BUNDLED_LOCK = threading.RLock()
 
 
@@ -181,6 +184,8 @@ class BasePromptBuilder(PromptBuilderInterface):
         self._entries: dict[str, _TemplateEntry] = {}
         # Bundled ``.skye`` templates that are registered and not compiled yet: key -> (path, size, modification time). See ``_entry``.
         self._pending: dict[str, tuple[Path, int, int]] = {}
+        # What a template that includes files was built with: key -> (resolver, file name, key of the file). See ``validate_template``.
+        self._includes: dict[str, tuple[Resolver, str | None, str | None]] = {}
         self._latest: dict[str, str] = {}
         self._template_metadata: dict[str, dict[str, Any]] = {}
         self._defaults: dict[str, Any] = {}
@@ -260,8 +265,9 @@ class BasePromptBuilder(PromptBuilderInterface):
         """
         return self._render(template_name, variables, instructions=True)[0]
 
+    # Requirement 33.9, decision D101
     def render_parts(self, template_name: str, variables: dict[str, Any]) -> PromptParts:
-        """Render a template into provider-agnostic parts (Requirement 33.9, decision D101).
+        """Render a template into provider-agnostic parts.
 
         Give the result to ``client.complete(parts, model=...)``: the model adapter puts the
         system text and the output schema in the provider's own fields, or falls back to the text.
@@ -355,7 +361,12 @@ class BasePromptBuilder(PromptBuilderInterface):
     # ------------------------------------------------------------------------------------------
 
     def register_template(
-        self, name: str, template: str, version: str = "1.0", from_string: bool = True
+        self,
+        name: str,
+        template: str,
+        version: str = "1.0",
+        from_string: bool = True,
+        resolver: Resolver | None = None,
     ) -> None:
         """Parse and register a template under ``name:version``.
 
@@ -367,7 +378,10 @@ class BasePromptBuilder(PromptBuilderInterface):
             name: Template name.
             template: The text, or a file path when ``from_string`` is False.
             version: Version; the latest is the greatest in string order.
-            from_string: False to read ``template`` as a file path.
+            from_string: False to read ``template`` as a file path. A ``.skye`` file read from a path may ``include``, ``from``
+                ``import``, ``use`` and ``override`` files of its own folder; they are read again at each registration.
+            resolver: Reads the includes of a text (``resolver(target, from_key) -> Resolved``); a file path gets the file resolver
+                of its folder when this is omitted, and a text without a resolver cannot include.
 
         Raises:
             FileNotFoundError: If the file does not exist.
@@ -375,15 +389,24 @@ class BasePromptBuilder(PromptBuilderInterface):
                 the parser's details and the template name.
         """
         filename: str | None = None
+        origin: str | None = None
         if from_string:
             content = template
         else:
             path = Path(template)
             content = path.read_text(encoding="utf-8")
             filename = str(path)
+            if resolver is None and INCLUDE_LINE.search(content):
+                from skye.utils.skye_files import file_resolver
 
-        entry = self._compile_entry(name, content, filename)
+                resolver, origin = file_resolver(path), str(path.resolve())
+
+        entry = self._compile_entry(name, content, filename, resolver, origin)
         key = f"{name}:{version}"
+        if resolver is None:
+            self._includes.pop(key, None)
+        else:
+            self._includes[key] = (resolver, filename, origin)
         self._pending.pop(key, None)
         self._templates[key] = content
         self._entries[key] = entry
@@ -449,11 +472,15 @@ class BasePromptBuilder(PromptBuilderInterface):
             entry = self._entries.get(key)
             if entry is not None:  # another thread compiled it while this one waited
                 return entry
-            cache_key = (meta["name"], meta["version"], str(path), size, mtime)
+            text = self._templates[key]
+            resolver = catalogue_resolver if INCLUDE_LINE.search(text) else None
+            fingerprint = resolver.fingerprint() if resolver else None
+            cache_key = (meta["name"], meta["version"], str(path), size, mtime, fingerprint)
             entry = _BUNDLED_ENTRIES.get(cache_key)
             if entry is None:
                 with trusted():
-                    entry = _compile_skye(meta["name"], self._templates[key], str(path))
+                    extra = (resolver, Path(path).name) if resolver else ()  # a template with no include keeps the 3 arguments
+                    entry = _compile_skye(meta["name"], text, str(path), *extra)
                 _BUNDLED_ENTRIES[cache_key] = entry
             self._entries[key] = entry
             self._pending.pop(key, None)
@@ -522,6 +549,7 @@ class BasePromptBuilder(PromptBuilderInterface):
     # Examples
     # ------------------------------------------------------------------------------------------
 
+    # decision D79
     def add_examples(
         self,
         template_name: str,
@@ -541,7 +569,7 @@ class BasePromptBuilder(PromptBuilderInterface):
         becomes a user message and an assistant message instead, inserted before the last user
         message: the values of ``input`` and ``output`` when the example has both, otherwise its
         first key for the user and its last key for the assistant. Selection (limit, random,
-        semantic) applies to every form (decision D79).
+        semantic) applies to every form.
 
         Args:
             template_name: Template the examples belong to.
@@ -689,8 +717,9 @@ class BasePromptBuilder(PromptBuilderInterface):
             checked[variable] = content_type
         self._content_configs.setdefault(template_name, {}).update(checked)
 
+    # D77
     def register_filter(self, filter_name: str, filter_func: Callable[[Any], Any]) -> None:
-        """Register a filter for ``{{ value | name }}``, in text and ``.skye`` prompts (D77)."""
+        """Register a filter for ``{{ value | name }}``, in text and ``.skye`` prompts."""
         self._custom_filters[filter_name] = filter_func
         self._example_cache.clear()
 
@@ -770,7 +799,12 @@ class BasePromptBuilder(PromptBuilderInterface):
                 (it needs ``type`` or ``properties``), or ``output_format`` is not json, table or
                 xml, or a table has a nested (list or object) field.
         """
-        check_format(output_format)
+        if check_format(output_format) == "text":
+            raise ValidationError(
+                "output_format 'text' has no fields: use output \"text\" in a .skye prompt",
+                field="output_format",
+                value=output_format,
+            )
         if isinstance(schema, type) and dataclasses.is_dataclass(schema):
             json_schema = _dataclass_schema(schema, set())
         elif isinstance(schema, Mapping):
@@ -942,7 +976,8 @@ class BasePromptBuilder(PromptBuilderInterface):
         """
         try:
             key = self._latest_key(template_name)
-            entry = self._compile_entry(template_name, self._templates[key], None)
+            resolver, filename, origin = self._includes.get(key, (None, None, None))
+            entry = self._compile_entry(template_name, self._templates[key], filename, resolver, origin)
         except KeyError as e:
             return _validation(False, [f"Template not found: {e.args[0] if e.args else e}"])
         except ValidationError as e:
@@ -970,10 +1005,19 @@ class BasePromptBuilder(PromptBuilderInterface):
         """True when the text uses ``{{ }}`` or ``{# #}`` (or a ``{% %}`` tag, then rejected)."""
         return bool(_BLOCK_RE.search(template))
 
-    def _compile_entry(self, name: str, text: str, filename: str | None) -> _TemplateEntry:
+    def _compile_entry(
+        self,
+        name: str,
+        text: str,
+        filename: str | None,
+        resolver: Resolver | None = None,
+        key: str | None = None,
+    ) -> _TemplateEntry:
         """Parse a template text of any kind."""
         if (filename is not None and filename.endswith(".skye")) or _looks_like_skye(text):
-            return _compile_skye(name, text, filename)
+            if resolver is None:  # a template with no include keeps the 3 arguments
+                return _compile_skye(name, text, filename)
+            return _compile_skye(name, text, filename, resolver, key)
         return self._compile_text(name, text)
 
     def _compile_text(self, name: str, text: str) -> _TemplateEntry:
@@ -1431,7 +1475,7 @@ def _substitute(value: Any) -> Any:
 
 
 def _looks_like_skye(text: str) -> bool:
-    """True when the first line that is not blank or a comment starts with ``prompt "`` (a front
+    """True when the first line that is not blank or a comment starts with ``prompt "``, ``include "`` or ``from "`` (a front
     matter between two ``---`` lines at the top is skipped).
     """
     lines = text.splitlines()
@@ -1443,17 +1487,25 @@ def _looks_like_skye(text: str) -> bool:
         stripped = line.strip()
         if not stripped or stripped.startswith(("#", "//")):
             continue
-        return stripped.startswith('prompt "')
+        return stripped.startswith(('prompt "', 'include "', 'from "'))
     return False
 
 
-def _compile_skye(name: str, text: str, filename: str | None) -> _TemplateEntry:
-    """Build a ``.skye`` text and keep the prompt ``name`` (or the only one)."""
+def _compile_skye(
+    name: str,
+    text: str,
+    filename: str | None,
+    resolver: Resolver | None = None,
+    key: str | None = None,
+) -> _TemplateEntry:
+    """Build a ``.skye`` text and keep the prompt ``name`` (or the only one); ``resolver`` reads its includes."""
     from skye.base.dsl import build
 
-    document = build(text, filename=filename)
+    document = build(text, filename=filename, resolver=resolver, key=key)
     if document.diagnostics:
         lines = [d.format() for d in document.diagnostics]
+        if resolver is None and any("no resolver was given" in line for line in lines):
+            lines.append("register_template takes resolver=, and reads a file path with the folder of the file as its root.")
         raise ValidationError(
             f"Invalid .skye prompt '{name}':\n" + "\n".join(lines),
             field="template",
@@ -1622,8 +1674,9 @@ def _keys_text(example: Mapping[str, Any]) -> str:
     return "\n".join(lines)
 
 
+# decision D79
 def _example_turns(template_name: str, index: int, example: Mapping[str, Any]) -> tuple[str, str]:
-    """The user and the assistant text of an example given as messages (decision D79)."""
+    """The user and the assistant text of an example given as messages."""
     if "input" in example and "output" in example:
         return _value_text(example["input"]), _value_text(example["output"])
     keys = list(example)

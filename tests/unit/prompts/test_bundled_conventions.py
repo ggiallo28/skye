@@ -23,11 +23,13 @@ import pytest
 from skye.base.dsl import build
 from skye.base.dsl.build import Document
 from skye.prompts import BasePromptBuilder
+from skye.utils.skye_files import file_resolver
 from skye.prompts.skye_prompts import load_prompt, render_prompt
 
 ROOT = Path(__file__).resolve().parents[3]
 BUNDLED = sorted((ROOT / "src" / "skye" / "prompts" / "templates").glob("*.skye"))
-EXAMPLES = sorted((ROOT / "examples").rglob("*.skye"))
+# the gallery has its own test (test_catalogue_gallery.py): its files carry no example comment (D118)
+EXAMPLES = sorted(p for p in (ROOT / "examples").rglob("*.skye") if "catalogue" not in p.parts)
 FILES = BUNDLED + EXAMPLES
 
 
@@ -106,7 +108,7 @@ prompt "shapes_id" {
 
 SHARED = ("tools", "persona_memory", "episodic_memory", "semantic_memory", "procedural_memory",
           "working_memory")  # fmt: skip
-WITH_ID = {"memory_update_agent", "memory_consolidation_agent", "working_memory_agent"}
+WITH_ID = {"agent_memory_update", "agent_memory_consolidation", "agent_memory_working"}
 REMOVED = {"chat_history", "conversation_history", "declarative_memory", "procedural_memories",
            "procedures"}  # fmt: skip
 FRONT_MATTER = ("title", "description", "version", "tags")
@@ -125,7 +127,12 @@ def _reference() -> dict[str, dict[str, Any]]:
 
 @cache
 def _document(path: Path) -> Document:
-    return build(path.read_text(encoding="utf-8"), filename=str(path))
+    return build(
+        path.read_text(encoding="utf-8"),
+        filename=str(path),
+        resolver=file_resolver(path),  # a bundled template may include a partial of common/
+        key=str(path.resolve()),
+    )
 
 
 def _built(path: Path) -> Document:
@@ -253,10 +260,11 @@ def _has_prompt(path: Path) -> bool:
 
 
 @pytest.mark.parametrize("path", BUNDLED, ids=_id)
-def test_bundled_usage_example_renders(path: Path) -> None:
-    name, variables = _usage(path)
-    assert name == path.stem
-    assert BasePromptBuilder().render(name, variables)
+def test_bundled_prompt_has_no_comment_and_has_a_sample(path: Path) -> None:
+    """The examples left the bundled files (task 24.9): the sample variables are in ``examples/prompts/bundled``."""
+    assert not _comments(path.read_text(encoding="utf-8")), "a bundled prompt keeps no comment"
+    sample = ROOT / "examples" / "prompts" / "bundled" / f"{path.stem}.json"
+    assert sample.is_file(), f"no sample variables for {path.stem}"
 
 
 @pytest.mark.parametrize("path", [p for p in EXAMPLES if _has_prompt(p)], ids=_id)
@@ -279,7 +287,7 @@ def _prompt_files() -> list[Path]:
 
 @pytest.mark.parametrize("path", _prompt_files(), ids=_id)
 def test_shared_shapes(path: Path) -> None:
-    reference = _reference()["shapes_id" if path.stem in WITH_ID else "shapes"]
+    reference = _reference()["shapes_id"]  # every template takes the memories from common/memories.skye: with the optional id
     wrong = []
     for prompt, var in _variables(path):
         if var.name in SHARED:

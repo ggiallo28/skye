@@ -3,7 +3,7 @@
 ``output format { ... }`` takes the format (json, table or xml) from the ``format`` variable; a
 string after a field's type is its description for the model. ``output_instructions`` returns the
 text the renderer appends to the last user message. The prompts are ``products`` and ``invoice``
-in output_schema.skye, next to this file. The bundled ``structured_output`` takes the fields as
+in output_schema.skye, next to this file. The bundled ``extraction_structured`` takes the fields as
 data, and a dataclass still works with ``set_output_schema``. Runs offline, no key.
 """
 
@@ -31,7 +31,7 @@ def main() -> None:
         print()
 
     builder = BasePromptBuilder()
-    print("Bundled structured_output, fields as data")
+    print("Bundled extraction_structured, fields as data")
     schema = {"name": "string", "price": {"type": "number", "description": "Unit price in euro"}}
     request = {
         "task": "List the products",
@@ -39,7 +39,7 @@ def main() -> None:
         "schema": schema,
         "format": "xml",
     }
-    print(builder.render("structured_output", request)[-1].content)
+    print(builder.render("extraction_structured", request)[-1].content)
     print()
 
     builder.register_template("invoice", str(PROMPT_FILE), from_string=False)

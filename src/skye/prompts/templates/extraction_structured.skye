@@ -1,0 +1,64 @@
+---
+title       = "Structured extraction"
+description = "Turns the input into structured data in the format given by the `format` variable (\"json\", the default, \"table\" or \"xml\"), with the fields of the `schema` variable ({name: \"string\"|\"number\"|\"bool\"|\"list\"|\"map\", [type], {nested} or {\"type\": ..., \"description\": ...}}); the output block appends the matching instructions to the last user message. A table takes only scalar fields. Without `schema` (it is optional) the fields are name and value."
+version     = "1.0"
+tags        = ["structured-output"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+
+prompt "extraction_structured" {
+  variables = {
+    use system_prompt
+    task          = string            "What to extract, e.g. \"List every product with its price\""
+    input         = string("")        "The text to extract the data from"
+    schema        = map({})           "Output fields, optional (empty: the default fields name and value): {name: \"string\"|\"number\"|\"bool\"|\"list\"|\"map\", [type] or {nested}}"
+    format        = string("json")    "\"json\", \"table\" (scalar fields only) or \"xml\""
+    instructions  = list(string, [])  "Extra extraction rules"
+    examples      = list({
+      input  = string  "Example input"
+      output = string  "The expected answer for it"
+    }, [])             "Worked examples, sent as user/assistant turns"
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You are a precise data extractor. You turn the input you are given into structured data that follows the requested format exactly."
+    }
+    text = """
+      ## Rules
+      - Take every value from the input; never invent, guess or fill in a value that the input does not support.
+      - When a value is not in the input, leave it empty instead of making one up: null in JSON (an empty list for a list field), an empty cell in a table, an empty element in XML.
+      - Keep the field names and the types exactly as requested; do not add fields that were not asked for.
+      - Reply with the structured data only, with no explanation before or after it.
+      """
+    when instructions {
+      each rule in instructions { text = "- {{ rule }}" }
+    }
+  }
+
+  each example in examples {
+    message "user"      { text = "{{ example.input }}" }
+    message "assistant" { text = "{{ example.output }}" }
+  }
+
+  placeholder "history"
+
+  message "user" {
+    text = "## Task"
+    text = "{{ task }}"
+    when input {
+      text = "## Input"
+      text = "{{ input }}"
+    }
+  }
+
+  when schema { output format { schema = schema } }
+  when not schema {
+    output format {
+      name  = string  "What the extracted item is"
+      value = string  "Its value, as written in the input"
+    }
+  }
+}

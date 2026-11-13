@@ -248,7 +248,7 @@ def test_builder_table_and_xml() -> None:
 
 def test_builder_rejects_a_bad_format_and_a_nested_table() -> None:
     builder = BasePromptBuilder()
-    with pytest.raises(ValidationError, match="json, table or xml"):
+    with pytest.raises(ValidationError, match="json, table, xml or text"):
         builder.set_output_schema("t", Product, output_format="csv")
     with pytest.raises(ValidationError, match="'items'"):
         builder.set_output_schema("t", Order, output_format="table")
@@ -494,7 +494,7 @@ def test_the_format_comes_from_a_variable() -> None:
     assert output_instructions(spec).startswith("Answer with XML only")
     assert output_instructions(spec, {"style": "json"}).startswith("Answer with a single JSON")
     assert render_prompt(spec, {"style": "json"})[-1].content.startswith("go\n\nAnswer with a")
-    with pytest.raises(ValidationError, match="'csv' is not one of json, table or xml"):
+    with pytest.raises(ValidationError, match="'csv' is not one of json, table, xml or text"):
         output_instructions(spec, {"style": "csv"})
     with pytest.raises(ValidationError, match="'tags'"):  # a static nested field, checked late
         output_instructions(spec, {"style": "table"})

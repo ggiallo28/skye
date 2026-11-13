@@ -1,0 +1,46 @@
+---
+title       = "Code generation"
+description = "Generate code for a task in a given language, with optional requirements, examples, input and output formats, tests and comments."
+version     = "1.0"
+tags        = ["code", "generation"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+
+prompt "generation_code" {
+  variables = {
+    use system_prompt
+    description      = string("")        "Extra task description, shown before the request"
+    language         = string("Python")  "Programming language to generate"
+    task             = string("")        "What the code should do"
+    requirements     = list(string, [])  "Requirements"
+    examples         = string("")        "Examples, as free text"
+    input_format     = string("")        "Description of the input the code receives"
+    output_format    = string("")        "Description of the output the code must produce"
+    include_tests    = bool(false)       "Ask for unit tests"
+    include_comments = bool(false)       "Ask for detailed comments"
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt { text = "You are an expert programmer. Generate clean, efficient, and well-documented code." }
+  }
+
+  message "user" {
+    when description { text = "{{ description }}" }
+    text = "Generate {{ language }} code for the following task: {{ task }}"
+    when requirements {
+      text = "Requirements:"
+      each req in requirements { text = "- {{ req }}" }
+    }
+    when examples {
+      text = "Examples:"
+      text = "{{ examples }}"
+    }
+    when input_format     { text = "Input format: {{ input_format }}" }
+    when output_format    { text = "Expected output format: {{ output_format }}" }
+    when include_tests    { text = "Please include unit tests for your code." }
+    when include_comments { text = "Please include detailed comments explaining the code." }
+    text = "Code:"
+  }
+}

@@ -1,0 +1,25 @@
+---
+partial = true
+---
+
+prompt "tools" {
+  variables = {
+    tools = list({
+      name        = string      "Tool name"
+      description = string      "What the tool does"
+      parameters  = map({})     "Arguments: name to type or description"
+      returns     = string("")  "What the tool returns"
+    }, []) "Tools the agent may call"
+  }
+  message "system" {
+    when tools {
+      text = "## Tools"
+      text = "You may call these tools when they help; when a tool would not help, answer without it."
+      each tool in tools {
+        text = "- **{{ tool.name }}**: {{ tool.description }}"
+        when "parameters" in tool and tool.parameters { text = "  Parameters: {{ tool.parameters | tojson }}" }
+        when "returns" in tool and tool.returns       { text = "  Returns: {{ tool.returns }}" }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "user_message": "Can I cancel a contract signed online?",
+  "persona": "a consumer-rights advisor",
+  "domain": "Italian consumer law",
+  "personality": [
+    "precise",
+    "friendly"
+  ],
+  "guidelines": [
+    "Cite the relevant article",
+    "Keep it under 150 words"
+  ],
+  "context": "The contract was signed 10 days ago.",
+  "output_format": "a short paragraph",
+  "history": [
+    {
+      "role": "user",
+      "content": "Hi, I have a question about a contract."
+    },
+    {
+      "role": "assistant",
+      "content": "Sure, what would you like to know?"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+---
+title       = "Text question answering"
+description = "Answer a question from a given context, with optional examples and answer length, as plain text or JSON."
+version     = "1.0"
+tags        = ["qa", "nlp"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+
+prompt "text_question_answering" {
+  variables = {
+    use system_prompt
+    description   = string("")  "Extra task description, shown before the instructions"
+    examples      = string("")  "Examples, as free text"
+    context       = string("")  "The context to answer from"
+    question      = string("")  "The question to answer"
+    answer_length = string("")  "Desired length, e.g. short or detailed; empty for any"
+    output_format = string("")  "json, or empty for plain text"
+  }
+
+  when system_prompt {
+    message "system" { text = "{{ system_prompt }}" }
+  }
+
+  message "user" {
+    when description { text = "{{ description }}" }
+    text = "Answer the following question based on the provided context. If the answer cannot be found in the context, please say \"I cannot answer this question based on the provided context.\""
+
+    when examples {
+      text = "Examples:"
+      text = "{{ examples }}"
+    }
+
+    text = "Context: {{ context }}"
+    text = "Question: {{ question }}"
+
+    when answer_length { text = "Please provide a {{ answer_length }} answer." }
+
+    when output_format == "json" {
+      text = """
+        Please format your response as JSON:
+        {
+          "answer": "your answer here",
+          "confidence": 0.0,
+          "source_relevant": true/false
+        }
+        """
+    }
+    when output_format != "json" { text = "Answer:" }
+  }
+}

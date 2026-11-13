@@ -1,0 +1,73 @@
+---
+title       = "Supervisor reviewer"
+description = "Checks one worker's result against the acceptance criteria and answers approve or revise with feedback, as JSON."
+version     = "1.0"
+tags        = ["agent", "supervisor"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+include "common/tools.skye" as tools
+include "common/memories.skye" as memories
+
+prompt "agent_supervisor_reviewer" {
+  variables = {
+    use system_prompt
+    task                = string            "The task the team must accomplish"
+    worker_name         = string            "Name of the worker whose result is reviewed"
+    worker_output       = string            "The worker's result to review"
+    instructions        = string("")        "What the worker was asked to do"
+    acceptance_criteria = list(string, [])  "Conditions the result must meet"
+    progress            = list({
+      worker  = string            "Who did the step"
+      summary = string            "What came out of it"
+    }, [])                        "Steps done so far"
+    use tools
+    use memories
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You review the work handed in by worker agents. You compare a result with what was asked and with the acceptance criteria, then either accept it or send it back with feedback precise enough for the worker to fix it in one more attempt. You judge the work; you do not redo it."
+    }
+
+    text = "## Acceptance criteria"
+    when acceptance_criteria {
+      each criterion in acceptance_criteria { text = "- {{ criterion }}" }
+    }
+    when not acceptance_criteria { text = "- The result is correct, complete and does what the instructions asked." }
+
+    use tools
+
+    use memories
+
+    text = """
+      ## How to review
+      - Check every criterion one by one; a result that misses any of them is not approved.
+      - Approve a result that meets all criteria even if you would have written it differently.
+      - When you ask for a revision, say what is wrong and what a correct result would contain; do not rewrite the result yourself.
+
+      ## Answer format
+      Reply with one JSON object and nothing else:
+      {"decision": "approve" or "revise", "feedback": "<what to fix, or a short note on why it passes>", "unmet_criteria": ["<each criterion that is not met>"]}
+      """
+  }
+
+  placeholder "history"
+
+  message "user" {
+    text = "## Overall task"
+    text = "{{ task }}"
+    when progress {
+      text = "## Steps taken so far"
+      each step in progress { text = "- {{ step.worker }}: {{ step.summary }}" }
+    }
+    when instructions {
+      text = "## What {{ worker_name }} was asked to do"
+      text = "{{ instructions }}"
+    }
+    text = "## Result from {{ worker_name }}"
+    text = "{{ worker_output }}"
+    text = "Review this result."
+  }
+}

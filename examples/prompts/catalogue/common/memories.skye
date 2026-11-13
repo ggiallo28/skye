@@ -1,0 +1,111 @@
+---
+partial = true
+---
+
+prompt "memories" {
+  variables = {
+    persona_memory = list({
+      id      = string("")        "Item id, to update or delete it"
+      content = string            "What is known about the user or the agent"
+      source  = string("")        "Where it comes from"
+    }, []) "Who the user and the agent are"
+    episodic_memory = list({
+      id        = string("")      "Item id, to update or delete it"
+      content   = string          "What happened"
+      timestamp = string("")      "When it happened"
+      source    = string("")      "Where it comes from"
+    }, []) "Past events"
+    semantic_memory = list({
+      id      = string("")        "Item id, to update or delete it"
+      content = string            "The fact"
+      source  = string("")        "Where it comes from"
+    }, []) "Known facts"
+    procedural_memory = list({
+      id      = string("")        "Item id, to update or delete it"
+      name    = string("")        "Procedure name"
+      content = string("")        "How to do it, as text"
+      steps   = list(string, [])  "How to do it, as steps"
+    }, []) "Procedures that worked"
+    working_memory = list({
+      id      = string("")        "Item id, to update or delete it"
+      content = string            "The note"
+    }, []) "Notes for the current task"
+  }
+  message "system" {
+    when persona_memory or episodic_memory or semantic_memory or procedural_memory or working_memory {
+      text = "## Memory"
+      when persona_memory {
+        text = "### Persona"
+        each m in persona_memory {
+          when "id" in m and m.id {
+            when "source" in m and m.source       { text = "- [{{ m.id }}] {{ m.content }} (source: {{ m.source }})" }
+            when not ("source" in m and m.source) { text = "- [{{ m.id }}] {{ m.content }}" }
+          }
+          when not ("id" in m and m.id) {
+            when "source" in m and m.source       { text = "- {{ m.content }} (source: {{ m.source }})" }
+            when not ("source" in m and m.source) { text = "- {{ m.content }}" }
+          }
+        }
+      }
+
+      when episodic_memory {
+        text = "### Past events"
+        each m in episodic_memory {
+          when "id" in m and m.id {
+            when "timestamp" in m and m.timestamp       { text = "- [{{ m.id }}] {{ m.content }} (at {{ m.timestamp }})" }
+            when not ("timestamp" in m and m.timestamp) { text = "- [{{ m.id }}] {{ m.content }}" }
+          }
+          when not ("id" in m and m.id) {
+            when "timestamp" in m and m.timestamp       { text = "- [{{ m.timestamp }}] {{ m.content }}" }
+            when not ("timestamp" in m and m.timestamp) { text = "- {{ m.content }}" }
+          }
+        }
+      }
+
+      when semantic_memory {
+        text = "### Known facts"
+        each m in semantic_memory {
+          when "id" in m and m.id {
+            when "source" in m and m.source       { text = "- [{{ m.id }}] {{ m.content }} (source: {{ m.source }})" }
+            when not ("source" in m and m.source) { text = "- [{{ m.id }}] {{ m.content }}" }
+          }
+          when not ("id" in m and m.id) {
+            when "source" in m and m.source       { text = "- {{ m.content }} (source: {{ m.source }})" }
+            when not ("source" in m and m.source) { text = "- {{ m.content }}" }
+          }
+        }
+      }
+
+      when procedural_memory {
+        text = "### Procedures"
+        each m in procedural_memory {
+          when "id" in m and m.id {
+            when "name" in m and m.name       { text = "- [{{ m.id }}] {{ m.name }}" }
+            when not ("name" in m and m.name) { text = "- [{{ m.id }}]" }
+          }
+          when not ("id" in m and m.id) {
+            when "name" in m and m.name { text = "- {{ m.name }}" }
+          }
+          when "content" in m and m.content { text = "  {{ m.content }}" }
+          when "steps" in m and m.steps {
+            each step in m.steps { text = "  * {{ step }}" }
+          }
+        }
+      }
+
+      when working_memory {
+        text = "### Current notes"
+        each m in working_memory {
+          when "id" in m and m.id {
+            when "name" in m and m.name       { text = "- [{{ m.id }}] {{ m.name }}: {{ m.content }}" }
+            when not ("name" in m and m.name) { text = "- [{{ m.id }}] {{ m.content }}" }
+          }
+          when not ("id" in m and m.id) {
+            when "name" in m and m.name       { text = "- {{ m.name }}: {{ m.content }}" }
+            when not ("name" in m and m.name) { text = "- {{ m.content }}" }
+          }
+        }
+      }
+    }
+  }
+}

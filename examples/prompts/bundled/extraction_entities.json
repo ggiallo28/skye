@@ -1,0 +1,24 @@
+{
+  "text": "Tim Cook presented the new iPhone in Cupertino.",
+  "domain": "technology news",
+  "labels": [
+    {
+      "name": "PERSON",
+      "description": "Names of people"
+    },
+    {
+      "name": "ORG",
+      "description": "Companies and institutions"
+    },
+    {
+      "name": "PRODUCT"
+    }
+  ],
+  "examples": [
+    {
+      "text": "Satya Nadella leads Microsoft.",
+      "entities": "[{'T': 'PERSON', 'E': 'Satya Nadella'}, {'T': 'ORG', 'E': 'Microsoft'}]"
+    }
+  ],
+  "output_format": "json"
+}

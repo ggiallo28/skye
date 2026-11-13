@@ -1,0 +1,81 @@
+---
+title       = "Tool agent"
+description = "An agent that picks one of its tools (or none) for the user's request and answers with a JSON action; takes the tools, examples, history and memories."
+version     = "1.0"
+tags        = ["agent", "tools", "json"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+include "common/tools.skye" as tools
+include "common/memories.skye" as memories
+
+prompt "agent_tool" {
+  variables = {
+    use system_prompt
+    use tools
+    examples = list({
+      question     = string      "Example request"
+      action       = string      "Tool chosen, or no_action"
+      action_input = string("")  "Input given to it"
+    }, []) "Worked examples"
+    input         = string("")  "The user's message"
+    use memories
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You are an intelligent AI assistant that can use tools to help answer questions and complete tasks. You have access to various tools and should use them when appropriate."
+    }
+    use memories
+
+    text = "Create a JSON with the correct \"action\" and \"action_input\" to help the Human."
+    text = "You can use one of these actions:"
+    each tool in tools { text = "- \"{{ tool.name }}\": {{ tool.description }}" }
+    text = "- \"no_action\": Use this action if no relevant action is available. Input is always null."
+
+    text = "## The JSON must have the following structure:"
+    text = "```json"
+    text = "{"
+    when tools {
+      text = "    \"action\": // str - The name of the action to take, should be one of [\"{{ tools | map('name') | join('\", \"') }}\", \"no_action\"]"
+    }
+    when not tools {
+      text = "    \"action\": // str - The name of the action to take, should be one of [, \"no_action\"]"
+    }
+    text = "    \"action_input\": // str or null - The input to the action according to its description"
+    text = "}"
+    text = "```"
+
+    when examples {
+      text = "## Here are some examples:"
+      each example in examples {
+        text = """
+          Question: {{ example.question }}
+          ```json
+          {
+              "action": "{{ example.action }}",
+              "action_input": "{{ example.action_input }}"
+          }
+          ```
+          """
+      }
+      text = """
+        Question: I have no questions
+        ```json
+        {
+            "action": "no_action",
+            "action_input": null
+        }
+        ```
+        """
+    }
+
+  }
+  placeholder "history"
+
+  message "user" {
+    text = "{{ input }}"
+    text = "Please respond with the appropriate JSON action."
+  }
+}

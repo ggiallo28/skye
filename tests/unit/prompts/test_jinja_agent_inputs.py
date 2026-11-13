@@ -1,4 +1,4 @@
-"""form_agent, multimodal_agent and tool_agent (the last three converted from ``.jinja``) accept optional tools and memories of every kind."""
+"""agent_form, agent_multimodal and agent_tool (the last three converted from ``.jinja``) accept optional tools and memories of every kind."""
 
 from __future__ import annotations
 
@@ -7,8 +7,9 @@ from typing import Any
 import pytest
 
 from skye.prompts.messages import BasePromptBuilder
+from tests.unit.prompts.bundled import gallery_builder
 
-NAMES = ("form_agent", "multimodal_agent", "tool_agent")
+NAMES = ("agent_form", "agent_multimodal", "agent_tool")
 MEMORY_VARS = (
     "persona_memory",
     "episodic_memory",
@@ -41,8 +42,8 @@ MEMORIES: dict[str, Any] = {
 
 
 def _base(name: str) -> dict[str, Any]:
-    # tool_agent always lists its actions, so it needs a tools list even in the baseline.
-    return {"input": "hello", "tools": TOOLS} if name == "tool_agent" else {"input": "hello"}
+    # agent_tool always lists its actions, so it needs a tools list even in the baseline.
+    return {"input": "hello", "tools": TOOLS} if name == "agent_tool" else {"input": "hello"}
 
 
 def _system(messages: list[Any]) -> str:
@@ -51,14 +52,14 @@ def _system(messages: list[Any]) -> str:
 
 @pytest.fixture
 def builder() -> BasePromptBuilder:
-    return BasePromptBuilder()
+    return gallery_builder()
 
 
 @pytest.mark.parametrize("name", NAMES)
 def test_new_inputs_are_optional(builder: BasePromptBuilder, name: str) -> None:
     optional = set(builder.get_template_metadata(name)["optional_variables"])
     assert set(MEMORY_VARS) <= optional
-    if name != "tool_agent":
+    if name != "agent_tool":
         assert "tools" in optional
 
 
@@ -83,7 +84,7 @@ def test_sections_render_with_tools_and_memories(builder: BasePromptBuilder, nam
     assert "- Refund\n  How to refund\n  * check\n  * pay" in system
     assert "- goal: close the ticket\n- user is waiting" in system
 
-    if name == "tool_agent":
+    if name == "agent_tool":
         # Its own action list is the tool rendering; no duplicate section.
         assert "## Tools" not in system
         assert '- "search": Search the web' in system
@@ -98,7 +99,7 @@ def test_sections_render_with_tools_and_memories(builder: BasePromptBuilder, nam
 @pytest.mark.parametrize("name", NAMES)
 def test_sections_absent_without_inputs(builder: BasePromptBuilder, name: str) -> None:
     variables = _base(name)
-    if name == "tool_agent":
+    if name == "agent_tool":
         empty = {k: [] for k in MEMORY_VARS}
     else:
         empty = {"tools": [], **{k: [] for k in MEMORY_VARS}}

@@ -1,0 +1,27 @@
+{
+  "task": "Write a one-page report on the electric car market in Italy.",
+  "workers": [
+    {
+      "name": "researcher",
+      "description": "Finds and reads sources on the web.",
+      "skills": [
+        "search",
+        "reading"
+      ]
+    },
+    {
+      "name": "writer",
+      "description": "Writes and edits reports."
+    }
+  ],
+  "progress": [
+    {
+      "worker": "researcher",
+      "summary": "Found three recent market reports."
+    }
+  ],
+  "max_subtasks": 4,
+  "constraints": [
+    "Use sources from the last two years."
+  ]
+}

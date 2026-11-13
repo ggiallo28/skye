@@ -1,21 +1,25 @@
-"""Template loaders for Skye prompts (structure task 7.3).
+# task 7.3, D60, D76
+"""Template loaders for Skye prompts (structure).
 
 Discovers template files in the `templates/` directory and registers them on a
 prompt builder (liteprompt-style loaders and registry; rendering uses the stdlib engine in
-`skye.prompts.engine`, not Jinja2, interpolation only). `*.skye` prompt files (D60) are read next
+`skye.prompts.engine`, not Jinja2, interpolation only). `*.skye` prompt files are read next
 to `*.jinja`, `*.txt`, `*.template` and `*.tmpl` text templates (`{{ }}` and filters; a `{% %}`
-tag makes the file fail to load, D76); when a `.skye` file and another file share a name, only
+tag makes the file fail to load); when a `.skye` file and another file share a name, only
 the `.skye` one is registered.
 """
 
 from __future__ import annotations
 
 import logging
+import posixpath
 import threading
 import zipfile
 from pathlib import Path
 from typing import Any
 
+from skye.base.dsl.include import Resolved
+from skye.base.dsl.include import INCLUDE_LINE
 from skye.base.dsl.metadata import split_metadata
 from skye.base.exceptions import ValidationError
 
@@ -49,6 +53,8 @@ def discover_templates(directory: Path) -> dict[str, Path]:
 
 _archive_lock = threading.Lock()
 _archive_index: tuple[tuple[int, int], dict[str, tuple[str, str]]] | None = None
+# every `.skye` entry by its path in the archive (the partials too)
+_archive_members: dict[str, str] = {}
 
 
 def _folder_has_templates() -> bool:
@@ -65,7 +71,7 @@ def _archive() -> tuple[tuple[int, int], dict[str, tuple[str, str]]]:
     Raises:
         ValidationError: The archive cannot be read, or an entry is not UTF-8 text.
     """
-    global _archive_index
+    global _archive_index, _archive_members
     with _archive_lock:
         try:
             status = TEMPLATES_ARCHIVE.stat()
@@ -73,11 +79,12 @@ def _archive() -> tuple[tuple[int, int], dict[str, tuple[str, str]]]:
             if _archive_index is not None and _archive_index[0] == stamp:
                 return _archive_index
             with zipfile.ZipFile(TEMPLATES_ARCHIVE) as archive:
-                texts = {
-                    Path(info.filename).stem: archive.read(info).decode("utf-8")
+                members = {
+                    info.filename: archive.read(info).decode("utf-8")
                     for info in archive.infolist()
                     if info.filename.endswith(".skye")
                 }
+                texts = {Path(n).stem: t for n, t in members.items() if "/" not in n}
         except (OSError, zipfile.BadZipFile, UnicodeDecodeError) as error:
             raise ValidationError(
                 f"The archive of the bundled templates cannot be read: {TEMPLATES_ARCHIVE} ({error})",
@@ -89,6 +96,7 @@ def _archive() -> tuple[tuple[int, int], dict[str, tuple[str, str]]]:
             for name, text in texts.items()
         }
         _archive_index = (stamp, index)
+        _archive_members = members
         return _archive_index
 
 
@@ -98,6 +106,20 @@ def bundled_names() -> list[str]:
         return sorted(path.stem for path in TEMPLATES_DIR.glob("*.skye"))
     if TEMPLATES_ARCHIVE.is_file():
         return sorted(_archive()[1])
+    return []
+
+
+def bundled_partials() -> list[str]:
+    """The paths of the shared ``.skye`` files that bundled templates include (``common/x.skye``), sorted."""
+    if _folder_has_templates():
+        return sorted(
+            path.relative_to(TEMPLATES_DIR).as_posix()
+            for path in TEMPLATES_DIR.rglob("*.skye")
+            if path.parent != TEMPLATES_DIR
+        )
+    if TEMPLATES_ARCHIVE.is_file():
+        _archive()
+        return sorted(name for name in _archive_members if "/" in name)
     return []
 
 
@@ -133,6 +155,49 @@ def read_bundled(name: str) -> str:
     return entry[0]
 
 
+# task 25.4, Requirement 63
+class CatalogueResolver:
+    """The resolver of the ``include`` lines of a bundled template.
+
+    A target is a path relative to the including file, inside the catalogue: the folder of a source checkout or the
+    entries of ``templates.zip``. A path above the catalogue is refused. The partials are in a subfolder, so they are
+    not templates, and a file of the user has no way to name them (its resolver reads only its own folder).
+    """
+
+    def __call__(self, target: str, from_key: str | None) -> Resolved:
+        """The text of ``target`` (``Resolved.key`` is its path in the catalogue).
+
+        Raises:
+            ValueError: The path leaves the catalogue.
+            FileNotFoundError: There is no such file in the catalogue.
+        """
+        path = posixpath.normpath(posixpath.join(posixpath.dirname(from_key or ""), target))
+        if path == ".." or path.startswith(("../", "/")):
+            raise ValueError("it is outside the bundled templates")
+        if _folder_has_templates():
+            file = (TEMPLATES_DIR / path).resolve()
+            if not file.is_relative_to(TEMPLATES_DIR.resolve()) or not file.is_file():
+                raise FileNotFoundError(f"no such file in {TEMPLATES_DIR}")
+            return Resolved(text=file.read_text(encoding="utf-8"), name=path, key=path)
+        _archive()
+        if path not in _archive_members:
+            raise FileNotFoundError(f"no such file in {TEMPLATES_ARCHIVE}")
+        return Resolved(text=_archive_members[path], name=path, key=path)
+
+    def fingerprint(self) -> tuple[Any, ...]:
+        """What changes when a file of the catalogue changes: the stat of each file, or the stamp of the archive."""
+        if _folder_has_templates():
+            return tuple(
+                (p.name, s.st_size, s.st_mtime_ns)
+                for p in sorted(TEMPLATES_DIR.rglob("*.skye"))
+                for s in (p.stat(),)
+            )
+        return _archive()[0] if TEMPLATES_ARCHIVE.is_file() else ()
+
+
+catalogue_resolver = CatalogueResolver()
+
+
 def _load_from_archive(builder: Any) -> int:
     """Register the bundled templates of the archive; each is compiled at its first use, as a file of the folder is."""
     stamp, index = _archive()
@@ -159,7 +224,9 @@ def load_default_templates(builder: Any, directory: Path | None = None) -> int:
     any other file, or one without a version, as ``1.0``.
 
     A file that cannot be read is skipped with a warning in the log. A bundled `.skye` file is not compiled here: the builder
-    compiles it at its first use, and a mistake in it shows then.
+    compiles it at its first use, and a mistake in it shows then. A `.skye` file of a folder given by the caller that
+    ``include``s another file is registered now, with the file resolver of its folder; a file whose front matter says
+    ``partial = true`` is a part of other templates and is not registered.
 
     Args:
         builder: The prompt builder (anything with ``register_template``).
@@ -183,12 +250,19 @@ def load_default_templates(builder: Any, directory: Path | None = None) -> int:
 
     # A `.skye` file is only read here (its text and its version); the builder compiles it at its first use.
     register_bundled = getattr(builder, "register_bundled_template", None)
+    own_folder = directory is not None and directory.resolve() != TEMPLATES_DIR.resolve()
     loaded = 0
     for name, path in files.items():
         try:
             if register_bundled is not None and path.suffix == ".skye":
                 text = path.read_text(encoding="utf-8")
-                register_bundled(name, text, path, _version_in(text, path) or "1.0")
+                version, partial = _front(text, path)
+                if partial:
+                    continue
+                if own_folder and INCLUDE_LINE.search(text):
+                    builder.register_template(name, str(path), version=version or "1.0", from_string=False)
+                else:
+                    register_bundled(name, text, path, version or "1.0")
             else:
                 version = _metadata_version(path) or "1.0"
                 builder.register_template(name, str(path), version=version, from_string=False)
@@ -213,8 +287,13 @@ def _metadata_version(path: Path) -> str | None:
     return _version_in(path.read_text(encoding="utf-8"), path)
 
 
-def _version_in(text: str, path: Path) -> str | None:
-    """The ``version`` in the front matter of the text of a ``.skye`` file, or ``None``."""
+def _front(text: str, path: Path) -> tuple[str | None, bool]:
+    """The ``version`` in the front matter of the text of a ``.skye`` file, and whether it says ``partial = true``."""
     metadata, _, errors = split_metadata(text, str(path))
     version = metadata.get("version")
-    return str(version) if version is not None and not errors else None
+    return (str(version) if version is not None and not errors else None), metadata.get("partial") is True
+
+
+def _version_in(text: str, path: Path) -> str | None:
+    """The ``version`` in the front matter of the text of a ``.skye`` file, or ``None``."""
+    return _front(text, path)[0]

@@ -1,0 +1,81 @@
+{
+  "input": "Plan my trip to Lisbon next month.",
+  "personality": [
+    "friendly",
+    "concise"
+  ],
+  "capabilities": [
+    {
+      "name": "Travel planning",
+      "description": "Builds day-by-day itineraries"
+    },
+    {
+      "name": "Budgeting",
+      "description": "Estimates costs"
+    }
+  ],
+  "tools_output": "weather(Lisbon, December) -> 15 C, light rain",
+  "domain_knowledge": "Lisbon's museums close on Mondays.",
+  "constraints": [
+    "Budget under 1500 EUR",
+    "No flights before 9 am"
+  ],
+  "response_guidelines": [
+    "Use a table for the itinerary"
+  ],
+  "output_format": "markdown",
+  "thinking_required": true,
+  "tools": [
+    {
+      "name": "search_flights",
+      "description": "Finds flights",
+      "parameters": {
+        "from": "airport code",
+        "to": "airport code"
+      }
+    }
+  ],
+  "episodic_memory": [
+    {
+      "content": "Went to Porto last spring and loved it",
+      "timestamp": "2026-04-12"
+    }
+  ],
+  "semantic_memory": [
+    {
+      "content": "Lisbon has seven hills",
+      "source": "city guide"
+    }
+  ],
+  "procedural_memory": [
+    {
+      "name": "Book a trip",
+      "steps": [
+        "Pick dates",
+        "Book flights",
+        "Book a hotel"
+      ]
+    }
+  ],
+  "persona_memory": [
+    {
+      "content": "Vegetarian",
+      "source": "profile"
+    }
+  ],
+  "working_memory": [
+    {
+      "content": "Dates still to be confirmed"
+    }
+  ],
+  "history": [
+    {
+      "role": "user",
+      "content": "I want to travel in December."
+    },
+    {
+      "role": "assistant",
+      "content": "Great, where would you like to go?"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "task": "Write a one-page report on the electric car market in Italy.",
+  "worker_name": "writer",
+  "worker_output": "Electric cars were 4% of new registrations in Italy in 2025 ...",
+  "instructions": "Write the report from the researcher's notes.",
+  "acceptance_criteria": [
+    "At most one page",
+    "Every figure has a source"
+  ],
+  "progress": [
+    {
+      "worker": "researcher",
+      "summary": "Found three recent market reports."
+    }
+  ]
+}

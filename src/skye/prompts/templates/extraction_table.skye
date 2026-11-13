@@ -1,0 +1,105 @@
+---
+title       = "Table extraction"
+description = "Extract a table from a text given the expected columns, with optional examples and rules; output as JSON, CSV, Markdown or a list."
+version     = "1.0"
+tags        = ["table", "extraction", "nlp"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+
+prompt "extraction_table" {
+  variables = {
+    use system_prompt
+    description      = string("")  "Extra task description, shown after the role sentence"
+    domain           = string("")  "Domain to focus on; empty for none"
+    table_schema = list({
+      name        = string      "Column name"
+      description = string("")  "What the column holds"
+      type        = string("")  "Value type, e.g. number"
+    }, []) "Expected columns"
+    examples = list({
+      text  = string  "Example text"
+      table = string  "The table extracted from it, as written in the answer"
+    }, []) "Worked examples"
+    text             = string("")        "The text to analyse"
+    extraction_rules = list(string, [])  "Extraction rules"
+    output_format    = string("")  "json, csv, markdown, or empty for plain text"
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You are an intelligent tabular data extraction system. You can analyze text and extract structured information in tabular format, identifying key data points and organizing them systematically."
+    }
+    when description { text = "{{ description }}" }
+    when domain {
+      text = "## Domain: {{ domain }}"
+      text = "Please extract data relevant to the {{ domain }} domain."
+    }
+
+    when table_schema {
+      text = "## Expected Table Structure:"
+      each column in table_schema {
+        when column.type     { text = "- **{{ column.name }}**: {{ column.description }} ({{ column.type }})" }
+        when not column.type { text = "- **{{ column.name }}**: {{ column.description }}" }
+      }
+    }
+
+    when examples {
+      text = "## Examples:"
+      each example in examples {
+        text = "**Text:** {{ example.text }}"
+        text = "**Extracted Table:**"
+        text = "{{ example.table }}"
+      }
+    }
+
+    text = "## Text to Analyze:"
+    text = "{{ text }}"
+
+    when extraction_rules {
+      text = "## Extraction Rules:"
+      each rule in extraction_rules { text = "- {{ rule }}" }
+    }
+
+    when output_format == "json" {
+      text = """
+        Please format your response as JSON:
+        ```json
+        {
+          "table": [
+            {
+              "column1": "value1",
+              "column2": "value2"
+            }
+          ],
+          "metadata": {
+            "rows_extracted": 0,
+            "confidence": 0.0
+          }
+        }
+        ```
+        """
+    }
+    when output_format == "csv" {
+      text = """
+        Please format as CSV:
+        ```csv
+        column1,column2,column3
+        value1,value2,value3
+        ```
+        """
+    }
+    when output_format == "markdown" {
+      text = """
+        Please format as Markdown table:
+        | Column1 | Column2 | Column3 |
+        |---------|---------|---------|
+        | value1  | value2  | value3  |
+        """
+    }
+    when output_format != "json" and output_format != "csv" and output_format != "markdown" {
+      text = "## Extracted Table:"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+---
+title       = "Memory recall"
+description = "An assistant with past events, known facts and tool output; also takes tools and memories of every kind."
+version     = "1.0"
+tags        = ["agent", "memory"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+include "common/tools.skye" as tools
+include "common/memories.skye" as memories
+
+prompt "agent_memory_recall" {
+  variables = {
+    use system_prompt
+    personality   = list(string, [])  "Personality traits"
+    tools_output  = string("")        "Output of tools already executed, as free text"
+    input         = string("")        "The user's message"
+    output_format = string("")        "Free-form response format, e.g. 'markdown'; empty for none"
+    use tools
+    use memories
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt { text = "You are an intelligent AI assistant with access to memory and context. You can recall past conversations and relevant information to provide helpful responses." }
+    when personality { text = "Your personality: {{ personality | join(', ') }}" }
+
+    when tools_output {
+      text = "## Context of executed system tools:"
+      text = "{{ tools_output }}"
+    }
+    use tools
+
+    use memories
+  }
+  placeholder "history"
+
+  message "user" {
+    text = "{{ input }}"
+    when output_format { text = "Please format your response as {{ output_format }}." }
+  }
+}
