@@ -4,6 +4,12 @@ All notable changes to Skye are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-13
+
+### Fixed
+
+- The banner of the README uses an absolute URL, so that the PyPI page shows it.
+
 ## [0.3.0] - 2026-11-13
 
 ### Added
@@ -82,7 +88,8 @@ First release after the 0.0.1 preview on PyPI.
 
 - Router fixes.
 
-[Unreleased]: https://github.com/ggiallo28/skye/compare/v0.3.0...main
+[Unreleased]: https://github.com/ggiallo28/skye/compare/v0.3.1...main
+[0.3.1]: https://github.com/ggiallo28/skye/releases/tag/v0.3.1
 [0.3.0]: https://github.com/ggiallo28/skye/releases/tag/v0.3.0
 [0.2.0]: https://github.com/ggiallo28/skye/releases/tag/v0.2.0
 [0.1.1]: https://pypi.org/project/skyeai/0.1.1/

@@ -26,7 +26,7 @@ Example:
     >>> print(response.content)  # doctest: +SKIP
 """
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 from typing import TYPE_CHECKING, Any, Literal, overload
 

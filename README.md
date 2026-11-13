@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/assets/banner.png" alt="Skye, intelligence that travels light" width="100%">
+  <img src="https://raw.githubusercontent.com/ggiallo28/skye/main/.github/assets/banner.png" alt="Skye, intelligence that travels light" width="100%">
 </p>
 
 # Skye AI
@@ -43,7 +43,7 @@ function's role, and `build.sh` packs it with Skye into `function.zip`, 0.61 MB.
 
 ## Size and speed
 
-| Measured on skyeai 0.3.0 | Value | Limit the CI enforces |
+| Measured on skyeai 0.3.1 | Value | Limit the CI enforces |
 |---|---|---|
 | Lambda zip, library and handler ([`examples/serverless/lambda_zip`](https://github.com/ggiallo28/skye/tree/main/examples/serverless/lambda_zip)) | 0.61 MB | 1 MB (AWS: 50 MB) |
 | Installed size of the core | 1.9 MB | 2 MB |
