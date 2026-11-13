@@ -91,7 +91,7 @@ profile_extra = "bedrock"           # the serverless profile: core + this extra
 max_profile_mb = 3                  # core + bedrock without the preinstalled libraries, now 1.8 (bedrock has no library of its own)
 # The deployment zip of examples/serverless/lambda_zip (the library and handler.py, nothing else), deflate level 9.
 zipped_limit_mb = 50                # hard AWS limit for a zip uploaded directly
-max_zip_mb = 1                      # now 0.56 (1.76 unzipped), measured 2026-11-11
+max_zip_mb = 1                      # now 0.61, measured 2026-11-13 (was 0.56 on 2026-11-11)
 
 # Megabytes added over the core install, preinstalled libraries excluded, and the number of
 # compiled distributions added over the core install (target 0 for every extra).
