@@ -38,8 +38,8 @@ prompt "chat" {
   `episodic_memory` adds `timestamp = string("")`; `procedural_memory = list({ name = string(""), content = string(""), steps = list(string, []) }, [])`;
   `working_memory = list({ content = string }, [])`. Conversation history is always `placeholder "history"`, never a variable: `chat_history`,
   `conversation_history`, `declarative_memory`, `procedural_memories` and `procedures` are removed (no aliases).
-- Comments: `/** ... **/` documents, `#` a short note, never a plain `/* */`. End every template you write with `/** Example: builder.render("name",
-  {...}) **/`, the dict in Python literals only and valid for the declared types (a test renders it in every example file; the bundled prompts keep their sample variables in `examples/prompts/bundled/`).
+- Comments: `/** ... **/` documents, `#` a short note, never a plain `/* */`. End each teaching file `examples/prompts/*.skye` with `/** Example: builder.render("name",
+  {...}) **/`, the dict in Python literals only and valid for the declared types (a test renders it in every example file); the bundled and gallery prompts carry no comment and keep their sample variables in `examples/prompts/bundled/` and `examples/prompts/catalogue/`.
 - Before calling a prompt you did not write, run `skye prompt info NAME|FILE` (cli.md) or `BasePromptBuilder().help(name)` (python-api.md).
 - `message "role" { ... }`: the roles are `system`, `user` and `assistant`. A role can come from data: `message turn.role { ... }` inside `each`.
 - Inside a message, `text = "..."` may appear several times, interleaved with `when` and `each` blocks; the parts are joined in order, one per line.

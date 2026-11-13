@@ -8,7 +8,7 @@ status: current
 This guide shows you how to give an agent a set of related tools with the toolkits that ship with Skye, how to build on one of them, and how
 a `SKILL.md` makes an agent read files.
 
-A toolkit is a group of tools an agent takes apart from its own `tools=`. Each tool is named `<toolkit>.<tool>`, so two toolkits never clash.
+A toolkit is a group of tools an agent takes apart from its own `tools=`. Each tool is named `<toolkit>_<tool>`, so two toolkits never clash.
 The toolkits that ship with Skye are plugins like yours, so you build them by name.
 
 ## What you need
@@ -19,9 +19,9 @@ The toolkits that ship with Skye are plugins like yours, so you build them by na
 
 | Toolkit | Tools | What it does |
 |---|---|---|
-| `files` | `list_files`, `read_file` | reads the files under one or more folders, and nothing outside them |
+| `files` | `list`, `read` | reads the files under one or more folders, and nothing outside them |
 | `openapi` | one for each operation of the document | calls an HTTP API described by an OpenAPI document |
-| `human` | `ask_human`, `escalate`, `check_escalation` | asks a person a question, or hands a case over to one |
+| `human` | `ask`, `escalate`, `check_escalation` | asks a person a question, or hands a case over to one |
 | `shell` | `run_command` | runs a program from a list of allowed names |
 
 ## 1. Build a toolkit by name
@@ -34,7 +34,7 @@ listing the registered ones.
 ```
 
 `list_schemas()` returns the schema of every tool, which is what the model sees. Pass `alias="docs"` to build the same toolkit twice
-under two names (the tools become `docs.read_file`).
+under two names (the tools become `docs_read`).
 
 ### `files`
 
@@ -43,12 +43,12 @@ Read only. `root` is the folder it may read and it is required; `roots` is a lis
 | Option | Default | Meaning |
 |---|---|---|
 | `root` or `roots` | none | the folder or folders that may be read |
-| `max_bytes` | `65536` | the most bytes `read_file` returns (64 KB) |
-| `include_hidden` | `False` | names that start with a dot are left out of the listing and refused by `read_file` |
+| `max_bytes` | `65536` | the most bytes `read` returns (64 KB) |
+| `include_hidden` | `False` | names that start with a dot are left out of the listing and refused by `read` |
 
-`list_files` returns at most 500 entries. A path that leaves the folder, with `..`, an absolute path or a link that points outside, is
+`list` returns at most 500 entries. A path that leaves the folder, with `..`, an absolute path or a link that points outside, is
 refused, and the error never shows a real path of your machine. With several `roots`, every path starts with the name of its folder
-(`refund-policy/references/a.md`), a repeated name gets `-2`, `-3`, and `list_files` with no path lists the folder names.
+(`refund-policy/references/a.md`), a repeated name gets `-2`, `-3`, and `list` with no path lists the folder names.
 
 ### `openapi`
 

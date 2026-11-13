@@ -61,7 +61,7 @@ until the first operation, so building one needs no network.
     ```python
     from skye.store import backend
 
-    store = backend("valkey", redis_url="rediss://my-cache.example.com:6379/0", key_prefix="router:")
+    store = backend("valkey", redis_url="rediss://my-cache.example.com:6379/0", key_prefix="myapp:")
     ```
 
     `valkey` and `redis` are two names for one backend, `RedisBackend`. It uses the `valkey` driver when installed, else `redis`.
@@ -137,19 +137,20 @@ router = ModelRouter.from_file("router.skye", name="main", storage=backend("dyna
 
 ## What is stored
 
-The keys name the model id of the target (`alias:provider:model`). Two routers that use the same store and the same aliases share
-these keys, so give separate applications separate tables, prefixes or databases.
+The keys name the model id of the target (`alias:provider:model`), and each one starts with `router:`, the namespace the router takes in the store
+(`skye.store.namespaced(store, "router")`), so the same store can hold the state of other components. Two routers that use the same store and the
+same aliases share these keys, so give separate applications separate tables, prefixes or databases.
 
 | Key | Holds | Expires |
 |---|---|---|
-| `health:<model id>:success`, `...:failure` | the counts of successes and failures | 24 hours after the last update |
-| `health:<model id>:latency_us` | the total latency of the successes, in microseconds | 24 hours after the last update |
-| `health:<model id>:reason:<error type>`, `...:reasons` | the failures of one error type, and the error types seen | 24 hours after the last update |
-| `health:<model id>:last` | the last success and failure times, the lowest and highest latency | 24 hours after the last update |
-| `cooldown:<model id>` | the end of the cooldown | a minute after the cooldown ends |
-| `recent_failures:<model id>:<error type>:<second>` | the failures of one second, counted by the allowed-fails policy | 2 minutes |
-| `rate_limit:<model id>:rpm:<minute>`, `...:tpm:<minute>` | requests and tokens of one minute | 2 minutes |
-| `active_requests:<model id>` | requests in flight | 1 hour |
+| `router:health:<model id>:success`, `...:failure` | the counts of successes and failures | 24 hours after the last update |
+| `router:health:<model id>:latency_us` | the total latency of the successes, in microseconds | 24 hours after the last update |
+| `router:health:<model id>:reason:<error type>`, `...:reasons` | the failures of one error type, and the error types seen | 24 hours after the last update |
+| `router:health:<model id>:last` | the last success and failure times, the lowest and highest latency | 24 hours after the last update |
+| `router:cooldown:<model id>` | the end of the cooldown | a minute after the cooldown ends |
+| `router:recent_failures:<model id>:<error type>:<second>` | the failures of one second, counted by the allowed-fails policy | 2 minutes |
+| `router:rate_limit:<model id>:rpm:<minute>`, `...:tpm:<minute>` | requests and tokens of one minute | 2 minutes |
+| `router:active_requests:<model id>` | requests in flight | 1 hour |
 
 Every count (successes, failures, latency totals, the failures of the last minute, the per-minute requests and tokens, the requests
 in flight) uses the backend's atomic `increment`, so it is exact across instances. Only `health:<model id>:last` is read and written

@@ -38,6 +38,9 @@ Both also take `headers=` (for example an `Authorization` header for a protected
 
 The capabilities from `list_tools()` go in the list of capabilities like local ones. A call runs through the client, as a
 `tools/call` request to the server.
+A server may name a tool with a character that a model provider refuses (a dot or a space). The capability that Skye gives the model
+carries a valid name (every other character becomes `_`, 64 characters at most, so `github.create issue` is `github_create_issue`),
+and the call to the server uses the name the server gave.
 
 ```python
 --8<-- "examples/capabilities/mcp_server.py:24:47"

@@ -55,7 +55,7 @@ functions are lazy names of `skye`: `import skye` loads none of the components, 
 | `plugins.mcp_client` | `skye.mcp_client(target, impl="skyemcp")` | an MCP client |
 | `plugins.credential_source` | `skye.credential_source(name, **config)` | a credential source |
 | `plugins.routing_strategy` | `skye.routing_strategy(name)` | what was registered: a function, or a `RouterStrategy` class for a built-in |
-| `plugins.toolkit` | `skye.toolkit(name, alias=None, **options)` | a toolkit; its tools are named `<toolkit>.<tool>`, and `alias` replaces the toolkit name when you build one toolkit twice |
+| `plugins.toolkit` | `skye.toolkit(name, alias=None, **options)` | a toolkit; its tools are named `<toolkit>_<tool>`, and `alias` replaces the toolkit name when you build one toolkit twice |
 
 An unknown name raises `ConfigurationError` and the error lists the registered names. The older functions (`create_agent`,
 `skye.store.backend`, `create_mcp_client`, `resolve_credential_source`) work as before: they read the same table.

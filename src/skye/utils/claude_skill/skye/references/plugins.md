@@ -64,7 +64,7 @@ Built-in profiles are `profile.toml` files in `models/plugins/<provider>/`. To c
 
 ## Toolkits: tools an agent takes apart from its own
 
-- `skye.Toolkit` is the base class: each method with `@capability` becomes a tool named `<toolkit>.<name>`; `alias=` renames the prefix.
+- `skye.Toolkit` is the base class: each method with `@capability` becomes a tool named `<toolkit>_<name>`; `alias=` renames the prefix.
 - Built-in toolkits: `files` (read only, `root=` or `roots=[...]`, hidden names excluded), `openapi` (`spec=`, GET only unless `allow`),
   `human` (`channel` `console` or `file`, to ask or hand a case over), `shell` (an `allow` list of executables is required, no shell,
   not a sandbox).

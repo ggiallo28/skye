@@ -55,7 +55,7 @@ prompt "extract_invoice" {
   error); it takes no description.
 - Dynamic format: `output format { ... }` (no quotes) takes the format from a declared `string` variable, whose default, if any, must be
   `json`, `table` or `xml`; any other value at render time is an error, and so is `"table"` with a list or map field. The bundled prompt
-  `extraction_structured` does this with its `format` and `schema` variables (`schema` is optional: without it the answer has `name` and
+  `extraction_generic` does this with its `format` and `schema` variables (`schema` is optional: without it the answer has `name` and
   `value`, as in the example above). In Python the block is `PromptSpec.output`, an `OutputSpec`
   with `format`, `format_from`, `fields` (each an `OutputFieldSpec` with `name`, `type`, `default`, `item_type`, `fields`,
   `description`) and `schema_from`.

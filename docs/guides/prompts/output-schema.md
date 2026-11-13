@@ -108,7 +108,7 @@ prompt "extract_any" {
 ```
 
 `active_output(spec, variables)` returns the block that applies, or `None`. `skye prompt info` shows each block under its condition.
-The bundled prompt `extraction_structured` is built this way: its `format` variable is `"json"` by default, `"table"` or `"xml"`.
+The bundled prompt `extraction_generic` is built this way: its `format` variable is `"json"` by default, `"table"` or `"xml"`.
 
 ## Step 5: send the schema as a native field
 

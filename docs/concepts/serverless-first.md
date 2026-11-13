@@ -45,12 +45,12 @@ every pull request, and a budget only goes down: raising a number needs a reason
 | Distributions in the core install | `[core] max_distributions` | 1 | 1 (`skyeai`) |
 | Installed size of the core | `[core] max_installed_mb` | 2 MB | 1.9 MB |
 | Compiled packages in the core | `[core] known_compiled` | none | none |
-| Modules loaded by `import skye` | `[load] max_modules_loaded` | 80 | 58 |
-| Time of `import skye`, best of 5 | `[load] max_import_ms` | 100 ms | about 16 ms |
+| Modules loaded by `import skye` | `[load] max_modules_loaded` | 80 | 61 |
+| Time of `import skye`, best of 5 | `[load] max_import_ms` | 100 ms | about 20 ms |
 | Memory added by `import skye` | `[load] max_rss_delta_mb` | 16 MB | about 5 MB |
 | Cold path: import, router, one target, one request | `[cold_start] max_cold_start_ms` | 200 ms | about 56 ms |
 | Core plus the `bedrock` extra, Lambda libraries excluded | `[lambda] max_profile_mb` | 3 MB | 1.9 MB |
-| Lambda zip of `examples/serverless/lambda_zip` (library and handler) | `[lambda] max_zip_mb` | 1 MB | 0.56 MB |
+| Lambda zip of `examples/serverless/lambda_zip` (library and handler) | `[lambda] max_zip_mb` | 1 MB | 0.61 MB |
 
 The limits leave room for a slower CI runner (about three times a laptop). Sizes are measured on Linux x86_64, the platform of the
 runner and of the serverless target.

@@ -27,7 +27,7 @@ registered by `"module:attribute"` text, so `import skye` imports none of them.
 
 ## `skye.Toolkit`
 
-The base class of a toolkit. Its methods marked with `@capability` are its tools, named `<toolkit>.<method>`; a toolkit with no constructor
+The base class of a toolkit. Its methods marked with `@capability` are its tools, named `<toolkit>_<method>`; a toolkit with no constructor
 takes its prefix from the class name (`JiraToolkit` is `jira`). A toolkit made from a function or a list of tools is registered with
 `plugins.toolkit("name", tools=[...])`. See [Toolkits](../../guides/tools/toolkits.md) for the ones that ship and
 [Capabilities and toolkits of your own](../../guides/extend/custom-capability.md) to write one.

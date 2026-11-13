@@ -343,7 +343,7 @@ prompt "extract" {
 - A hand-written format text in a message keeps working; so does `BasePromptBuilder.set_output_schema(name, schema, output_format="json")`
   with a dataclass (a field's `metadata={"description": ...}` is its description) or a JSON-schema dictionary (its `description`s are
   kept), where `output_format` may also be `"table"` or `"xml"` (`"text"` has no fields, so it is refused there).
-- The bundled prompt `extraction_structured` takes the format from its `format` variable (`"json"` by default, `"table"` or `"xml"`)
+- The bundled prompt `extraction_generic` takes the format from its `format` variable (`"json"` by default, `"table"` or `"xml"`)
   with a `schema`. `schema` is optional (`map({})`): `when schema` takes the fields from it, `when not schema` asks for two string
   fields, `name` and `value`.
 
@@ -658,6 +658,9 @@ A prompt builder reads the same lines: `builder.register_template(name, path, fr
 (the files are read again at each registration), `register_template(name, text, resolver=...)` takes a `resolver` for a text, and a folder
 loaded with `load_default_templates(builder, folder)` skips the partials. The partials that ship with Skye are private: a file of yours
 cannot include them.
+
+A small runnable case, one partial taken by two prompts (one with `from ... import` and `use`, one with `include` and `override`), is
+[`examples/prompts/shared_parts.py`](https://github.com/ggiallo28/skye/tree/main/examples/prompts/shared_parts.py).
 
 ## Version 1 and version 2
 

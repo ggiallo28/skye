@@ -5,7 +5,7 @@ status: current
 
 # Status and roadmap
 
-What you can use today, what is being built, and what is planned. Skye is at version 0.1: the public API can still change
+What you can use today, what is being built, and what is planned. Skye is before 1.0: the public API can still change
 between minor versions. Each component has a spec in the repository (`.kiro/specs/`), where the tasks and their state are tracked.
 
 ## Released
@@ -17,14 +17,15 @@ between minor versions. Each component has a spec in the repository (`.kiro/spec
 | `models` | Adapters for OpenAI, Anthropic, Bedrock, Azure OpenAI and Google, embeddings, structured output, token counting | [Call a provider](../guides/models/call-a-provider.md) |
 | `store` | State backends: memory, file, DynamoDB, Valkey/Redis, PostgreSQL, Lambda durable functions | [Choose a backend](../guides/state/choose-a-backend.md) |
 | `router` | Aliases, strategies, fallbacks, retries, health and cooldown | [Aliases and fallbacks](../guides/routing/aliases-and-fallbacks.md) |
-| `tools` | Capabilities: local functions, remote APIs, the MCP client | [Local functions](../guides/tools/local-functions.md) |
-| `.skye` tools | `skye check`, `fmt`, `render`, `new`, the VS Code extension | [CLI](../reference/cli.md) |
+| `tools` | Capabilities: local functions, remote APIs, the MCP client; toolkits (`files`, `openapi`, `human`, `shell`) | [Local functions](../guides/tools/local-functions.md), [Toolkits](../guides/tools/toolkits.md) |
+| plugins | `skye.Plugins()`: a decorator for each of nine kinds, provider profiles, `skye plugins`, and an offline `check_<kind>` for each | [Write a plugin](../guides/extend/write-a-plugin.md) |
+| `.skye` tools | `skye check`, `fmt`, `render`, `new`, the VS Code extension; shared parts of a prompt with `include`, `use` and `override` | [CLI](../reference/cli.md), [The `.skye` language](../reference/skye-language.md) |
 
 ## In progress
 
 | Component | State |
 |---|---|
-| `prompts` | Rendering, few-shot examples (as text or as messages), `.skye` prompts, the bundled agent prompts and `render_parts` work; audio, video and files in a prompt wait for the typed content blocks of `base` (only images are attached today) |
+| `prompts` | Rendering, few-shot examples (as text or as messages), `.skye` prompts with shared parts, six bundled prompts (extraction, code generation, summarization, explanation, question answering and a ReAct agent) and a gallery of 26 more to copy, and `render_parts` work; audio, video and files in a prompt wait for the typed content blocks of `base` (only images are attached today) |
 
 ## Planned
 
@@ -32,7 +33,7 @@ These components have a design and a spec but no released code. They are not par
 
 | Component | What it will do |
 |---|---|
-| `agents` | One agent loop, `AgentLoop`, with a hook before and after each operation, and a default `Agent`; streaming checks at checkpoints; suspend and resume across Lambda invocations; an infinite-context mode and tools written by the agent. See [Agents (preview)](../concepts/agents-preview.md). |
+| `agents` | One agent loop, `AgentLoop`, with a hook before and after each operation, and the built-in agent `REACT`; streaming checks at checkpoints; suspend and resume across Lambda invocations; an infinite-context mode and tools written by the agent. See [Agents (preview)](../concepts/agents-preview.md). |
 | `memory` | Conversation and long-term memory (episodic, semantic, procedural, persona, working) behind one Port, with a vector store (Valkey, pgvector) |
 | `guard` | Safety filters and pre-flight checks the runtime uses through a Port |
 | `policy` | A policy engine inspired by [Cedar](https://www.cedarpolicy.com/), in pure Python: `permit` and `forbid` over principal, action and resource, guarding tools, models and memory |

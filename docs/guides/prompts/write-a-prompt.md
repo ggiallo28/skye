@@ -104,9 +104,10 @@ A [router](../routing/aliases-and-fallbacks.md) takes the same list: `router.com
 
 ## Use a bundled prompt
 
-Skye ships 11 prompts written in `.skye`: the task prompts `text_classification`, `text_explanation`, `text_question_answering` and
-`text_summarization`, the extraction prompts `extraction_entities`, `extraction_relations`, `extraction_structured` and `extraction_table`, the
-generation prompts `generation_code` and `generation_sql`, and the ReAct agent prompt `agent_react`. A `BasePromptBuilder()` loads them all. The
+Skye ships 6 prompts written in `.skye`: the task prompts `text_explanation`, `text_question_answering` and
+`text_summarization`, the extraction prompt `extraction_generic` (entities, relations, a table, structured data or a classification: the fields of
+`schema` and the allowed `labels` say what to extract or decide, `format` how to write it), the
+generation prompt `generation_code` (code in any language, SQL included: `language = "SQL"` with `references` for the tables and `environment` for the dialect), and the ReAct agent prompt `agent_react`. A `BasePromptBuilder()` loads them all. The
 other prompts written for Skye (chat, tool, planner, procedure, reasoning, supervisor, group chat, memory upkeep and more) are a
 [gallery of files to copy](https://github.com/ggiallo28/skye/tree/main/examples/prompts/catalogue): they are not installed, you copy one next to your
 code and change it, or register it from its path with `register_template(name, path, from_string=False)`. A prompt joins the package when a part of
@@ -114,7 +115,7 @@ the library needs it.
 
 ```bash
 skye prompt list                      # name, title, version and description of each bundled prompt
-skye prompt info text_classification       # its inputs, history placeholders, messages and output
+skye prompt info extraction_generic       # its inputs, history placeholders, messages and output
 skye prompt info prompts.skye --name greeting   # the same for a prompt of your own
 ```
 
@@ -125,11 +126,13 @@ data. From Python, `describe_prompt(spec, metadata)` returns it as a `PromptInfo
 from skye.prompts import BasePromptBuilder
 
 builder = BasePromptBuilder()
-messages = builder.render("text_classification", {
-    "text": "The app crashes when I upload a photo.",
-    "categories": [{"name": "bug"}, {"name": "question"}, {"name": "feature request"}],
+messages = builder.render("extraction_generic", {
+    "input": "The app crashes when I upload a photo.",
+    "instructions": ["Classify the text into exactly one of the labels."],
+    "labels": [{"name": "bug"}, {"name": "question"}, {"name": "feature request"}],
+    "schema": {"category": "string"},
 })
-print(builder.help("text_classification"))
+print(builder.help("extraction_generic"))
 ```
 
 A prompt of your own that shares parts with other files (`include`, `from ... import`, `use`, see the [language reference](../../reference/skye-language.md))

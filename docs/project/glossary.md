@@ -23,7 +23,7 @@ A codename is a small watermark in the Nimbus cloud and weather theme. The plain
 | isobar | `policy` | Policy engine (Cedar-inspired): authorization decisions. |
 | radar | `observe` | Events, logs, metrics and traces. |
 | horizon | `gateway` | MCP gateway with a toolset per operation. |
-| cyclone | `agents` | The agent loop (`AgentLoop`), the default `Agent` and hooks. |
+| cyclone | `agents` | The agent loop (`AgentLoop`), the built-in agent `REACT` and hooks. |
 | front | `teams` | Optional teams of agents. |
 | stream | `flows` | Optional flows (workflows). |
 

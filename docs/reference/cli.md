@@ -174,7 +174,7 @@ cannot be read, or it has no prompt of that name.
 
 ```bash
 skye prompt list
-skye prompt info extraction_structured
+skye prompt info extraction_generic
 skye prompt info prompts.skye --name summarize --json
 skye prompt export my-prompts
 ```

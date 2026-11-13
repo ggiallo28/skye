@@ -54,6 +54,9 @@ Lines and columns count from 1; `message` is the reason followed by the fix. The
 and 2 for a usage or read error (the message goes to standard error and nothing is printed on standard output). Any other
 editor can use the same command.
 
+A mistake in a file that an `include` brought has one more key, `"via"`: the use sites in the files above it, `[{"file", "line", "column"}]`.
+The extension shows such a mistake at the first use site in the open file, with the message prefixed by `in <file>:<line>:<column>:`.
+
 ## See also
 
 - [.skye language](skye-language.md): the language itself.
