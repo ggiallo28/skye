@@ -201,9 +201,9 @@ plugin object with `register(registrar)`, no `PluginInterface` and no `skye.use`
   what is installed and registered. Conformance: one public `check_<kind>` per kind, run over the built-ins too.
 - **Tools, toolkits and agents (D111).** Capabilities are not a plugin kind and no default set exists: a tool belongs to the agent that is
   given it. `@capability` (required) takes `name`, `description` and `return_direct`; a `CapabilityRegistry` stays in `tools` and holds
-  tools with namespaces (`weather.get_current`). The built-in tools are toolkits, `ToolProvider`s that an agent takes in `toolkits=`,
-  apart from its own `tools=`: `files` (a required root, or several roots), `openapi`, `human`, `shell`; `mcp`, `skyea2a` and `a2a` are pending O80. A toolkit is a class that extends `skye.Toolkit`
-  with `@capability` on its methods; the name of a tool is `<toolkit>.<name>`. A `SKILL.md` in `skills=` adds `files` by itself,
+  tools with namespaces (`weather_get_current`). The built-in tools are toolkits, `ToolProvider`s that an agent takes in `toolkits=`,
+  apart from its own `tools=`: `files` (a required root, or several roots), `openapi`, `human`, `shell`; `mcp`, `skyea2a` and `a2a` are deferred to an issue and O80 stays open. A toolkit is a class that extends `skye.Toolkit`
+  with `@capability` on its methods; the name of a tool is `<toolkit>_<name>` (D119). A `SKILL.md` in `skills=` adds `files` by itself,
   limited to the folder of the skill. An agent is built only with `skye.agent(name, **options)`; `REACT` is the built-in one.
 - **Tokenizers.** A tokenizer is registered by name and a model uses it through its `ModelProfile`; `plugins.profile(provider, models=...)`
   merges a change into an existing provider.

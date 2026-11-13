@@ -327,19 +327,11 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     registry, `self` out of the schema, a toolkit that is built by name and replaced
     - _Requirements: 62.5, 62.6_
 
-- [ ] 19. The built-in toolkits as plugins (D111; the content of each is open in O70)
+- [x] 19. The built-in toolkits as plugins (D111; the content of each is open in O70)
   - [x] 19.1 `tools/plugins/files/`: registered by text as the toolkit `files`; the option `root` is required and nothing outside it can be read
     - _Requirements: 62.7_
   - [x] 19.2 `tools/plugins/openapi/`: registered as the toolkit `openapi` with the option `spec`
     - _Requirements: 62.7_
-  - [ ] 19.3 `tools/plugins/mcp/`: registered as the toolkit `mcp` with the option `target`, on top of an MCP client ON HOLD until O80 is decided; the code is parked outside the repository.
-    - _Requirements: 62.7_
-  - [ ] 19.4 The toolkits `skyea2a` (the agent-to-agent protocol on the standard library, as `skyemcp` is for MCP) and `a2a` (on the official SDK, imported ON HOLD until O80 is decided; the code is parked outside the repository.
-    only when used): the base only (the door, the class, the four tools `describe_agent`, `send_message`, `get_task`, `cancel_task`, the options `url`,
-    `headers`, `timeout`); what is not done is listed as issues for contributors (`docs/_notes/toolkit-issues.md`); none of the toolkits is active unless the
-    user asks for it or a feature of the agent needs it; `IMPLEMENTATIONS` of `tools/plugins/` lists the MCP clients and the toolkits; `test_layout_tools.py`
-    is updated
-    - _Requirements: 62.7, 56.9_
   - [x] 19.6 The toolkit `shell`, the base only (opt-in: an allow list of executables is required, no shell, a time limit, a cut of the output, a Restored and registered after the O80 parking (it is not part of O80).
     working folder, a minimal environment); the rest is listed as issues for contributors
     - _Requirements: 62.7_
@@ -379,14 +371,10 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     and the docs accept it
     - _Requirements: 58.1, 58.7; D113_
 
-- [ ] 24. Size and load time of the installed package (O77, O78; the owner approved the proposal on 2026-11-12)
+- [x] 24. Size and load time of the installed package (O77, O78; the owner approved the proposal on 2026-11-12)
   - [x] 24.1 A script that reports the size of the installed package by component and by kind (code, docstrings, comments, data files) against
     `[core]` of `budgets.toml`, and the rule that every wave ends with it (written in the Notes of this file): `make size`, with a test that
     the figures add up to the measured install
-    - _Requirements: 61.4; O77_
-  - [ ] 24.2 ON HOLD until the owner decides O77 (installing the skill and the extension from the public repository may replace it): `utils/claude_skill` and `utils/vscode_extension` stay plain files in the repository; the build puts one `zipfile` archive of each in
-    the wheel (the built `.vsix` for the extension, which is a zip); `skye skill` and `skye vscode` read the archive in an installed package and the
-    folder in a source checkout; a test of the round trip and one that runs the commands against the wheel
     - _Requirements: 61.4; O77_
   - [x] 24.3 The comments are removed from the wheel at build (a hook of the build backend, stdlib only): from the Python files with the standard-library
     `tokenize` (the line numbers stay, a shebang and a coding line stay) and from the bundled `.skye` templates with the lexer of the language (the `#`
@@ -397,7 +385,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
   - [x] 24.4 The references to requirements, decisions and tasks move from the docstrings to comments (docstrings only say what the library does);
     a budget test that forbids the patterns in docstrings, with a list of exceptions that only shrinks; no cap of docstring bytes
     - _Requirements: 61.4; O77_
-  - [ ] 24.5 The `include` of the `.skye` language is implemented and documented (D116, `docs/_notes/include-design.md`): the work is the tasks 25.1 to 25.6; this task
+  - [x] 24.5 The `include` of the `.skye` language is implemented and documented (D116, `docs/_notes/include-design.md`): the work is the tasks 25.1 to 25.6; this task
     is closed when they are and when the bundled templates are migrated (24.6)
     - _Requirements: 63.1 to 63.17; D116_
   - [x] 24.6 The bundled `.skye` templates use `include` and `from ... import` for what 2 or more files repeat (five partials: `system_prompt`, `tools`, the memories and two small groups, 93% of the gain; 33% of their bytes are in repeated lines); the output of
@@ -417,10 +405,12 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     - _Requirements: 61.4; O77_
   - [x] 24.11 The bundled prompts are reduced (D118, owner 2026-11-13): the 26 templates other than `generation_*`, `extraction_*`, `text_*` and the ReAct agent prompt (`agent_smol_tool_calling` renamed `agent_react`) move to `examples/prompts/catalogue/` with their sample variables (a gallery with one runner example that lists and renders them offline, and a test that every file passes `skye check` and renders; the files that use a shared partial carry their own copy of `common/`); `src/skye/prompts/templates/` keeps `common/` and the 11 kept templates; the comments inside the templates go (the examples already moved to `examples/prompts/bundled/` in 24.9; the explanations are removed and kept in a local note); every test, page, example and the skill that uses a moved template by name uses the gallery; Requirement 30.14 and the specification `2-services-prompts` are amended; the steps 1b, 2 and 3 of 24.10 are done only if the owner asks; the gallery also holds `extraction_generic` (one prompt for entity, relation and table extraction, with three sample files), 27 files in all
     - _Requirements: 61.4; D118_
-  - [ ] 24.12 `generation_code` and `generation_sql` become one bundled template `generation_code` (owner, 2026-11-13): SQL is a case of code generation through generic variables and not through variables of its own: `language` (`"SQL"` for SQL), `input` (what to generate), `description`, `requirements` and `constraints` (one list), `references` (a list of named items with an optional description and a content, for the tables of a schema, files or documents), `environment` (the dialect, runtime or version, for the SQL dialect or the runtime), `examples` (`input` and `output`), `input_format`, the answer through the `output` block (`format` json, table, xml or text) and `include_tests` and `include_comments`; the renders of the two old templates are reproduced by their options except the intended changes (the system sentence follows the language, the sections follow one layout), listed in a test with the old and the new text; the tests, pages, examples and the skill that name `generation_sql` use `generation_code` with `language` set; done after 24.11
+  - [x] 24.12 `generation_code` and `generation_sql` become one bundled template `generation_code` (owner, 2026-11-13): SQL is a case of code generation through generic variables and not through variables of its own: `language` (`"SQL"` for SQL), `input` (what to generate), `description`, `requirements` and `constraints` (one list), `references` (a list of named items with an optional description and a content, for the tables of a schema, files or documents), `environment` (the dialect, runtime or version, for the SQL dialect or the runtime), `examples` (`input` and `output`), `input_format`, the answer through the `output` block (`format` json, table, xml or text) and `include_tests` and `include_comments`; the renders of the two old templates are reproduced by their options except the intended changes (the system sentence follows the language, the sections follow one layout), listed in a test with the old and the new text; the tests, pages, examples and the skill that name `generation_sql` use `generation_code` with `language` set; the requirements and the constraints are one list `constraints`, what the generated code outputs is `result_format`, `format` defaults to `text` (plain code); done after 24.11
+    - _Requirements: 61.4; D118_
+  - [x] 24.13 The four bundled extraction prompts (`extraction_entities`, `extraction_relations`, `extraction_structured`, `extraction_table`) and `text_classification` are replaced by one bundled `extraction_generic` (owner, 2026-11-13: a classification is an extraction whose `labels` are the categories): the fields of `schema` and the allowed `labels` say what to extract, the `format` (json, table, xml, text) is written by the `output` block, the extra rules are `instructions` and `constraints`, the background is `context`, the examples are user and assistant turns; the bundled set becomes `common/` and 6 templates (`agent_react`, `extraction_generic`, `generation_code`, `text_explanation`, `text_question_answering`, `text_summarization`); the old samples become the cases of `examples/prompts/bundled/extraction_generic.json` (entities, relations, table, default fields, classification); the tests, pages, examples and the skill that name the five are updated
     - _Requirements: 61.4; D118_
 
-- [ ] 25. The `include` of the `.skye` language (D116)
+- [x] 25. The `include` of the `.skye` language (D116)
   - [x] 25.1 Lexer, parser and syntax tree (`src/skye/base/dsl`): `include "path" as alias`, `from "path" import a, b as c`, `use name` and `use alias`
     in a `variables` body, a prompt body and a message body; the words `from`, `import`, `use` and `partial` (the front matter key); the expansion
     in `build` before the validation with a resolver given to `build` and `check_text`, the kind taken from the place, the pairing of a name with
@@ -446,7 +436,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     its test, the grammar of the VS Code extension (`include`, `from`, `import`, `use`, `partial` and the path string), with the examples checked by
     `tests/unit/dsl/test_docs_examples.py` through a resolver on a temporary folder
     - _Requirements: 63.17; D116_
-  - [ ] 25.6 The check of the feature: `make size`, the footprint test and the load budgets (the code of tasks 25.1 to 25.4 and 26.1 to 26.3 adds a few KB to the core; the
+  - [x] 25.6 The check of the feature: `make size`, the footprint test and the load budgets (the code of tasks 25.1 to 25.4 and 26.1 to 26.3 adds a few KB to the core; the
     limit is not changed), the construction of the builder under `max_builder_ms`, the whole suite, `mypy src`, and the strict docs build
     - _Requirements: 61.4, 63.15; D116, D117_
 
@@ -490,6 +480,9 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     marked as taken with the options used, the "Extension points" table of `11-design.md` updated, and the scan note
     `docs/_notes/extension-points-scan.md` marked as done
 ## Notes
+
+- Deferred to an issue (owner, 2026-11-13): the toolkit `mcp` (it was 19.3) and the toolkits `skyea2a` and `a2a` (they were 19.4) are not part of this plan. The decision O80 (the kind `a2a_client`, the folder `tools/engines`, the thin adapters over a client chosen by `impl=`) stays open and the work is described in a GitHub issue. What exists: the MCP clients in `tools/engines`, the skeletons `a2a` and `skyea2a` there (not registered, every method raises `NotImplementedError`) and the parked first versions of the toolkits outside the repository. Requirement 62.7 names `mcp`, `skyea2a` and `a2a` as pending that issue.
+- Deferred to an issue (owner, 2026-11-13): 24.2, the archives of the skill and the extension (O77); the installed core is under the limit without it (1.915 MB of 2 MB after D118).
 
 - Exit rule of every wave (owner, 2026-11-12): a wave ends with the size check, the default suite and the footprint test; the figure by component comes from task 24.1 when it exists, and until then from `uv run pytest tests/budget/test_footprint_budget.py -m budget`.
 
@@ -541,13 +534,13 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     { "id": 17, "tasks": ["4.4", "14.4", "15.1"] },
     { "id": 18, "tasks": ["4.6", "15.2", "16.2", "23.1"] },
     { "id": 19, "tasks": ["4.7", "15.3", "15.4", "23.2", "24.1", "24.8"] },
-    { "id": 20, "tasks": ["15.5", "16.1", "17.1", "24.2"] },
+    { "id": 20, "tasks": ["15.5", "16.1", "17.1"] },
     { "id": 21, "tasks": ["9.4", "16.3", "17.2", "18.3", "24.3"] },
     { "id": 22, "tasks": ["6.3", "7.4", "17.3", "18.4"] },
     { "id": 23, "tasks": ["6.5", "18.6", "19.1"] },
     { "id": 24, "tasks": ["6.6", "6.7", "19.2", "19.5", "24.7"] },
-    { "id": 25, "tasks": ["6.8", "10.1", "19.3", "20.2"] },
-    { "id": 26, "tasks": ["10.2", "19.4", "20.3", "19.6", "19.7"] },
+    { "id": 25, "tasks": ["6.8", "10.1", "20.2"] },
+    { "id": 26, "tasks": ["10.2", "20.3", "19.6", "19.7"] },
     { "id": 27, "tasks": ["21.1"] },
     { "id": 28, "tasks": ["21.2", "21.3", "24.4"] },
     { "id": 29, "tasks": ["11.1", "11.2"] },
@@ -562,7 +555,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     { "id": 38, "tasks": ["24.9"] },
     { "id": 39, "tasks": ["26.1"] },
     { "id": 40, "tasks": ["26.2", "24.10", "24.11"] },
-    { "id": 41, "tasks": ["24.12"] },
+    { "id": 41, "tasks": ["24.12", "24.13"] },
     { "id": 42, "tasks": ["26.3", "26.4", "26.5"] },
     { "id": 43, "tasks": ["25.6"] },
     { "id": 44, "tasks": ["24.5"] }

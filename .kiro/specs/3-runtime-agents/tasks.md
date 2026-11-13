@@ -52,6 +52,9 @@ decision O12 stays open: a task that depends on it takes the value as an argumen
     - _Requirements: 42.11, 42.12; D84, D85_
   - [ ] 4.6 Streaming with checkpoints of the text: buffer, safety and policy hooks every window (default 500 characters) on all the text so far and on the complete answer; modes "hold" (default) and "show and retract" with a `retract` event; an `on_chunk` observer
     - _Requirements: 40.12; D86_
+  - [ ] 4.7 The loop honors `return_direct` of a capability (the answer of the tool is the answer of the turn, with the rules of D119: direct only when every call of the turn is direct, an error goes back to the model) and builds its toolkits from `toolkits=` and `skill_toolkits`
+    - Note: passed from the plugins spec (checkpoint finding F5): `return_direct` travels through the Port and is tested there, but the built-in `REACT` agent is a placeholder that raises `NotImplementedError`, so the agent half of Requirements 62.3 and 62.4 has no code yet.
+    - _Requirements: 62.3, 62.4_
 
 - [ ] 5. Toolset and concurrency
   - [ ] 5.1 Obtain tools only through the `ToolProvider`, at the toolset operation, at the start of a run, and when a hook or the model asks for different tools; the operation description is an argument or a callable
@@ -95,3 +98,5 @@ decision O12 stays open: a task that depends on it takes the value as an argumen
     - _Requirements: 24.2, 24.4, 24.5_
   - [ ] 8.6 Bring back the prompts that the loop needs (for example `agent_tool`, and `agent_planner` if the loop plans) from `examples/prompts/catalogue/` into `src/skye/prompts/templates/`, as a move of the file with a test that it renders and passes `skye check`; no other prompt is bundled (D118)
     - _Requirements: 30.14; D118_
+  - [ ] 8.7 Rewrite `docs/concepts/agents-preview.md` for the implemented agent (it still describes `AgentLoop` and `Agent`, which do not exist; the built-in agent is `REACT` built with `skye.agent(...)`)
+    - _Requirements: 24.2, 24.4_

@@ -1192,6 +1192,55 @@
         "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
         "timestamp": 1794589727350
       }
+    ],
+    "24.12 `generation_code` and `generation_sql` become one bundled template `generation_code` (owner, 2026-11-13): SQL is a case of code generation through generic variables and not through variables of its own: `language` (`\"SQL\"` for SQL), `input` (what to generate), `description`, `requirements` and `constraints` (one list), `references` (a list of named items with an optional description and a content, for the tables of a schema, files or documents), `environment` (the dialect, runtime or version, for the SQL dialect or the runtime), `examples` (`input` and `output`), `input_format`, the answer through the `output` block (`format` json, table, xml or text) and `include_tests` and `include_comments`; the renders of the two old templates are reproduced by their options except the intended changes (the system sentence follows the language, the sections follow one layout), listed in a test with the old and the new text; the tests, pages, examples and the skill that name `generation_sql` use `generation_code` with `language` set; the requirements and the constraints are one list `constraints`, what the generated code outputs is `result_format`, `format` defaults to `text` (plain code); done after 24.11": [
+      {
+        "executionId": "2ce5bf5a-a868-415a-8497-9fd6ba662968",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794591465573
+      }
+    ],
+    "25.6 The check of the feature: `make size`, the footprint test and the load budgets (the code of tasks 25.1 to 25.4 and 26.1 to 26.3 adds a few KB to the core; the": [
+      {
+        "executionId": "e8de2253-2b19-49b1-87a4-b16032a11f54",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794591465573
+      }
+    ],
+    "24.5 The `include` of the `.skye` language is implemented and documented (D116, `docs/_notes/include-design.md`): the work is the tasks 25.1 to 25.6; this task": [
+      {
+        "executionId": "8ebffe8b-e2b8-493f-901a-5439a412d574",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794591465574
+      }
+    ],
+    "25. The `include` of the `.skye` language (D116)": [
+      {
+        "executionId": "02d8a284-8436-4ba3-9ac0-3781a68a167a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794591465574
+      }
+    ],
+    "24.13 The four bundled extraction prompts (`extraction_entities`, `extraction_relations`, `extraction_structured`, `extraction_table`) and `text_classification` are replaced by one bundled `extraction_generic` (owner, 2026-11-13: a classification is an extraction whose `labels` are the categories): the fields of `schema` and the allowed `labels` say what to extract, the `format` (json, table, xml, text) is written by the `output` block, the extra rules are `instructions` and `constraints`, the background is `context`, the examples are user and assistant turns; the bundled set becomes `common/` and 6 templates (`agent_react`, `extraction_generic`, `generation_code`, `text_explanation`, `text_question_answering`, `text_summarization`); the old samples become the cases of `examples/prompts/bundled/extraction_generic.json` (entities, relations, table, default fields, classification); the tests, pages, examples and the skill that name the five are updated": [
+      {
+        "executionId": "c87dae07-bcb3-4bf7-90f0-8b190a0224e0",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794595312164
+      }
+    ],
+    "19. The built-in toolkits as plugins (D111; the content of each is open in O70)": [
+      {
+        "executionId": "22dc661d-faad-44e9-80ae-88b9869bccda",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794595755007
+      }
+    ],
+    "24. Size and load time of the installed package (O77, O78; the owner approved the proposal on 2026-11-12)": [
+      {
+        "executionId": "41ed529f-6f31-4de6-b2a5-58c10d3e8a9d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794596684110
+      }
     ]
   }
 }

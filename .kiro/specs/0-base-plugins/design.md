@@ -161,8 +161,8 @@ models/
   an inner module.
 - **The other components, the same shape.** `store/plugins/{memory,file,dynamodb,redis,postgres,durable_function}/` with `backend.py` (`valkey`
   is a second name registered by the `redis` door); `auth/plugins/{aws,google,azure,oauth2,openai_compatible,secrets}/` with `source.py` and the
-  helpers that only that family uses (`aws` also holds `aws_profile.py`, `sts.py` and `sigv4.py`); `tools/plugins/{skyemcp,fastmcp}/` with
-  `client.py`, and next to the two MCP clients the folders of the built-in toolkits (`files`, `openapi`, `mcp`, `skyea2a`, `a2a`, `shell`; see Toolkits below); `agents/plugins/react/` with `agent.py` (a built-in registered by text, so that `import skye.agents` loads no built-in). What several folders use stays in the root: `store/_common.py`, `conformance.py`, `factory.py`; `auth/cache.py`, `refresh.py`,
+  helpers that only that family uses (`aws` also holds `aws_profile.py`, `sts.py` and `sigv4.py`); `tools/engines/{skyemcp,fastmcp}/` with
+  `client.py` (the MCP clients, D114; the skeletons `a2a` and `skyea2a` are there too, not registered), and `tools/plugins/{files,openapi,human,shell}/` with `toolkit.py` (the built-in toolkits; `mcp`, `skyea2a` and `a2a` are deferred to an issue, owner, 2026-11-13, O80 stays open; see Toolkits below); `agents/plugins/react/` with `agent.py` (a built-in registered by text, so that `import skye.agents` loads no built-in). What several folders use stays in the root: `store/_common.py`, `conformance.py`, `factory.py`; `auth/cache.py`, `refresh.py`,
   `errors.py`, `rsa_signing.py`, `registry.py`; `tools/mcp_client.py` (the interface, `create_mcp_client`) and the rest.
 - **A missing file.** A missing inner file breaks only access to the name that lives in it (an `ImportError` that the registrar turns into a
   `ConfigurationError` naming the kind, the name and the cause); the folder and the others keep working. A missing `profile.toml` is a broken
@@ -282,18 +282,18 @@ adapter and profile of that provider, with an allowlist that only shrinks, in th
 ### Toolkits and the agent call (Requirement 62)
 - **A toolkit.** `skye.Toolkit` lives in `tools`; it is a `ToolProvider` (the Port in `base`) that collects the methods of its class marked with
   `@capability` and runs them (62.5). A class is registered with `@plugins.toolkit("name")` and built with `skye.toolkit("name", **options)` (62.6).
-- **The prefix.** The name of a tool is `<toolkit name>.<name>`, added by `skye.Toolkit`, where the name is the name of the method or the `name=`
+- **The prefix.** The name of a tool is `<toolkit name>_<name>` (D119; it was `<toolkit name>.<name>`), added by `skye.Toolkit`, where the name is the name of the method or the `name=`
   of the decorator. Two instances of one toolkit take an `alias` (`skye.toolkit("jira", alias="jira-eu", ...)`), which replaces the toolkit
   name in the prefix.
 - **The shape.** Methods carry the same `@capability` as a free function; for that `LocalFunctionCapability` becomes a descriptor (`__get__` binds
   it to the instance) and its schema skips `self`. A function written outside the class is added with `tools=[...]` in the decorator
   (`@plugins.toolkit("jira", tools=[slugify])`), also with no class (`plugins.toolkit("text", tools=[...])`); a toolkit with no state may be a
   function that returns a `CapabilityRegistry`. `@capability` is required for now and takes `name`, `description` and `return_direct` (62.2).
-- **Built-ins.** `files` (a required `root`; nothing outside it), `openapi` (one tool for each operation of a document), `mcp` (the tools of an
-  MCP server, by its address), `skyea2a` and `a2a` (a remote A2A agent, on the standard library and on the official SDK) and `shell` (programs from a required allow list, run without a shell), registered as plugins in `tools/plugins/` next to the two MCP clients; none is active unless the user
+- **Built-ins.** `files` (a required `root`; nothing outside it), `openapi` (one tool for each operation of a document), `human` (an agent asks a person a question or hands a case over, through a channel `console` or `file`) and `shell` (programs from a required allow list, run without a shell), registered as plugins in `tools/plugins/`; the MCP clients are engines in `tools/engines/`; `mcp` (the tools of an
+  MCP server, by its address), `skyea2a` and `a2a` (a remote A2A agent, on the standard library and on the official SDK) are deferred to an issue (owner, 2026-11-13) and O80 stays open; none is active unless the user
   asks for it or a feature of the agent needs it (62.7). A `SKILL.md` in `skills=[...]` makes the agent build `files` through the registrar,
   limited to the folder of the skill (62.8). The content of each toolkit, the read-only rule of `files` and the rules of `return_direct` are open
-  in O70; the wire name of a tool with a dot is open in O70 as well.
+  in O70 (taken as D119 with the underscore in the name of a tool).
 - **Not a plugin kind.** `CapabilityRegistry` keeps its name and stays in `tools` with its namespaces; capabilities are not registered in the
   registrar and no default set exists, so a tool belongs to the agent that is given it (62.1). Whether `tools` and the gateway merge is O19.
 - **The agent call.** An agent is built only with `skye.agent(name, **options)`, a view of `create_agent`; there is no `Agent` class, and `REACT`
@@ -420,11 +420,10 @@ The interface is decided in D111; what follows is what D111 left open, each in `
 and name the open point they wait for.
 - O19: whether a separate `gateway` stays or its work becomes the job of the tools registry. This spec keeps `CapabilityRegistry` in `tools`.
 - O62: `base/openai_shape.py` stays in `base` (option A); no change in this spec.
-- O63: namespaces with `store.namespaced` (1, option A) and the store region through `resolve_region` with boto3's chain last (2, option A).
-- O65: whether `RegistrarInterface` stays a public Protocol, whether `mcp_client` is part of it, and whether a scope for tests is reconsidered.
-- O68: the sync `run` of the agent base, the cost of one thread for each sync stream, the credential source `apply`.
-- O70: the rules of `return_direct`, plain functions without `@capability`, the early schema check and `__call__`, the wire name of a tool with a
-  dot, and the content of the built-in toolkits.
+- O63: taken as D115: `store.namespaced` (1, option A) and the store region through `resolve_region` with boto3's chain last (2, option A).
+- O65: taken as D115: `RegistrarInterface` stays a public Protocol with the nine kind methods.
+- O68: taken as D115 for the models and the embeddings (derived sync forms); the sync `run` of the agent base is passed to `3-runtime-agents`.
+- O70: taken as D119: the rules of `return_direct`, the decorator required, `__call__`, the underscore in the name of a toolkit tool and the content of the built-in toolkits.
 - O71: the default name `react`, `skye.BaseAgent`, and the options of a custom agent type.
-- O72: the details of `plugins.profile`, and the fate of `TokenCounter.register_tokenizer`.
+- O72: taken as D115: the details of `plugins.profile`; `TokenCounter.register_tokenizer` stays outside the plugin interface.
 - O73: how a user finds the hooks of an agent and what each hook point receives (`list_hooks`, `describe_hook`); it belongs to `3-runtime-agents`.

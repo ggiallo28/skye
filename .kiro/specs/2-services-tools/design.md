@@ -59,7 +59,7 @@ and are migrated under D24/O4 — see "Superseded (history)" and tasks.md.
 ### Registry and the extension point
 
 `registry.py` holds `CapabilityRegistry` behind the `registry` Port: thread-safe register/get/list/unregister, dotted
-namespaces (`weather.get_current`), duplicate-name rejection, and semantic search over name and description. A capability
+namespaces (`weather_get_current`), duplicate-name rejection, and semantic search over name and description. A capability
 is the tool extension point: a new local function or remote API is registered here and nothing outside `tools` changes
 (Requirement 6.1, 6.2; design "Extension points"). The registry validates each capability's schema on registration and the
 call handler validates arguments at call time (Requirement 16.2).

@@ -25,7 +25,7 @@ builder is the only caller (no second implementation of the Port exists).
 | `prompts/messages.py` | `BasePromptBuilder`: registry (`name:version`), variable merge, examples, role sections, content and schema configuration, metadata and validation. Re-exports the message types for peers. |
 | `prompts/loaders.py` | `load_default_templates(builder)`: reads the files of `prompts/templates/` and registers them as version `1.0`. |
 | `prompts/skye_prompts.py` | The `.skye` renderer: `load_prompt`, `render_prompt` (a `PromptSpec` plus variables gives `SkyeMessage`s with real roles), `render_parts` (the same as a `PromptParts`, D81, D101), `output_json_schema` and `PromptRunnable` (the `Runnable` a flow step `run = prompt.NAME` will reach once the flow runtime exists). |
-| `prompts/templates/` | The bundled prompts, all `.skye`: the shared parts in `common/` and 11 prompts (`text_*`, `extraction_*`, `generation_*` and `agent_react`). The other 26 prompts, among them the agent prompts of "Agent prompts" below, are a gallery in `examples/prompts/catalogue/` since 2026-11-13 (D118), not installed. |
+| `prompts/templates/` | The bundled prompts, all `.skye`: the shared parts in `common/` and 6 prompts (`text_*`, `extraction_generic`, `generation_code` and `agent_react`). The other 26 prompts, among them the agent prompts of "Agent prompts" below, are a gallery in `examples/prompts/catalogue/` since 2026-11-13 (D118), not installed. |
 
 Flow of one rendering: look up the latest (or the given) version, extract the variable names, merge defaults, partial variables and
 provided variables (the provided ones win, callable defaults are called at each rendering, Requirement 30.4), inject the selected
@@ -154,8 +154,8 @@ Jinja; written `"key" in x and x.key`), and a `when` that can test the history g
 separator) were converted once D69 added, without new syntax, `loop.*` inside `each`, `{key, value}` entries when an `each` goes
 over a map, and the engine filter `map(attribute)`. The equivalence test (task 4.4) lists the intended differences: real
 roles, history as messages, whitespace, empty messages omitted, and lines the old templates glued together because an
-`{% endif %}` swallowed the newline (`agent_memory_assistant`, `agent_memory_recall`, `sql_generation`, `extraction_relations`,
-`extraction_table`). The old engine cannot render the legacy `{% %}` templates any more (D76), so their output for every case was
+`{% endif %}` swallowed the newline (`agent_memory_assistant`, `agent_memory_recall`, and the old SQL, relations and table prompts, now `generation_code` and `extraction_generic`, whose frozen renderings were
+removed with the merge). The old engine cannot render the legacy `{% %}` templates any more (D76), so their output for every case was
 rendered once and frozen in `tests/unit/prompts/legacy_renderings/` (task 9.1); the test compares against those texts.
 Already enough in the engine: the filters `default`, `join`, `upper`, nested `each`, attribute access (`table.columns`). Not to be
 added (D20): macros, inheritance, include, variable assignment. `prompts/engine.py` keeps only `{{ }}` interpolation with filters
