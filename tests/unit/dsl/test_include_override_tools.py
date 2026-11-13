@@ -1,4 +1,5 @@
-"""The tools of the ``override`` of the include (D117, Requirement 63.21): fmt, diagnostics, via, to_text."""
+"""The tools of the ``override`` of the include (D117, Requirement 63.21): fmt, diagnostics, via,
+to_text."""
 
 from __future__ import annotations
 
@@ -56,7 +57,7 @@ def test_an_invalid_override_is_reported_at_the_override_line_of_the_file():
     assert not problem.via
 
 
-def test_a_mistake_left_in_the_part_a_partial_still_brings_points_at_the_partial_with_the_use_site():
+def test_a_mistake_in_what_a_partial_still_brings_points_at_the_partial():
     broken = {"lib/memories.skye": MEMORIES.replace("when persona_memory {", "when nothing_here {")}
     problem = built(WHOLE, broken).diagnostics[0]
     assert problem.file == "lib/memories.skye"
@@ -68,7 +69,8 @@ def test_a_mistake_left_in_the_part_a_partial_still_brings_points_at_the_partial
 def test_an_override_of_a_name_whose_use_comes_later_says_where_the_use_is():
     early = (
         'from "lib/memories.skye" import show_ids\n'
-        'prompt "p" {\n  variables = {\n    override show_ids = bool(true)  "Shown"\n    use show_ids\n  }\n}\n'
+        'prompt "p" {\n  variables = {\n'
+        '    override show_ids = bool(true)  "Shown"\n    use show_ids\n  }\n}\n'
     )
     problems = reasons(built(early, FILES))
     assert any('cannot override "show_ids"' in p for p in problems)
@@ -81,7 +83,8 @@ def test_an_override_of_a_name_whose_use_comes_later_says_where_the_use_is():
 def test_a_second_override_of_a_name_says_where_the_first_one_is():
     twice = WHOLE.replace(
         '    override show_ids = bool(true)  "Ids are shown"',
-        '    override show_ids = bool(true)  "Ids are shown"\n    override show_ids = bool(false)  "Again"',
+        '    override show_ids = bool(true)  "Ids are shown"\n'
+        '    override show_ids = bool(false)  "Again"',
     )
     assert any("already overridden at line 6" in r for r in reasons(built(twice, FILES)))
 

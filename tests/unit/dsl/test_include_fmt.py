@@ -1,4 +1,5 @@
-"""Requirement 63: ``skye fmt`` keeps ``include``, ``from ... import`` and ``use`` where they are (task 25.3)."""
+"""Requirement 63: ``skye fmt`` keeps ``include``, ``from ... import`` and ``use`` where they are
+(task 25.3)."""
 
 from __future__ import annotations
 
@@ -26,8 +27,15 @@ use system_prompt
 def test_the_include_lines_and_the_use_lines_stay_where_they_are() -> None:
     result = format_text(UNFORMATTED, "x.skye")
     lines = [line.strip() for line in result.splitlines()]
-    assert lines[:2] == ['include "lib/memory.skye" as memory', 'from "lib/agent.skye"   import system_prompt,   tools']
-    assert lines.index("use system_prompt") < lines.index("use memory") < lines.index('input = string("")  "The user\'s message"')
+    assert lines[:2] == [
+        'include "lib/memory.skye" as memory',
+        'from "lib/agent.skye"   import system_prompt,   tools',
+    ]
+    assert (
+        lines.index("use system_prompt")
+        < lines.index("use memory")
+        < lines.index('input = string("")  "The user\'s message"')
+    )
     assert "    use memory" in result  # indented as the entries around it
 
 
@@ -63,6 +71,11 @@ def test_to_text_writes_the_expanded_prompt_and_no_use() -> None:
     from tests.unit.dsl.include_files import FILES, TOOL_AGENT, built
 
     written = to_text(built(TOOL_AGENT, FILES))
-    statements = [l for l in written.splitlines() if l.strip().startswith(("use ", "include ", "from "))]
-    assert statements == []  # the words may appear inside the text of a message, never as a statement
+    statements = [
+        line
+        for line in written.splitlines()
+        if line.strip().startswith(("use ", "include ", "from "))
+    ]
+    # the words may appear inside the text of a message, never as a statement
+    assert statements == []
     assert "persona_memory" in written and "when tools" in written

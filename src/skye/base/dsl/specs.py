@@ -18,8 +18,10 @@ from typing import Any, Literal
 
 from skye.base.validated import Validated, field, validated
 
-#: The built-in routing strategies (the values of ``skye.base.interfaces.router.RoutingStrategy``). A name that a plugin registered is also valid
-#: in a ``strategy`` (the checker asks the registrar), which is why the fields below are ``Strategy | str``.
+# : The built-in routing strategies (the values of ``skye.base.interfaces.router.RoutingStrategy``).
+# A name that a plugin registered is also valid
+# : in a ``strategy`` (the checker asks the registrar), which is why the fields below are ``Strategy
+# | str``.
 Strategy = Literal[
     "simple_shuffle",
     "round_robin",
@@ -338,7 +340,8 @@ class VariableSpec(Validated):
         return self.item_type is not None or bool(self.fields)
 
 
-#: The formats of an ``output`` block (``output "json" { ... }``; no label means ``"json"``; ``"text"`` is a plain answer).
+# : The formats of an ``output`` block (``output "json" { ... }``; no label means ``"json"``;
+# ``"text"`` is a plain answer).
 OutputFormat = Literal["json", "table", "xml", "text"]
 OUTPUT_FORMATS: tuple[str, ...] = ("json", "table", "xml", "text")
 
@@ -394,7 +397,9 @@ class OutputSpec(Validated):
         default=None,
         description="schema = VAR: the map variable that gives the fields at render time",
     )
-    style: str | None = field(default=None, description='output "text" { style = "..." }: the style')
+    style: str | None = field(
+        default=None, description='output "text" { style = "..." }: the style'
+    )
     style_from: str | None = field(
         default=None, description="output text { style = VAR }: the string variable of the style"
     )

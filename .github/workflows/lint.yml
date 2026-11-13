@@ -70,11 +70,51 @@ env:
     tests/unit/tools/test_human_toolkit.py
     tests/unit/tools/test_mcp_impl_registry.py
     tests/unit/tools/test_openapi_toolkit.py
+    tests/unit/tools/test_toolkit_wire_names.py
+    tests/unit/tools/test_capability_names.py
     tests/unit/tools/test_shell_toolkit.py
     tests/unit/tools/test_skye_toolkit_builder.py
     tests/unit/tools/test_toolkit.py
     tests/unit/tools/test_toolkit_base.py
     tests/unit/tools/test_toolkit_tools.py
+    src/skye/base/dsl/build.py
+    src/skye/base/dsl/cache.py
+    src/skye/base/dsl/emit.py
+    src/skye/base/dsl/errors.py
+    src/skye/base/dsl/fmt.py
+    src/skye/base/dsl/include.py
+    src/skye/base/dsl/info.py
+    src/skye/base/dsl/parser.py
+    src/skye/base/dsl/specs.py
+    src/skye/base/dsl/tree.py
+    src/skye/prompts/output_format.py
+    src/skye/prompts/skye_prompts.py
+    src/skye/utils/skye_files.py
+    examples/prompts/bundled_templates.py
+    examples/prompts/catalogue.py
+    examples/prompts/shared_parts.py
+    tests/unit/dsl/doc_examples.py
+    tests/unit/dsl/include_files.py
+    tests/unit/dsl/test_include_diagnostics.py
+    tests/unit/dsl/test_include_errors.py
+    tests/unit/dsl/test_include_expand.py
+    tests/unit/dsl/test_include_fmt.py
+    tests/unit/dsl/test_include_override.py
+    tests/unit/dsl/test_include_override_tools.py
+    tests/unit/dsl/test_include_paths_env.py
+    tests/unit/dsl/test_include_syntax.py
+    tests/unit/dsl/test_output_text.py
+    tests/unit/prompts/bundled.py
+    tests/unit/prompts/test_bundled_names.py
+    tests/unit/prompts/test_bundled_samples.py
+    tests/unit/prompts/test_catalogue_gallery.py
+    tests/unit/prompts/test_catalogue_include.py
+    tests/unit/prompts/test_register_template_include.py
+    tests/unit/prompts/test_template_names.py
+    tests/unit/prompts/test_extraction_generic.py
+    tests/unit/utils/test_cli_include.py
+    tests/unit/utils/test_cli_include_override.py
+    tests/unit/utils/test_include_resolver.py
 
 jobs:
   lint:

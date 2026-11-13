@@ -73,7 +73,8 @@ def read_text(path: str | Path) -> str:
 def file_resolver(entry: str | Path) -> Resolver:
     """The resolver of the ``include`` and ``from ... import`` lines of the file ``entry``.
 
-    The root is the folder of ``entry``; a target is a path relative to the including file and must stay
+    The root is the folder of ``entry``; a target is a path relative to the including file and must
+    stay
     inside the root, also through a symbolic link. The key of a file is its real path.
 
     Args:
@@ -93,7 +94,9 @@ def file_resolver(entry: str | Path) -> Resolver:
         if not path.is_file():
             raise FileNotFoundError(f"no such file in {folder}")
         return Resolved(
-            text=path.read_text(encoding="utf-8"), name=path.relative_to(root).as_posix(), key=str(path)
+            text=path.read_text(encoding="utf-8"),
+            name=path.relative_to(root).as_posix(),
+            key=str(path),
         )
 
     return resolve

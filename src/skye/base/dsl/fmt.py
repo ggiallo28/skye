@@ -154,14 +154,19 @@ _POSITION = {"line", "column", "source", "via"}
 
 
 def _shape(node: Any) -> Any:
-    """The syntax tree without positions and without the spacing of expressions, to compare two texts."""
+    """The syntax tree without positions and without the spacing of expressions, to compare two
+    texts."""
     if isinstance(node, list | tuple):
         return [_shape(item) for item in node]
     if isinstance(node, dict):
         return {key: _shape(value) for key, value in node.items()}
     if is_dataclass(node) and not isinstance(node, type):
         return {
-            f.name: " ".join(getattr(node, f.name).split()) if f.name == "text" else _shape(getattr(node, f.name))
+            f.name: (
+                " ".join(getattr(node, f.name).split())
+                if f.name == "text"
+                else _shape(getattr(node, f.name))
+            )
             for f in fields(node)
             if f.name not in _POSITION and not f.name.endswith(("_line", "_column"))
         }
@@ -186,7 +191,8 @@ def format_text(text: str, filename: str | None = None) -> str:
     from skye.base.dsl.emit import to_text
 
     tree, problems = parse_collect(text, filename)
-    # A file with an include, and a partial, are compared as written (no partial is read): the same tree before and after.
+    # A file with an include, and a partial, are compared as written (no partial is read): the same
+    # tree before and after.
     included = not problems and (tree.has_include or tree.metadata.get("partial") is True)
     before = None if included else build(text, filename=filename)
     found = problems or (before.diagnostics if before else [])

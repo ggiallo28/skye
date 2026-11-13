@@ -1,4 +1,5 @@
-"""``skye check``, ``fmt`` and ``prompt list`` on files that use ``override`` (task 26.2, Requirement 63.21)."""
+"""``skye check``, ``fmt`` and ``prompt list`` on files that use ``override`` (task 26.2,
+Requirement 63.21)."""
 
 from __future__ import annotations
 
@@ -82,7 +83,8 @@ def test_prompt_list_skips_a_partial_that_holds_the_overridden_defaults(
     folder = tmp_path / "templates"
     folder.mkdir()
     (folder / "chat.skye").write_text(
-        '---\ntitle = "Chat"\nversion = "1.0"\n---\nprompt "chat" {\n  message "system" { text = "hi" }\n}\n',
+        '---\ntitle = "Chat"\nversion = "1.0"\n---\n'
+        'prompt "chat" {\n  message "system" { text = "hi" }\n}\n',
         encoding="utf-8",
     )
     (folder / "memories.skye").write_text(MEMORIES, encoding="utf-8")

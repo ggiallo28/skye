@@ -34,7 +34,8 @@ PROMPTS_ONLY = "Write it in a file that has a prompt."
 #: Why a partial cannot be built alone (``check_text`` leaves it out: it is checked where used).
 PARTIAL_ALONE = "this file is a partial (partial = true) and cannot be built alone"
 
-#: A line that reads a file (``include "x"`` or ``from "x" import``): a text with one depends on files that the text does not hold.
+# : A line that reads a file (``include "x"`` or ``from "x" import``): a text with one depends on
+# files that the text does not hold.
 INCLUDE_LINE = re.compile(r'^\s*(?:include|from)\s+"', re.MULTILINE)
 _URL = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")  # a scheme (``https:``) or a drive (``C:``)
 

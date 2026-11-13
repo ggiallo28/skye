@@ -120,7 +120,9 @@ def test_an_alias_twice_is_an_error():
 
 def test_importing_a_name_the_file_does_not_have_is_an_error():
     problem = one('from "lib/memory.skye" import semantic_memory\n')
-    assert problem.reason.startswith('"lib/memory.skye" has no variable "semantic_memory"; it has: ')
+    assert problem.reason.startswith(
+        '"lib/memory.skye" has no variable "semantic_memory"; it has: '
+    )
     assert "persona_memory, episodic_memory" in problem.reason and "Did you mean" in problem.fix
 
 

@@ -14,7 +14,7 @@ from tests.budget import measure
 
 ROOT = measure.ROOT
 SOURCE = ROOT / "src" / "skye" / "prompts" / "templates"
-NAMES = ("text_classification", "text_explanation", "text_summarization")
+NAMES = ("extraction_generic", "text_explanation", "text_summarization")
 
 
 def _pack(templates: dict[str, bytes]) -> bytes:
@@ -43,9 +43,9 @@ def as_wheel(tmp_path, monkeypatch) -> Path:
 def test_export_from_a_source_checkout_writes_every_template(tmp_path, capsys) -> None:
     folder = tmp_path / "out"
     assert main(["prompt", "export", str(folder)]) == 0
-    assert "wrote 11 prompts" in capsys.readouterr().out
+    assert "wrote 6 prompts" in capsys.readouterr().out
     written = sorted(p.stem for p in folder.glob("*.skye"))
-    assert len(written) == 11
+    assert len(written) == 6
     assert (folder / "common" / "system_prompt.skye").read_bytes() == (SOURCE / "common" / "system_prompt.skye").read_bytes()
     assert (folder / "text_summarization.skye").read_bytes() == (SOURCE / "text_summarization.skye").read_bytes()
 
@@ -70,7 +70,7 @@ def test_export_does_not_replace_a_file_without_force(as_wheel, tmp_path, capsys
     err = capsys.readouterr().err
     assert "text_summarization.skye" in err and "--force" in err
     assert (folder / "text_summarization.skye").read_text(encoding="utf-8") == "mine"
-    assert not (folder / "text_classification.skye").exists()  # nothing is written when one would be replaced
+    assert not (folder / "extraction_generic.skye").exists()  # nothing is written when one would be replaced
     assert main(["prompt", "export", str(folder), "--force"]) == 0
     assert (folder / "text_summarization.skye").read_text(encoding="utf-8") != "mine"
 

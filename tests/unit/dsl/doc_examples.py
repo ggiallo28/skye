@@ -1,7 +1,9 @@
 """Fences of ``skye`` examples in the docs and in the skill, and the files of a multi-file example.
 
-A fence ``skye`` is one file and is checked alone. A fence ``skye title="lib/memory.skye"`` is one file of a set: all the titled fences of one page
-form the files of an example (the title is the path), each one is checked with the others as the files its ``include`` and ``from`` lines can reach.
+A fence ``skye`` is one file and is checked alone. A fence ``skye title="lib/memory.skye"`` is one
+file of a set: all the titled fences of one page
+form the files of an example (the title is the path), each one is checked with the others as the
+files its ``include`` and ``from`` lines can reach.
 """
 
 from __future__ import annotations

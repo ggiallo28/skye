@@ -628,7 +628,8 @@ class _Parser:
         return Expr(line=first.line, column=first.column, text=self._expression_text(tokens))
 
     def _expression_text(self, tokens: list[Token]) -> str:
-        """The exact text of an expression; a ``/* */`` comment between two tokens becomes a space."""
+        """The exact text of an expression; a ``/* */`` comment between two tokens becomes a
+        space."""
         parts = [tokens[0].text]
         for before, after in zip(tokens, tokens[1:]):
             gap = self.text[before.end : after.start]

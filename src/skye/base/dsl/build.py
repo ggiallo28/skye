@@ -225,7 +225,8 @@ class _Builder:
         # the prompt being built: its variables and its output blocks inside when blocks
         self.prompt_variables: list[VariableSpec] = []
         self.conditional_outputs: list[Block] = []
-        # the file that the node being read comes from, when an include brought it, and the use sites
+        # the file that the node being read comes from, when an include brought it, and the use
+        # sites
         self.source = ""
         self.via: tuple[tuple[str, int, int], ...] = ()
 
@@ -396,7 +397,8 @@ class _Builder:
         raise self.fail(value, f"{name} = {raw} is not a duration.", 'Use "30s", "5m" or "24h"')
 
     def read_strategy(self, attr: Attribute) -> str:
-        """A built-in strategy, or a name that a plugin registered (asked of the registrar only when the name is not a built-in)."""
+        """A built-in strategy, or a name that a plugin registered (asked of the registrar only when
+        the name is not a built-in)."""
         text = self.read_str(attr)
         if text in STRATEGIES:
             return text
@@ -404,7 +406,10 @@ class _Builder:
         try:
             registered.get("routing_strategy", text)
         except ConfigurationError:
-            names = [*STRATEGIES, *(n for n in registered.names("routing_strategy") if n not in STRATEGIES)]
+            names = [
+                *STRATEGIES,
+                *(n for n in registered.names("routing_strategy") if n not in STRATEGIES),
+            ]
             raise self.fail(
                 attr.value,
                 f'strategy "{text}" is not valid.',
@@ -1390,7 +1395,7 @@ class _Builder:
 
     # -- output --------------------------------------------------------------------------------
     def output(self, block: Block, variables: list[VariableSpec]) -> OutputSpec:
-        """``output ["json" | "table" | "xml" | "text" | VAR] { field = type ["description"], ... }``,
+        """``output ["json" | "table" | "xml" | "text" | VAR] { field = type ["desc"], ... }``,
         ``{ schema = VAR }`` or, for ``"text"``, ``{ style = "..." | VAR }``.
         """
         fmt: Any = "json"
@@ -1458,7 +1463,9 @@ class _Builder:
                     self.at(value, f'"{word}" is not a declared string variable.')
                 style_from = word
             else:
-                self.at(value, 'style takes a string or a string variable: style = "a bulleted list"')
+                self.at(
+                    value, 'style takes a string or a string variable: style = "a bulleted list"'
+                )
         return OutputSpec(format="text", style=style, style_from=style_from)
 
     def format_from(self, label: Name, variables: list[VariableSpec]) -> str:
@@ -1487,7 +1494,8 @@ class _Builder:
                 label,
                 f'the default of "{word}" is "{declared.default}", which is not an output format.',
                 (
-                    did_you_mean(str(declared.default), OUTPUT_FORMATS) + " Use json, table, xml or text."
+                    did_you_mean(str(declared.default), OUTPUT_FORMATS)
+                    + " Use json, table, xml or text."
                 ).strip(),
             )
         return word
