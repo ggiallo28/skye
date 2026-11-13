@@ -81,11 +81,11 @@ check: format lint type-check
 # Testing targets
 test:
 	@echo "Running all tests..."
-	uv run pytest tests/ -v
+	uv run pytest tests/ -n auto -v
 
 test-unit:
 	@echo "Running unit tests..."
-	uv run pytest tests/unit/ -v
+	uv run pytest tests/unit/ -n auto -v
 
 test-integration:
 	@echo "Running integration tests..."

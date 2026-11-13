@@ -28,6 +28,11 @@ import pytest
 from skye.prompts import BasePromptBuilder, loaders, messages
 from tests.unit.prompts.bundled import GALLERY_DIR, gallery_builder, template_path
 
+SOURCE_ONLY = pytest.mark.skipif(
+    not loaders._folder_has_templates(),
+    reason="reads the loose templates of a source checkout; an installed wheel keeps them in an archive",
+)
+
 FIXTURE = Path(__file__).parent / "fixtures" / "templates_before.json"
 POSITIONS = {"line", "column", "source", "via", "style", "style_from"}  # style: the text output, unset here
 MEMORIES = (
@@ -291,6 +296,7 @@ LABELS = ("empty", "full", "system", "ids")
 OLD_NAMES = sorted(n for n in BEFORE if n not in REMOVED and n not in MERGED and n not in REPLACED)  # the names of the fixture that are still templates
 
 
+@SOURCE_ONLY
 def test_the_fixture_has_the_forty_templates_and_the_catalogue_has_the_renamed_ones():
     bundled = sorted(p.stem for p in loaders.TEMPLATES_DIR.glob("*.skye"))
     on_disk = sorted({*bundled, *(p.stem for p in GALLERY_DIR.glob("*.skye"))} - {"extraction_generic"})
@@ -343,6 +349,7 @@ def test_an_item_with_an_id_shows_it_and_a_template_that_kept_its_section_render
         assert "[m1]" in json.dumps(shown)  # their own section shows the id, as it did
 
 
+@SOURCE_ONLY
 def test_the_templates_that_use_a_partial_say_so_and_the_partials_are_not_templates():
     folder = loaders.TEMPLATES_DIR
     partials = sorted((folder / "common").glob("*.skye"))

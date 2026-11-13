@@ -51,6 +51,10 @@ def archive(tmp_path, monkeypatch) -> Path:
     return path
 
 
+@pytest.mark.skipif(
+    not loaders._folder_has_templates(),
+    reason="an installed wheel keeps the templates in an archive, not in a folder",
+)
 def test_a_source_checkout_reads_the_folder() -> None:
     assert loaders._folder_has_templates()
     names = loaders.bundled_names()

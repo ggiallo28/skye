@@ -33,4 +33,4 @@ jobs:
       - run: uv python install ${{ matrix.python }}
       - run: uv sync --group dev --locked --python ${{ matrix.python }}
       - name: Tests
-        run: uv run --python ${{ matrix.python }} pytest tests --ignore=tests/budget -m "not stress and not differential and not budget" -q
+        run: uv run --python ${{ matrix.python }} pytest tests --ignore=tests/budget -n auto -m "not stress and not differential and not budget" -q
