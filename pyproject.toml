@@ -1,6 +1,6 @@
 [project]
 name = "skyeai"
-version = "0.2.0"
+version = "0.3.0"
 description = "Modular GenAI library with optional extras for building AI agents and intelligent applications"
 readme = "README.md"
 license = {text = "MIT"}

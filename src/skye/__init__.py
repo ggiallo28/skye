@@ -26,37 +26,48 @@ Example:
     >>> print(response.content)  # doctest: +SKIP
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from typing import TYPE_CHECKING, Any, Literal, overload
 
 if TYPE_CHECKING:
-    from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk, TokenUsage
-    from skye.base.exceptions import (
-        AuthenticationError,
-        BadRequestError,
-        ConfigurationError,
-        ContentPolicyError,
-        MissingExtraError,
-        ProviderError,
-        ProviderTimeoutError,
-        RateLimitError,
-        ServerError,
-        SkyeError,
-        ValidationError,
+    # `X as X` is the form a type checker reads as a public re-export (the package ships `py.typed`).
+    from skye.base.completion import (
+        CompleteRequest as CompleteRequest,
+        CompleteResponse as CompleteResponse,
+        StreamChunk as StreamChunk,
+        TokenUsage as TokenUsage,
     )
-    from skye.base.interfaces.decision import DecisionModel
-    from skye.base.interfaces.model import ModelInterface
-    from skye.base.interfaces.runnable import Runnable
-    from skye.base.interfaces.storage import StorageBackend
-    from skye.base.interfaces.vector_encoder import VectorEncoderInterface
-    from skye.base.messages import AssistantMessage, CapabilityMessage, SystemMessage, UserMessage
-    from skye.base.plugins import Plugins
-    from skye.flows import Flow
-    from skye.tools.mcp_client import MCPClientInterface
-    from skye.tools.toolkit import Toolkit
-    from skye.utils.config_files import load_config
-    from skye.utils.skye_files import load
+    from skye.base.exceptions import (
+        AuthenticationError as AuthenticationError,
+        BadRequestError as BadRequestError,
+        ConfigurationError as ConfigurationError,
+        ContentPolicyError as ContentPolicyError,
+        MissingExtraError as MissingExtraError,
+        ProviderError as ProviderError,
+        ProviderTimeoutError as ProviderTimeoutError,
+        RateLimitError as RateLimitError,
+        ServerError as ServerError,
+        SkyeError as SkyeError,
+        ValidationError as ValidationError,
+    )
+    from skye.base.interfaces.decision import DecisionModel as DecisionModel
+    from skye.base.interfaces.model import ModelInterface as ModelInterface
+    from skye.base.interfaces.runnable import Runnable as Runnable
+    from skye.base.interfaces.storage import StorageBackend as StorageBackend
+    from skye.base.interfaces.vector_encoder import VectorEncoderInterface as VectorEncoderInterface
+    from skye.base.messages import (
+        AssistantMessage as AssistantMessage,
+        CapabilityMessage as CapabilityMessage,
+        SystemMessage as SystemMessage,
+        UserMessage as UserMessage,
+    )
+    from skye.base.plugins import Plugins as Plugins
+    from skye.flows import Flow as Flow
+    from skye.tools.mcp_client import MCPClientInterface as MCPClientInterface
+    from skye.tools.toolkit import Toolkit as Toolkit
+    from skye.utils.config_files import load_config as load_config
+    from skye.utils.skye_files import load as load
 
 # The commonest names, importable as ``from skye import UserMessage``; each is loaded on first use, so ``import skye`` stays light.
 _LAZY = {
