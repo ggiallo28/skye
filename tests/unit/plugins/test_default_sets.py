@@ -1,7 +1,11 @@
-"""The registries held per instance are views of the registrar (plugins:7.3, Requirements 56.7 and 56.8).
+"""The registries held per instance are views of the registrar (plugins:7.3, Requirements 56.7 and
+56.8).
 
-The registrar holds the default set of prompt filters that every new prompt builder starts with; a registration made on an instance stays
-local to it. A ``CapabilityRegistry`` has no default set and starts empty (Requirement 62.1). The agent types and the tokenizers are views of the registrar tables. Every test works on a private registrar, so the default one is left alone.
+The registrar holds the default set of prompt filters that every new prompt builder starts with; a
+registration made on an instance stays
+local to it. A ``CapabilityRegistry`` has no default set and starts empty (Requirement 62.1). The
+agent types and the tokenizers are views of the registrar tables. Every test works on a private
+registrar, so the default one is left alone.
 """
 
 from __future__ import annotations
@@ -14,9 +18,9 @@ from skye.agents import registry as agents_registry
 from skye.base.exceptions import ConfigurationError
 from skye.base.interfaces.plugin import RegistrarInterface
 from skye.base.plugins import KINDS, Registrar
+from skye.models.token_counter import TokenCounter
 from skye.prompts import BasePromptBuilder
 from skye.tools import CapabilityRegistry, capability
-from skye.models.token_counter import TokenCounter
 
 
 @pytest.fixture
@@ -42,7 +46,8 @@ def char_count(text: str) -> int:
     return len(text)
 
 
-# -- CapabilityRegistry: no default set (Requirements 62.1 and 56.8) ----------------------------------------------
+# -- CapabilityRegistry: no default set (Requirements 62.1 and 56.8)
+# ----------------------------------------------
 
 
 def test_the_registrar_has_no_capability_kind_and_no_capability_method(registrar):
@@ -59,7 +64,8 @@ def test_a_default_set_of_capabilities_is_an_unknown_kind(registrar):
 
 
 def test_a_new_registry_starts_empty_whatever_the_plugins_did(registrar):
-    # A plugin cannot add a capability to every registry: the method is gone, and the registry never reads the registrar.
+    # A plugin cannot add a capability to every registry: the method is gone, and the registry never
+    # reads the registrar.
     with pytest.raises(AttributeError):
         registrar.capability("word_count", word_count)  # type: ignore[attr-defined]
     assert CapabilityRegistry().list_all() == []
@@ -123,7 +129,8 @@ def test_namespaces_still_work(registrar):
     assert [c.get_schema().name for c in registry.get_by_namespace("text")] == ["text.words"]
 
 
-# -- prompt filters ----------------------------------------------------------------------------------------------
+# -- prompt filters
+# ----------------------------------------------------------------------------------------------
 
 
 def test_a_filter_of_the_default_set_works_in_every_new_builder(registrar):
@@ -164,7 +171,8 @@ def test_a_partial_builder_keeps_the_filters_and_does_not_share_the_dict(registr
     assert "only_part" not in builder._custom_filters and "shout" in part._custom_filters
 
 
-# -- agent types -------------------------------------------------------------------------------------------------
+# -- agent types
+# -------------------------------------------------------------------------------------------------
 
 
 class _Echo:
@@ -200,7 +208,8 @@ def test_the_old_errors_keep_their_text_and_details(registrar):
         agents_registry.register_agent_type("", _Echo)
 
 
-# -- tokenizers (a view since plugins:6.2) -----------------------------------------------------------------------
+# -- tokenizers (a view since plugins:6.2)
+# -----------------------------------------------------------------------
 
 
 def test_register_tokenizer_is_outside_the_registrar(monkeypatch):
@@ -223,7 +232,8 @@ def test_register_tokenizer_is_outside_the_registrar(monkeypatch):
         assert TokenCounter.unregister_tokenizer("my-model") is True
 
 
-# -- Registrar.default_set ---------------------------------------------------------------------------------------
+# -- Registrar.default_set
+# ---------------------------------------------------------------------------------------
 
 _SCANS: list[int] = []
 

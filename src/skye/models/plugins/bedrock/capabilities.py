@@ -1,6 +1,9 @@
-"""Bedrock capabilities: Skye capabilities out to the Converse ``toolSpec`` format, the tool calls read back, and the results formatted (plugin ``bedrock``, D110).
+# D110
+"""Bedrock capabilities: Skye capabilities out to the Converse ``toolSpec`` format, the tool calls
+read back, and the results formatted (plugin ``bedrock``).
 
-Module functions called by the thin methods of ``BedrockProvider``; they import nothing of another provider.
+Module functions called by the thin methods of ``BedrockProvider``; they import nothing of another
+provider.
 """
 
 import json

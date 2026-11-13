@@ -1,4 +1,5 @@
-"""Google (Gemini): the JSON Schema of a reply in the subset of ``responseSchema`` (D110).
+# D110
+"""Google (Gemini): the JSON Schema of a reply in the subset of ``responseSchema``.
 
 Raises: nothing; a schema that needs more than the subset gives ``None``.
 Missing: not applicable.

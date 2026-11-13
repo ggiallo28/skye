@@ -1,4 +1,5 @@
-"""The Claude models that refuse a forced capability choice are data in the profiles, not tuples in the adapters (D109, Requirement 60.7)."""
+"""The Claude models that refuse a forced capability choice are data in the profiles, not tuples in
+the adapters (D109, Requirement 60.7)."""
 
 from __future__ import annotations
 
@@ -7,7 +8,8 @@ import pytest
 from skye.models.plugins.anthropic import AnthropicProvider
 from skye.models.plugins.bedrock import BedrockProvider
 
-# The rule the two adapters used to hold, kept here as the oracle: a substring match of four fragments anywhere in the model id.
+# The rule the two adapters used to hold, kept here as the oracle: a substring match of four
+# fragments anywhere in the model id.
 OLD_FRAGMENTS = ("opus-5-5", "sonnet-5-5", "fable-5-1", "mythos-5-1")
 
 
@@ -112,11 +114,12 @@ def test_get_model_info_without_a_model_describes_the_default_model():
 
 
 def test_a_plugin_profile_declares_which_of_its_models_refuse_a_forced_choice():
-    """A third-party Anthropic-format provider declares it in its own profile, with no list in its class."""
+    """A third-party Anthropic-format provider declares it in its own profile, with no list in its
+    class."""
+    import skye.base.plugins as plugins_module
     from skye.base.plugins import Registrar
     from skye.base.profile import ModelProfile, ProviderProfile
     from skye.models.utilities.anthropic_compatible import AnthropicCompatibleProvider
-    import skye.base.plugins as plugins_module
 
     registrar = Registrar()
     registrar.provider(
@@ -125,7 +128,8 @@ def test_a_plugin_profile_declares_which_of_its_models_refuse_a_forced_choice():
         profile=ProviderProfile(
             "acme-claude",
             models={"acme-1": ModelProfile(info={"supports_forced_capability_choice": False})},
-        ), function="model",
+        ),
+        function="model",
     )
 
     class Acme(AnthropicCompatibleProvider):
@@ -141,17 +145,21 @@ def test_a_plugin_profile_declares_which_of_its_models_refuse_a_forced_choice():
         plugins_module._default = original
 
 
-# -- what the old substring rule caught and a profile entry does not (reported to the owner) -------------------------------
+# -- what the old substring rule caught and a profile entry does not (reported to the owner)
+# -------------------------------
 
 
 @pytest.mark.parametrize(
     "model", ["anthropic/claude-opus-5-5", "claude-opus-5-5-preview", "claude-opus-5-5-thinking"]
 )
 def test_ids_the_old_rule_caught_by_substring_and_the_profile_lookup_does_not(anthropic, model):
-    """A provider-prefixed id or a suffix that is not a date, a version or ``latest`` is another name for ``find_model_profile`` (Requirement 59.4).
+    """A provider-prefixed id or a suffix that is not a date, a version or ``latest`` is another
+    name for ``find_model_profile`` (Requirement 59.4).
 
-    The old rule matched them because it looked for a fragment anywhere. The router and the registrar pass the plain model id, so none of these reaches the
-    adapter today; if one ever should, the extension is a field of ``ProviderProfile`` that lists the prefixes and suffixes its model ids may carry.
+    The old rule matched them because it looked for a fragment anywhere. The router and the
+    registrar pass the plain model id, so none of these reaches the
+    adapter today; if one ever should, the extension is a field of ``ProviderProfile`` that lists
+    the prefixes and suffixes its model ids may carry.
     """
     assert old_rule(model) is True
     assert anthropic.refuses_forced_choice(model) is False

@@ -43,7 +43,7 @@ def sign_request(
 
     ``host`` is derived from the URL. ``now`` is injectable for testing.
     """
-    now = now or _dt.datetime.now(_dt.timezone.utc)
+    now = now or _dt.datetime.now(_dt.UTC)
     amz_date = now.strftime("%Y%m%dT%H%M%SZ")
     date_stamp = amz_date[:8]
 

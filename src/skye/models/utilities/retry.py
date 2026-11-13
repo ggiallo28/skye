@@ -1,4 +1,5 @@
-"""Who retries a provider call, and how long it waits (decision D104).
+# decision D104
+"""Who retries a provider call, and how long it waits.
 
 Only a transient failure is retried: :class:`RateLimitError` (429), :class:`ServerError` (5xx)
 and :class:`ProviderTimeoutError` (a timeout or a dropped connection). A 4xx (bad request,
@@ -16,7 +17,7 @@ import inspect
 import logging
 import random
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Any, TypeVar
 
 from skye.base.exceptions import (
@@ -80,21 +81,22 @@ def retry_wait(
     return _wait_seconds(attempt, base_wait, 0.0, max_wait, jitter)
 
 
-def call_with_retry(
-    call: Callable[[], T],
+async def acall_with_retry(
+    call: Callable[[], Awaitable[T]],
     *,
     max_retries: int = DEFAULT_MAX_RETRIES,
-    sleep: Callable[[float], Any] = time.sleep,
+    sleep: Callable[[float], Any] | None = None,
     base_wait: float = 1.0,
     max_wait: float = 20.0,
     name: str = "provider call",
 ) -> T:
-    """Run ``call``, retrying a transient failure up to ``max_retries`` times.
+    """Await ``call``, retrying a transient failure up to ``max_retries`` times.
 
     Args:
-        call: The call to make, with no arguments.
+        call: The call to make, with no arguments; it returns an awaitable.
         max_retries: Retries after the first attempt; ``0`` turns retries off.
-        sleep: How to wait (``time.sleep``; a test passes a function that records the wait).
+        sleep: How to wait (``asyncio.sleep`` when ``None``; a test passes a function that records the wait, and its result is awaited if
+            it is awaitable).
         base_wait: The first backoff wait in seconds.
         max_wait: The longest backoff wait in seconds.
         name: What is called, for the log.
@@ -108,7 +110,7 @@ def call_with_retry(
     attempt = 1
     while True:
         try:
-            return call()
+            return await call()
         except ProviderError as error:
             if not is_retryable(error) or attempt > max_retries:
                 raise
@@ -122,8 +124,18 @@ def call_with_retry(
                     "error_class": type(error).__name__,
                 },
             )
-            sleep(wait)
+            await sleep_for(sleep, wait)
             attempt += 1
+
+
+async def sleep_for(sleep: Callable[[float], Any] | None, seconds: float) -> None:
+    """Wait ``seconds``: ``asyncio.sleep`` when ``sleep`` is ``None``, else call ``sleep`` and await what it returns when that is awaitable."""
+    if sleep is None:
+        await asyncio.sleep(seconds)
+        return
+    waited = sleep(seconds)
+    if inspect.isawaitable(waited):
+        await waited
 
 
 def with_retry(
@@ -216,8 +228,9 @@ __all__ = [
     "DEFAULT_MAX_RETRIES",
     "MAX_RETRY_AFTER",
     "RETRYABLE_ERRORS",
-    "call_with_retry",
+    "acall_with_retry",
     "is_retryable",
     "retry_wait",
+    "sleep_for",
     "with_retry",
 ]

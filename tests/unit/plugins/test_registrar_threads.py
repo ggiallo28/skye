@@ -1,7 +1,10 @@
-"""A registration is safe from any thread, and a read takes no lock (Requirement 56.6, task 14.2 of the plugins spec).
+"""A registration is safe from any thread, and a read takes no lock (Requirement 56.6, task 14.2 of
+the plugins spec).
 
-A write takes a lock and publishes a new copy of the table of its kind; a read uses a table that is never changed after it is published.
-These tests start threads together with a barrier, so the registrations really race, and they never depend on how long something takes:
+A write takes a lock and publishes a new copy of the table of its kind; a read uses a table that is
+never changed after it is published.
+These tests start threads together with a barrier, so the registrations really race, and they never
+depend on how long something takes:
 a thread that must wait is held by an event.
 """
 
@@ -22,7 +25,8 @@ WAIT = 10  # seconds a test waits for a thread before it fails; a pass takes mil
 
 
 def run_together(jobs: list[Callable[[], Any]]) -> tuple[list[Any], list[BaseException | None]]:
-    """Run the jobs in threads that start at once; return their results and errors, in the order of the jobs."""
+    """Run the jobs in threads that start at once; return their results and errors, in the order of
+    the jobs."""
     barrier = threading.Barrier(len(jobs))
     results: list[Any] = [None] * len(jobs)
     errors: list[BaseException | None] = [None] * len(jobs)
@@ -96,7 +100,10 @@ def test_different_profiles_for_one_provider_have_one_winner():
     ]
 
     _, errors = run_together(
-        [lambda p=p: registrar.provider("acme", object(), profile=p, function="model") for p in profiles]
+        [
+            lambda p=p: registrar.provider("acme", object(), profile=p, function="model")
+            for p in profiles
+        ]
     )
 
     winners = [i for i, error in enumerate(errors) if error is None]
@@ -134,9 +141,9 @@ def test_a_reader_sees_a_table_that_only_grows_while_threads_register():
     assert errors == [None] * THREADS
     sizes = [len(names) for names in seen]
     assert sizes == sorted(sizes), "a reader saw the table shrink"
-    assert all(names == sorted(set(names)) for names in seen), (
-        "a reader saw a duplicate or an unsorted list"
-    )
+    assert all(
+        names == sorted(set(names)) for names in seen
+    ), "a reader saw a duplicate or an unsorted list"
     assert sizes[-1] == total
 
 
@@ -207,7 +214,8 @@ def test_a_read_does_not_take_the_write_lock_and_a_write_does():
 
 
 class Gate:
-    """Events that the slow built-in and the slow scan use to hold a thread in the middle of the loading."""
+    """Events that the slow built-in and the slow scan use to hold a thread in the middle of the
+    loading."""
 
     started = threading.Event()
     release = threading.Event()

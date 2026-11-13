@@ -1,6 +1,8 @@
-"""One profile for one provider name, and the price of Jev (task 15.4, Requirements 59.7, 59.8, 59.12, 58.3).
+"""One profile for one provider name, and the price of Jev (task 15.4, Requirements 59.7, 59.8,
+59.12, 58.3).
 
-A profile is kept under the registered name of the provider whatever the functions registered. The profile of Jev is named ``jev``, the
+A profile is kept under the registered name of the provider whatever the functions registered. The
+profile of Jev is named ``jev``, the
 registered name, and the ``CostCalculator`` reads its price through the registrar.
 """
 
@@ -29,7 +31,8 @@ def usage(prompt: int, completion: int = 0) -> TokenUsage:
     )
 
 
-# -- the profile is under the registered name ----------------------------------------------------------------------
+# -- the profile is under the registered name
+# ----------------------------------------------------------------------
 
 
 def test_the_profile_of_jev_is_named_by_the_registered_name(registrar):
@@ -54,7 +57,8 @@ def test_every_built_in_profile_is_named_by_a_registered_provider_name(registrar
         assert registrar.get_profile(profile_name) is not None, profile_name
 
 
-# -- one profile for the functions of one name ----------------------------------------------------------------------
+# -- one profile for the functions of one name
+# ----------------------------------------------------------------------
 
 
 def test_a_chat_class_and_an_embedding_class_of_one_name_share_one_profile(registrar):
@@ -62,7 +66,8 @@ def test_a_chat_class_and_an_embedding_class_of_one_name_share_one_profile(regis
     assert registrar.has("provider", "openai", "embedding")
     profile = registrar.get_profile("openai")
     assert profile is _plugin.profiles()["openai"]
-    # the second registration of the pair gave the same profile and it was accepted: there is one object for the name
+    # the second registration of the pair gave the same profile and it was accepted: there is one
+    # object for the name
     assert registrar.get_profile("openai") is profile
 
 
@@ -97,7 +102,8 @@ def test_the_same_profile_given_again_is_accepted(registrar):
     assert registrar.get_profile("jev") is _plugin.profiles()["jev"]
 
 
-# -- the cost of a decision call ----------------------------------------------------------------------------------
+# -- the cost of a decision call
+# ----------------------------------------------------------------------------------
 
 
 def test_the_cost_calculator_prices_a_decision_call_from_the_profile():

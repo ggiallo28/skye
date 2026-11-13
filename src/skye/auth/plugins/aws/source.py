@@ -44,7 +44,7 @@ class AwsCredentials:
         """True when within the refresh margin of expiry."""
         if self.expires_at is None:
             return False
-        return (now or _dt.datetime.now(_dt.timezone.utc)) >= self.expires_at - _REFRESH_MARGIN
+        return (now or _dt.datetime.now(_dt.UTC)) >= self.expires_at - _REFRESH_MARGIN
 
 
 def _parse_expiry(value: str | None) -> _dt.datetime | None:
@@ -200,9 +200,11 @@ class CredentialProvider:
         return found
 
     def _sts_region(self, *, signed: bool) -> str | None:
-        """The region of an STS call: the one passed, else the variables of the AWS profile (never a default).
+        """The region of an STS call: the one passed, else the variables of the AWS profile (never a
+        default).
 
-        ``AssumeRole`` is signed and always needs one; ``AssumeRoleWithWebIdentity`` needs one only to build the endpoint.
+        ``AssumeRole`` is signed and always needs one; ``AssumeRoleWithWebIdentity`` needs one only
+        to build the endpoint.
         """
         needed = signed or self._sts_endpoint is None
         return region_for("bedrock", self._region, required=needed, environ=self._env)
@@ -346,7 +348,8 @@ def bedrock_authenticator(
 ) -> SigV4Authenticator | BedrockApiKeyAuthenticator:
     """API key when given or in the environment (and no explicit keys), else SigV4 (``bedrock``).
 
-    Either authenticator keeps ``region``, so ``BedrockProvider(authenticator=...)`` calls that region.
+    Either authenticator keeps ``region``, so ``BedrockProvider(authenticator=...)`` calls that
+    region.
     """
     if api_key or (not access_key and os.environ.get("AWS_BEARER_TOKEN_BEDROCK")):
         return BedrockApiKeyAuthenticator(api_key, region=region)

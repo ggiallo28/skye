@@ -1,7 +1,10 @@
-"""A tokenizer is named in a profile and counted through it (task 17.3, Requirements 59.11 and 59.10).
+"""A tokenizer is named in a profile and counted through it (task 17.3, Requirements 59.11 and
+59.10).
 
-The cases of ``examples/plugins/tokenizer.py`` and ``tokenizer_provider.py``, with the real ``openai`` profile. The merge itself is tested in
-``test_profile_merge.py`` and the table of ``register_tokenizer`` in ``tests/unit/models/test_register_tokenizer_table.py``. Every test puts the
+The cases of ``examples/plugins/tokenizer.py`` and ``tokenizer_provider.py``, with the real
+``openai`` profile. The merge itself is tested in
+``test_profile_merge.py`` and the table of ``register_tokenizer`` in
+``tests/unit/models/test_register_tokenizer_table.py``. Every test puts the
 default registrar back as it was.
 """
 
@@ -51,7 +54,8 @@ def plugins() -> Plugins:
     return handle
 
 
-# -- 1. a change of the tokenizer of one model of an existing provider ----------------------------------------
+# -- 1. a change of the tokenizer of one model of an existing provider
+# ----------------------------------------
 
 
 def test_the_tokenizer_of_gpt_4o_changes_and_its_own_price_and_the_endpoint_stay(plugins):
@@ -69,7 +73,8 @@ def test_the_tokenizer_of_gpt_4o_changes_and_its_own_price_and_the_endpoint_stay
 
 
 def test_the_price_of_a_model_that_has_one_stays_when_its_tokenizer_changes(plugins):
-    """``gpt-4o`` has no price in the built-in profile, so the check of a price uses ``gpt-4-turbo``, which has one."""
+    """``gpt-4o`` has no price in the built-in profile, so the check of a price uses
+    ``gpt-4-turbo``, which has one."""
     price = CostCalculator.pricing_for("gpt-4-turbo")
     assert price == {"prompt": 10.0, "completion": 30.0}
     plugins.profile("openai", models={"gpt-4-turbo": ModelProfile(tokenizer="zz-words")})
@@ -97,7 +102,8 @@ def test_a_dated_name_of_the_changed_model_finds_the_same_tokenizer(plugins):
     assert TokenCounter.count_tokens(TEXT, "gpt-4o-2024-08-06") == 4
 
 
-# -- 2. a new provider names its tokenizer in its profile (examples/plugins/tokenizer_provider.py) ----------
+# -- 2. a new provider names its tokenizer in its profile (examples/plugins/tokenizer_provider.py)
+# ----------
 
 
 def register_acme(plugins: Plugins) -> None:
@@ -132,13 +138,15 @@ def test_the_price_of_a_model_of_the_new_provider_is_read_from_its_profile(plugi
     assert CostCalculator.pricing_for("zz-acme-large") == {"prompt": 2.00, "completion": 8.00}
 
 
-# -- 3. a model with no tokenizer gets the estimate (Requirement 59.10) ---------------------------------------
+# -- 3. a model with no tokenizer gets the estimate (Requirement 59.10)
+# ---------------------------------------
 
 
 def test_a_model_of_the_profile_with_no_tokenizer_gets_the_estimate(plugins):
     register_acme(plugins)
     plugins.profile("openai", models={"gpt-4o": ModelProfile(tokenizer="zz-words")})
-    text = "a b c d e f g h i j"  # 10 words, 19 characters: the estimate (about 4 characters a token) is not the word count
+    # 10 words, 19 characters: the estimate (about 4 characters a token) is not the word count
+    text = "a b c d e f g h i j"
     estimate = TokenCounter.count_tokens(text, "zz-model-nobody-has-heard-of")
     assert estimate != 10
     assert (

@@ -24,8 +24,9 @@ def wall_clock() -> float:
     return time.time()
 
 
+# decision D97
 def _memory_store() -> StorageBackend:
-    """The default storage (decision D97): the in-memory backend, built by the factory of the store."""
+    """The default storage: the in-memory backend, built by the factory of the store."""
     return backend("memory")
 
 

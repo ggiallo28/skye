@@ -1,4 +1,5 @@
-"""The built-in plugin of ``models``: ten names, registered by text, with profiles that match the tables they copy (plugins:5.1)."""
+"""The built-in plugin of ``models``: ten names, registered by text, with profiles that match the
+tables they copy (plugins:5.1)."""
 
 from __future__ import annotations
 
@@ -11,7 +12,8 @@ from skye.base.profile import ModelProfile, ProviderProfile, find_model_profile
 from skye.models import plugins as _plugin
 from skye.models.cost import CostCalculator
 
-# The list prices of November 2024 that ``CostCalculator.PRICING`` held before plugins:6.1, kept here as a frozen copy: the profiles must
+# The list prices of November 2024 that ``CostCalculator.PRICING`` held before plugins:6.1, kept
+# here as a frozen copy: the profiles must
 # keep these numbers (USD per 1M tokens).
 BUILTIN_PRICING: dict[str, dict[str, float]] = {
     "gpt-4-turbo": {"prompt": 10.00, "completion": 30.00},
@@ -46,7 +48,8 @@ BUILTIN_PRICING: dict[str, dict[str, float]] = {
     "gemini-1.5-flash": {"prompt": 0.35, "completion": 1.05},
 }
 
-# The two tables of API-key variables that ``skye.auth`` (``STANDARD_ENV_VARS``) and the router (``API_KEY_VARIABLES``) held before task 6.3, kept
+# The two tables of API-key variables that ``skye.auth`` (``STANDARD_ENV_VARS``) and the router
+# (``API_KEY_VARIABLES``) held before task 6.3, kept
 # here as a frozen copy: the profiles must keep these names (the provider-standard variables, D18).
 OLD_KEY_VARIABLES: dict[str, str] = {
     "openai": "OPENAI_API_KEY",
@@ -82,16 +85,21 @@ def test_registering_into_a_registrar_twice_is_a_duplicate():
 
 
 def test_registering_imports_no_adapter(registrar):
-    """Every target is still a text after ``register``, and ``_plugin`` itself imports nothing but ``base`` and the standard library.
+    """Every target is still a text after ``register``, and ``_plugin`` itself imports nothing but
+    ``base`` and the standard library.
 
-    (``import skye.models`` loads the adapters for its own reasons, so ``sys.modules`` cannot show this; the module's imports and the stored
+    (``import skye.models`` loads the adapters for its own reasons, so ``sys.modules`` cannot show
+    this; the module's imports and the stored
     targets can.)
     """
     import ast
     import inspect
 
     for function in ("model", "embedding"):
-        entries = [registrar._tables["provider"][(n, function)] for n in registrar.names("provider", function)]
+        entries = [
+            registrar._tables["provider"][(n, function)]
+            for n in registrar.names("provider", function)
+        ]
         assert all(isinstance(entry.target, str) for entry in entries)
         assert not any(entry.is_resolved for entry in entries)
     imported = {
@@ -102,9 +110,7 @@ def test_registering_imports_no_adapter(registrar):
     assert {m for m in imported if m.startswith("skye.")} <= {"skye.base.profile"}, imported
 
 
-@pytest.mark.parametrize(
-    "function,names", [("model", MODEL_NAMES), ("embedding", EMBEDDING_NAMES)]
-)
+@pytest.mark.parametrize("function,names", [("model", MODEL_NAMES), ("embedding", EMBEDDING_NAMES)])
 def test_every_text_target_imports_to_a_class(registrar, function, names):
     for name in names:
         assert isinstance(registrar.get("provider", name, function), type), (function, name)
@@ -140,15 +146,19 @@ def test_every_map_error_text_imports_to_a_function(registrar):
         assert callable(target), profile.name
 
 
-# -- the profiles equal the tables they copy -------------------------------------------------------------------
+# -- the profiles equal the tables they copy
+# -------------------------------------------------------------------
 
 
 def _all_entries() -> dict[str, tuple[str, ModelProfile]]:
-    """Every chat model entry of every built-in profile, priced or not (an embedding model has no messages, so it is not counted here)."""
+    """Every chat model entry of every built-in profile, priced or not (an embedding model has no
+    messages, so it is not counted here)."""
     return {
         model: (profile.name, entry)
         for profile in _plugin.PROFILES.values()
-        if profile.name != "jev"  # its price is data in profile.toml (the decision provider jev); it copies no table
+        if profile.name
+        # its price is data in profile.toml (the decision provider jev); it copies no table
+        != "jev"
         for model, entry in profile.models.items()
         if "vector_dimension" not in entry.info
     }
@@ -180,7 +190,8 @@ def test_a_model_is_in_one_profile_only():
 
 
 def _old_overhead(model: str) -> int:
-    """The prefix rules ``TokenCounter`` held before plugins:6.2, kept here as the oracle the profiles must reproduce."""
+    """The prefix rules ``TokenCounter`` held before plugins:6.2, kept here as the oracle the
+    profiles must reproduce."""
     if model.startswith("gpt-4"):
         return 3
     if model.startswith("gpt-3.5"):
@@ -217,7 +228,8 @@ def test_key_variables_equal_the_tables_of_before_task_6_3():
 
 
 def test_the_credential_sources_of_azure_and_google_name_the_variable_their_profile_names():
-    """The two sources keep a constant for their own discovery chain; it must not drift from the profile."""
+    """The two sources keep a constant for their own discovery chain; it must not drift from the
+    profile."""
     from skye.auth.plugins.azure.source import API_KEY_ENV_VAR as AZURE
     from skye.auth.plugins.google.source import API_KEY_ENV_VAR as GOOGLE
 
@@ -226,7 +238,8 @@ def test_the_credential_sources_of_azure_and_google_name_the_variable_their_prof
 
 
 def test_each_provider_class_reads_the_variable_its_profile_names(monkeypatch):
-    """The adapters keep no variable name: an OpenAI or Anthropic provider reads the first variable of its profile."""
+    """The adapters keep no variable name: an OpenAI or Anthropic provider reads the first variable
+    of its profile."""
     from skye.models.plugins.anthropic.provider import AnthropicProvider
     from skye.models.plugins.openai.provider import OpenAIProvider
 

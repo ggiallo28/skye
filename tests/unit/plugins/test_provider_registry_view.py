@@ -1,4 +1,5 @@
-"""``ProviderRegistry`` is a view of the default registrar: every call of today works as before, and a plugin's providers are found (plugins:5.2, Requirement 56.7)."""
+"""``ProviderRegistry`` is a view of the default registrar: every call of today works as before, and
+a plugin's providers are found (plugins:5.2, Requirement 56.7)."""
 
 from __future__ import annotations
 
@@ -59,7 +60,8 @@ def default_registrar_put_back():
         yield registrar
 
 
-# -- no table of its own ------------------------------------------------------------------------------------------
+# -- no table of its own
+# ------------------------------------------------------------------------------------------
 
 
 def test_the_registry_keeps_no_table_of_its_own():
@@ -72,7 +74,8 @@ def test_the_registry_is_still_the_port_implementation():
     assert get_provider_registry() is ProviderRegistry
 
 
-# -- one case per public call --------------------------------------------------------------------------------------
+# -- one case per public call
+# --------------------------------------------------------------------------------------
 
 
 def test_register_model_provider_writes_the_default_registrar():
@@ -86,7 +89,8 @@ def test_register_embedding_provider_writes_the_default_registrar():
 
 
 def test_registering_a_name_again_replaces_it_as_it_always_did():
-    """The registry has no ``replace`` flag: a second registration overrides, a built-in name included."""
+    """The registry has no ``replace`` flag: a second registration overrides, a built-in name
+    included."""
     ProviderRegistry.register_model_provider("fake", FakeModel)
     ProviderRegistry.register_model_provider("fake", FakeModel)
     ProviderRegistry.register_model_provider("openai", FakeModel)
@@ -135,7 +139,8 @@ def test_a_removed_provider_is_no_longer_listed_or_found():
         ProviderRegistry.get_model_provider("fake")
 
 
-# -- the error messages the tests assert --------------------------------------------------------------------------
+# -- the error messages the tests assert
+# --------------------------------------------------------------------------
 
 
 def test_an_unknown_model_provider_lists_the_registered_ones():
@@ -162,7 +167,8 @@ def test_an_unknown_embedding_provider_lists_the_registered_ones():
         ProviderRegistry.get_embedding_provider("nope")
 
 
-# -- skye.provider ------------------------------------------------------------------------------------------------
+# -- skye.provider
+# ------------------------------------------------------------------------------------------------
 
 
 def test_provider_builds_a_built_in_model_client():
@@ -207,7 +213,10 @@ def test_a_third_party_provider_on_the_registrar_is_returned_by_skye_provider():
         "acme", FakeModel, profile=ProviderProfile("acme", ("ACME_API_KEY",)), function="model"
     )
     get_registrar().provider(
-        "acme", FakeEncoder, profile=ProviderProfile("acme", ("ACME_API_KEY",)), function="embedding"
+        "acme",
+        FakeEncoder,
+        profile=ProviderProfile("acme", ("ACME_API_KEY",)),
+        function="embedding",
     )
     assert isinstance(skye.provider("acme", api_key="k"), FakeModel)
     assert isinstance(skye.provider("acme", model="m", provider_type="embedding"), FakeEncoder)

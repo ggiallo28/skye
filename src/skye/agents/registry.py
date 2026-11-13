@@ -1,9 +1,9 @@
+# plugins:7.3, Requirement 56.7
 """Agents registry: the single extension point for agent types.
 
 An agent type is a factory (usually a class) that produces a ``Runnable``. Types
 are registered by name; user code can register its own through ``register_agent_type``.
-The functions below are a view of the ``agent`` table of the default registrar (plugins:7.3,
-Requirement 56.7): a plugin registers a type with ``registrar.agent(name, factory)`` and it is
+The functions below are a view of the ``agent`` table of the default registrar: a plugin registers a type with ``registrar.agent(name, factory)`` and it is
 created here by name. ``react``, the placeholder that ships today, is registered by the built-in plugin
 of this component (``skye.agents.plugins``) when the registrar is first read.
 

@@ -250,7 +250,7 @@ def _generate_access_token(
     )
     try:
         expires = _dt.datetime.fromisoformat(payload["expireTime"].replace("Z", "+00:00"))
-        ttl = (expires - _dt.datetime.now(_dt.timezone.utc)).total_seconds()
+        ttl = (expires - _dt.datetime.now(_dt.UTC)).total_seconds()
         return str(payload["accessToken"]), ttl
     except (KeyError, ValueError, TypeError, AttributeError) as error:
         raise GoogleAuthError("The IAM credentials API returned an unexpected response") from error

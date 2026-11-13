@@ -1,16 +1,23 @@
-"""Azure (plugin of ``auth``, D110): the Azure sources: API key, client secret, certificate, federated token, managed identity and the CLI cache.
+# D110
+"""Azure (plugin of ``auth``): the Azure sources: API key, client secret, certificate, federated
+token, managed identity and the CLI cache.
 
-This ``__init__.py`` is the only module that code outside the folder imports. Its public names resolve lazily from ``source.py``, so importing the
-folder imports no inner file; ``register`` adds what the folder offers to a registrar, by ``"module:attribute"`` text.
+This ``__init__.py`` is the only module that code outside the folder imports. Its public names
+resolve lazily from ``source.py``, so importing the
+folder imports no inner file; ``register`` adds what the folder offers to a registrar, by
+``"module:attribute"`` text.
 
-Raises: nothing from ``register``: a name the registrar already holds is skipped, so it never overwrites what user code registered with ``replace=True``.
-Missing: a missing inner file breaks only the name that lives in it (an ``ImportError`` on first access, turned into a ``ConfigurationError`` by the registrar).
-Concurrency: ``register`` is called at start-up, or at the first lookup of the kind, from one thread; running it again is harmless.
+Raises: nothing from ``register``: a name the registrar already holds is skipped, so it never
+overwrites what user code registered with ``replace=True``.
+Missing: a missing inner file breaks only the name that lives in it (an ``ImportError`` on first
+access, turned into a ``ConfigurationError`` by the registrar).
+Concurrency: ``register`` is called at start-up, or at the first lookup of the kind, from one
+thread; running it again is harmless.
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from skye.base.lazy_import import lazy_names
 from skye.base.plugins import Registrar
@@ -22,6 +29,8 @@ if (
         API_KEY_ENV_VAR,
         ASSERTION_TYPE,
         AUTHORITY,
+        IMDS_URL,
+        OPENAI_SCOPE,
         AzureApiKeyAuth,
         AzureAuthError,
         AzureCertificateAuth,
@@ -29,8 +38,6 @@ if (
         AzureClientSecretAuth,
         AzureFederatedTokenAuth,
         AzureManagedIdentityAuth,
-        IMDS_URL,
-        OPENAI_SCOPE,
         cli_cache_path,
         resolve_azure_auth,
     )
@@ -78,7 +85,8 @@ __getattr__ = lazy_names(__name__, _LAZY)
 
 
 def register(registrar: Registrar) -> None:
-    """Add the credential sources of this folder to ``registrar``, skipping a name it already has."""
+    """Add the credential sources of this folder to ``registrar``, skipping a name it already
+    has."""
     for name, attribute in SOURCES.items():
         if not registrar.has("credential_source", name):
             registrar.credential_source(name, f"{__name__}:{attribute}")

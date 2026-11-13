@@ -1,11 +1,18 @@
-"""PostgreSQL (plugin of ``store``, D110): the PostgreSQL backend (RDS Data API, pg8000 or asyncpg, imported on first use; D100).
+# D110, D100
+"""PostgreSQL (plugin of ``store``): the PostgreSQL backend (RDS Data API, pg8000 or asyncpg,
+imported on first use).
 
-This ``__init__.py`` is the only module that code outside the folder imports. Its public names resolve lazily from the files of the folder, so importing
-the folder imports no inner file and no driver; ``register`` adds what the folder offers to a registrar, by ``"module:attribute"`` text.
+This ``__init__.py`` is the only module that code outside the folder imports. Its public names
+resolve lazily from the files of the folder, so importing
+the folder imports no inner file and no driver; ``register`` adds what the folder offers to a
+registrar, by ``"module:attribute"`` text.
 
-Raises: ``ConfigurationError`` from ``register`` when a name is already registered (replacing one is the caller's ``replace=True``, never this folder's).
-Missing: a missing inner file breaks only the name that lives in it (an ``ImportError`` on first access, turned into a ``ConfigurationError`` by the registrar).
-Concurrency: ``register`` is called once at start-up from one thread; a name resolves once and is the same object afterwards.
+Raises: ``ConfigurationError`` from ``register`` when a name is already registered (replacing one is
+the caller's ``replace=True``, never this folder's).
+Missing: a missing inner file breaks only the name that lives in it (an ``ImportError`` on first
+access, turned into a ``ConfigurationError`` by the registrar).
+Concurrency: ``register`` is called once at start-up from one thread; a name resolves once and is
+the same object afterwards.
 """
 
 from __future__ import annotations

@@ -1,18 +1,22 @@
-"""Bedrock response: how a Converse response and a stream event become a Skye response and chunk (plugin ``bedrock``, D110).
+# D110
+"""Bedrock response: how a Converse response and a stream event become a Skye response and chunk
+(plugin ``bedrock``).
 
-Text and tool-use blocks, the structured answer returned through its tool, the token usage, the stop reason mapped to a finish reason, and the
-usage reported by the last stream event. Module functions called by the thin methods of ``BedrockProvider``; they import nothing of another provider.
+Text and tool-use blocks, the structured answer returned through its tool, the token usage, the stop
+reason mapped to a finish reason, and the
+usage reported by the last stream event. Module functions called by the thin methods of
+``BedrockProvider``; they import nothing of another provider.
 """
 
 import json
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from skye.base.completion import CompleteResponse, StreamChunk, TokenUsage
+from skye.models.cost import usage_of
 from skye.models.plugins.bedrock.capabilities import extract_capability_calls
 from skye.models.utilities import rest
-from skye.models.cost import usage_of
 from skye.models.utilities.structured import STRUCTURED_TOOL
 
 
@@ -25,7 +29,8 @@ def transform_response(
 
     Args:
         response: The Bedrock response object
-        extract_calls: What reads the capability calls (the provider's method, so an override still applies)
+        extract_calls: What reads the capability calls (the provider's method, so an override still
+            applies)
 
     Returns:
         CompleteResponse in skye format
@@ -90,7 +95,7 @@ def transform_response(
         finish_reason=finish_reason,
         usage=usage,
         capability_calls=tool_calls_list if tool_calls_list else None,
-        created_at=datetime.now(tz=timezone.utc),
+        created_at=datetime.now(tz=UTC),
         metadata={
             "stop_reason": stop_reason,
             "tool_calls": tool_calls_metadata if tool_calls_metadata else None,

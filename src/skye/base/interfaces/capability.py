@@ -28,6 +28,7 @@ from skye.base.exceptions import ValidationError
 from skye.base.validated import Validated, field, validated
 
 
+# Requirement 62.3
 @validated(frozen=True)
 class CapabilitySchema(Validated):
     """Schema defining a capability's signature.
@@ -43,7 +44,7 @@ class CapabilitySchema(Validated):
         parameters: JSON Schema describing the capability's parameters.
         returns: JSON Schema describing the capability's return value.
         return_direct: ``True`` when the result of the capability is the answer of the agent and the model
-            is not asked again (Requirement 62.3). It is a flag for the agent, read through the
+            is not asked again. It is a flag for the agent, read through the
             ``ToolProvider`` Port; no adapter sends it to a model. It must be a ``bool``.
 
     Example:

@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from skye.base.interfaces.capability import CapabilityInterface
 
 
+# Requirement 2
 @validated
 class CapabilityCall(Validated):
     """A capability call requested by an LLM: the one call type, saved as id, name and arguments.
@@ -44,7 +45,7 @@ class CapabilityCall(Validated):
     from a ``CompleteResponse`` can also run itself with ``execute()``: it uses the capabilities the response carries, which are
     kept outside the saved fields, so saving a call never saves a live capability.
 
-    Lives in base so provider adapters in ``models`` need no import of the tools Component (Requirement 2);
+    Lives in base so provider adapters in ``models`` need no import of the tools Component;
     ``skye.tools.capability_models`` re-exports it.
 
     Attributes:
@@ -111,6 +112,7 @@ class TokenUsage(Validated):
     total_tokens: int
 
 
+# decision D109
 @validated
 class CompleteRequest(Validated):
     """Request for model completion.
@@ -139,7 +141,7 @@ class CompleteRequest(Validated):
             ``CapabilityRegistry`` or any ``ToolProvider`` (the adapter offers its schemas).
         capability_choice: How the model should choose capabilities ('auto', 'required', or specific capability name).
         force_choice: For a model that refuses a forced choice, send only the capability named in
-            ``capability_choice`` (allowed before the model's first answer only; decision D109).
+            ``capability_choice`` (allowed before the model's first answer only).
         response_format: Format specification for structured outputs.
         response_schema: Class that describes the structured output (for example a pydantic model
             or a dataclass), or an ``OutputSchema`` from rendered prompt parts (its reply is a ``dict``);
@@ -233,6 +235,7 @@ class CompleteRequest(Validated):
             )
 
 
+# decision D109
 @validated
 class CompleteResponse(Validated):
     """Response from model completion.
@@ -251,8 +254,7 @@ class CompleteResponse(Validated):
         usage: Token usage statistics.
         capability_calls: List of capability calls requested by the model (requires skyeai[capabilities]).
         created_at: Timestamp when the response was created.
-        added_messages: Messages Skye appended to the request (the instruction of an emulated
-            forced choice, decision D109); add them to the history to keep it append-only.
+        added_messages: Messages Skye appended to the request (the instruction of an emulated forced choice); add them to the history to keep it append-only.
         metadata: Additional metadata about the response.
 
     Example (Basic Response):

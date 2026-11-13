@@ -1,18 +1,29 @@
-"""Jev, a decision model: a state and a finite set of options in, one choice with a probability per option out.
+"""Jev, a decision model: a state and a finite set of options in, one choice with a probability per
+option out.
 
-Jev (from TypeSafe AI, https://typesafe.ai/, a "System One" model) does not write text. It answers a closed question, so the result is cheap, fast and
-checkable. This adapter implements the ``DecisionModel`` Port over the standard-library REST transport; it needs no extra.
+Jev (from TypeSafe AI, https://typesafe.ai/, a "System One" model) does not write text. It answers a
+closed question, so the result is cheap, fast and
+checkable. This adapter implements the ``DecisionModel`` Port over the standard-library REST
+transport; it needs no extra.
 
-Wire format. The request is a JSON ``POST`` to ``endpoint`` with ``{"prompt": <text>, "options": [<option>, ...]}`` and an
-optional bearer key. The response is a JSON object whose ``probabilities`` is either an object ``{option: probability}`` or a
-list of probabilities in the order of ``options``. This is the shape the library agreed with its consumers (the ``gateway``
-selector reaches any endpoint that speaks it, a local Jev included); it has not been checked against a hosted Jev service (the announcement at
-https://typesafe.ai/blog/introducing-system-one-models-and-jev publishes the price, 0.042 USD per million input tokens with output free, but no endpoint or
-schema; the documentation is at docs.typesafe.ai), so
-subclass :meth:`JevDecisionModel._build_request` and :meth:`JevDecisionModel._read_probabilities` to adapt another shape.
+Wire format. The request is a JSON ``POST`` to ``endpoint`` with ``{"prompt": <text>, "options":
+[<option>, ...]}`` and an
+optional bearer key. The response is a JSON object whose ``probabilities`` is either an object
+``{option: probability}`` or a
+list of probabilities in the order of ``options``. This is the shape the library agreed with its
+consumers (the ``gateway``
+selector reaches any endpoint that speaks it, a local Jev included); it has not been checked against
+a hosted Jev service (the announcement at
+https://typesafe.ai/blog/introducing-system-one-models-and-jev publishes the price, 0.042 USD per
+million input tokens with output free, but no endpoint or schema; the documentation is at
+docs.typesafe.ai), so
+subclass :meth:`JevDecisionModel._build_request` and :meth:`JevDecisionModel._read_probabilities` to
+adapt another shape.
 
-Whatever the endpoint returns is validated here, once: every option has a probability in 0..1, the probabilities are scaled to
-sum to 1, and the choice is the most probable option (the first one on a tie). An empty option set raises ``ValidationError``
+Whatever the endpoint returns is validated here, once: every option has a probability in 0..1, the
+probabilities are scaled to
+sum to 1, and the choice is the most probable option (the first one on a tie). An empty option set
+raises ``ValidationError``
 and nothing is sent.
 
 Example:
@@ -40,7 +51,8 @@ _SUM_TOLERANCE = 1e-6
 def normalize_probabilities(options: Sequence[str], raw: Any) -> dict[str, float]:
     """Check an endpoint's probabilities against ``options`` and scale them to sum to 1.
 
-    ``raw`` is an object ``{option: probability}`` or a list in the order of ``options``. Raises ``ProviderError`` when an option
+    ``raw`` is an object ``{option: probability}`` or a list in the order of ``options``. Raises
+    ``ProviderError`` when an option
     has no probability, a value is not a finite number in 0..1, or all are zero.
     """
     if isinstance(raw, Mapping):
@@ -96,13 +108,16 @@ def _check_options(options: Sequence[str]) -> list[str]:
     return checked
 
 
+# D18
 class JevDecisionModel:
     """``DecisionModel`` backed by a Jev endpoint over the built-in REST transport.
 
     Args:
         endpoint: URL that receives the decision request (a hosted or a local Jev).
-        api_key: Optional bearer key. No environment variable is read: the library owns only three ``SKYE_*`` variables (D18).
-        authenticator: Optional ``AuthenticationInterface`` that signs the request instead of a bearer key.
+        api_key: Optional bearer key. No environment variable is read: the library owns only three
+            ``SKYE_*`` variables.
+        authenticator: Optional ``AuthenticationInterface`` that signs the request instead of a
+            bearer key.
         timeout: Seconds to wait for the endpoint.
     """
 
@@ -156,7 +171,8 @@ class JevDecisionModel:
         return DecisionResult(choice=choice, probabilities=probabilities)
 
     async def decide(self, prompt: str, options: Sequence[str]) -> DecisionResult:
-        """Pick one of ``options`` for ``prompt``; raises ``ValidationError`` when ``options`` is empty."""
+        """Pick one of ``options`` for ``prompt``; raises ``ValidationError`` when ``options`` is
+        empty."""
         _check_options(options)
         return await asyncio.get_running_loop().run_in_executor(
             None, self.decide_sync, prompt, options

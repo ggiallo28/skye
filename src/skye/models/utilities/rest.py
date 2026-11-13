@@ -77,6 +77,7 @@ def prepare(
     return body, hdrs
 
 
+# D104
 def post_json(
     url: str,
     payload: Any,
@@ -103,7 +104,7 @@ def post_json(
         The decoded response (attribute access: ``response.choices[0].message.content``).
 
     Raises:
-        ProviderError: The subclass of the response (D104): ``RateLimitError``, ``ServerError``,
+        ProviderError: The subclass of the response: ``RateLimitError``, ``ServerError``,
             ``ProviderTimeoutError``, ``AuthenticationError``, ``BadRequestError``.
     """
     body, hdrs = prepare("POST", url, payload, headers, authenticator)
@@ -111,6 +112,7 @@ def post_json(
     return JsonObject(json.loads(raw.decode("utf-8")) if raw else {})
 
 
+# D104
 def stream_sse_json(
     url: str,
     payload: Any,
@@ -127,7 +129,7 @@ def stream_sse_json(
     stops at an event whose data is ``done_marker`` (OpenAI's ``[DONE]``) or at the end of the body.
 
     Raises:
-        ProviderError: The subclass of the response, before the first event (D104).
+        ProviderError: The subclass of the response, before the first event.
     """
     body, hdrs = prepare("POST", url, payload, headers, authenticator)
     resp = http.open_stream(url, body, headers=hdrs, method="POST", timeout=timeout, provider=provider)

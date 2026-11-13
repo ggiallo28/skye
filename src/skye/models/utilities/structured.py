@@ -1,8 +1,9 @@
-"""Structured output: the schema a model is asked to follow, and the check of its reply (Requirement 27, D24).
+# Requirement 27, D24, D101
+"""Structured output: the schema a model is asked to follow, and the check of its reply.
 
 ``response_schema`` is a dataclass (the standard, ``@validated`` or plain ``@dataclass``). A class with
 ``model_json_schema`` and ``model_validate_json`` (a user's pydantic model) is accepted too, without the library importing pydantic.
-An ``OutputSchema`` of ``base`` (a JSON Schema from rendered prompt parts, D101) is accepted too;
+An ``OutputSchema`` of ``base`` (a JSON Schema from rendered prompt parts) is accepted too;
 its reply is a ``dict``, checked against the whole schema (``schema_check``).
 A reply that does not conform raises ``ValidationError`` naming the field.
 """

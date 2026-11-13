@@ -1,3 +1,4 @@
+# D104
 """Model and embedding providers for Skye.
 
 This module provides concrete implementations of ModelInterface and VectorEncoderInterface
@@ -32,12 +33,13 @@ Example:
 A custom provider that calls an HTTP service uses the same standard-library transport as the
 built-in ones: ``post_json(url, payload, headers=..., authenticator=..., provider=...)`` returns
 the decoded JSON as a ``JsonObject`` (attribute access), ``stream_sse_json`` yields one per
-server-sent event. Both raise the ``ProviderError`` subclass of the response (D104), which is
+server-sent event. Both raise the ``ProviderError`` subclass of the response, which is
 what the client's retries read.
 
 Codename: zephyr.
 """
 
+from skye.base.lazy_import import lazy_names as _lazy_names
 from skye.models.base import BaseEmbeddingProvider, BaseModelProvider
 from skye.models.decision import create_decision_model
 from skye.models.lazy_import import LazyImporter
@@ -67,7 +69,12 @@ stream_sse_json = _rest.stream_sse_json
 # The built-in providers are not registered here: ``skye.models.plugins`` registers them with the default registrar at its first lookup, and
 # ``ProviderRegistry`` is a view of that registrar (Requirement 56.7).
 
+# The offline check is read at first use, so importing the package does not import it.
+_LAZY = {"check_provider": "conformance", "check_tokenizer": "conformance"}
+__getattr__ = _lazy_names(__name__, _LAZY)
+
 __all__ = [
+    *_LAZY,
     "BaseModelProvider",
     "BaseEmbeddingProvider",
     "LazyImporter",

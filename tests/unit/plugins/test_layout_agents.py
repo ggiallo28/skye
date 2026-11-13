@@ -67,7 +67,8 @@ def test_import_agents_registers_nothing_in_the_default_registrar():
     code = (
         "import skye.agents\n"
         "from skye.base import plugins\n"
-        "assert plugins._default is None or not plugins._default._builtins_loaded, 'a built-in plugin was loaded by import skye.agents'\n"
+        "assert plugins._default is None or not plugins._default._builtins_loaded, "
+        "'a built-in plugin was loaded by import skye.agents'\n"
     )
     done = subprocess.run(
         [sys.executable, "-I", "-c", code],

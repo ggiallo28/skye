@@ -1,4 +1,5 @@
-"""Prompt parts to a completion request, from the capabilities of the model (R33.9, D81, D101).
+# D81, D101
+"""Prompt parts to a completion request, from the capabilities of the model (R33.9).
 
 ``prompts`` renders a prompt as ``PromptParts`` (``base``), which names no provider. This module
 decides, from the model information an adapter reports (``get_model_info()``), which parts travel

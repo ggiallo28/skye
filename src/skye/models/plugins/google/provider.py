@@ -1,6 +1,7 @@
 """Google (Gemini Enterprise Agent Platform, formerly Vertex AI) provider implementation.
 
-Renamed from `vertex` (Google renamed Vertex AI to Gemini Enterprise Agent Platform in April 2026); the extra is now `google`.
+Renamed from `vertex` (Google renamed Vertex AI to Gemini Enterprise Agent Platform in April 2026);
+the extra is now `google`.
 
 This module provides the Google Cloud implementation of the ModelInterface,
 supporting Gemini and other Google models.
@@ -32,17 +33,19 @@ Example:
 """
 
 import asyncio
-from collections.abc import Iterator
+from collections.abc import AsyncGenerator
 from typing import Any
 
 from skye.auth.plugins.google import resolve_google_auth
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.interfaces.authentication import AuthenticationInterface
-from skye.base.prompt_parts import PromptParts
 from skye.models.base import BaseModelProvider
 from skye.models.plugins.google import capabilities, request, response
-from skye.models.plugins.google.capabilities import as_args as _as_args  # noqa: F401  (kept importable from here)
+from skye.models.plugins.google.capabilities import (
+    as_args as _as_args,  # noqa: F401  (kept importable from here)
+)
 from skye.models.utilities import rest
+from skye.models.utilities.blocking import aiterate_blocking
 from skye.models.utilities.rest import JsonObject
 
 
@@ -131,21 +134,26 @@ class GoogleProvider(BaseModelProvider):
         return auth
 
     def _transform_messages(self, messages: list[Any]) -> list[dict[str, Any]]:
-        """Transform Skye messages to Google (Gemini) format (see :func:`skye.models.plugins.google.request.transform_messages`)."""
+        """Transform Skye messages to Google (Gemini) format (see
+        :func:`skye.models.plugins.google.request.transform_messages`)."""
         return request.transform_messages(messages)
 
     def _transform_capabilities(self, capabilities_: list[Any]) -> list[dict[str, Any]]:
-        """Transform Skye capabilities to Google Gemini format (see :func:`skye.models.plugins.google.capabilities.transform_capabilities`)."""
+        """Transform Skye capabilities to Google Gemini format (see
+        :func:`skye.models.plugins.google.capabilities.transform_capabilities`)."""
         return capabilities.transform_capabilities(capabilities_)
 
     def _extract_capability_calls(self, response_: Any) -> list[Any] | None:
-        """Extract ``functionCall`` parts from a ``generateContent`` response; ``None`` when there are none."""
+        """Extract ``functionCall`` parts from a ``generateContent`` response; ``None`` when there
+        are none."""
         return capabilities.extract_capability_calls(response_)
 
     def _transform_request(self, request_: CompleteRequest) -> dict[str, Any]:
-        """Transform CompleteRequest to the Vertex AI REST body (see :func:`skye.models.plugins.google.request.transform_request`).
+        """Transform CompleteRequest to the Vertex AI REST body (see
+        :func:`skye.models.plugins.google.request.transform_request`).
 
-        The returned dict carries ``model`` (consumed by ``_call_provider``, not sent). ``_transform_messages`` and ``_transform_capabilities`` of this
+        The returned dict carries ``model`` (consumed by ``_acall_provider``, not sent).
+        ``_transform_messages`` and ``_transform_capabilities`` of this
         instance are the ones used, so a subclass that overrides one keeps working.
         """
         return request.transform_request(
@@ -161,7 +169,8 @@ class GoogleProvider(BaseModelProvider):
         return response.finish_reason(candidate)
 
     def _transform_response(self, response_: Any) -> CompleteResponse:
-        """Transform a ``generateContent`` JSON response to CompleteResponse (see :func:`skye.models.plugins.google.response.transform_response`)."""
+        """Transform a ``generateContent`` JSON response to CompleteResponse (see
+        :func:`skye.models.plugins.google.response.transform_response`)."""
         return response.transform_response(response_, self._extract_capability_calls)
 
     def _transform_stream_chunk(self, chunk: Any) -> StreamChunk:
@@ -173,35 +182,26 @@ class GoogleProvider(BaseModelProvider):
         model_name = body.pop("model")
         return _model_url(self.location, self.project_id, model_name, method), body
 
-    def _call_provider(self, request: dict[str, Any]) -> JsonObject:
-        """POST ``:generateContent`` and return the JSON response."""
+    async def _acall_provider(self, request: dict[str, Any]) -> JsonObject:
+        """POST ``:generateContent`` and return the JSON response (the blocking call runs in a
+        worker thread)."""
         url, body = self._prepare_call(request, "generateContent")
-        return rest.post_json(url, body, authenticator=self.authenticator, provider="google")
-
-    def _call_provider_stream(self, request: dict[str, Any]) -> Iterator[JsonObject]:
-        """POST ``:streamGenerateContent?alt=sse`` and yield decoded SSE events."""
-        url, body = self._prepare_call(request, "streamGenerateContent")
-        return rest.stream_sse_json(
-            url + "?alt=sse", body, authenticator=self.authenticator, provider="google"
+        return await asyncio.to_thread(
+            rest.post_json, url, body, authenticator=self.authenticator, provider="google"
         )
 
-    async def acomplete(
-        self,
-        messages: list[Any] | str | CompleteRequest | PromptParts | None = None,
-        model: str | None = None,
-        router: Any | None = None,
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-        **kwargs: Any,
-    ) -> CompleteResponse:
-        """Asynchronous completion: runs the blocking REST call in the default executor."""
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None, lambda: self.complete(messages, model, router, temperature, max_tokens, **kwargs)
+    def _acall_provider_stream(self, request: dict[str, Any]) -> AsyncGenerator[JsonObject, None]:
+        """POST ``:streamGenerateContent?alt=sse`` and yield decoded SSE events."""
+        url, body = self._prepare_call(request, "streamGenerateContent")
+        return aiterate_blocking(
+            lambda: rest.stream_sse_json(
+                url + "?alt=sse", body, authenticator=self.authenticator, provider="google"
+            )
         )
 
     def format_capability_results(self, results: list[Any]) -> list[dict[str, Any]]:
-        """Format capability results as Google ``functionResponse`` entries (see :func:`skye.models.plugins.google.capabilities.format_capability_results`)."""
+        """Format capability results as Google ``functionResponse`` entries (see
+        :func:`skye.models.plugins.google.capabilities.format_capability_results`)."""
         return capabilities.format_capability_results(results)
 
     def get_model_info(self) -> dict[str, Any]:
@@ -216,4 +216,5 @@ class GoogleProvider(BaseModelProvider):
             "supports_function_calling": True,
             "supports_structured_output": True,  # responseSchema (D101)
             "supports_multimodal": True,
+            **self._profile_info("google"),
         }

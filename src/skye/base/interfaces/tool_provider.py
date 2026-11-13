@@ -1,7 +1,8 @@
+# Requirement 16.11 of steering
 """ToolProvider Port: how a runtime component (an agent) obtains and runs the capabilities of its operation.
 
 Two things implement it: the local ``CapabilityRegistry`` and, later, the gateway client. An agent takes its toolset through this one
-Port, so it works the same with a local list of functions and with a remote gateway. Requirement 16.11 of steering.
+Port, so it works the same with a local list of functions and with a remote gateway.
 
 The Port is a ``Protocol``: any class with these three ``async`` methods is a ``ToolProvider``; nothing needs to be inherited.
 The call runs with an explicit ``CapabilityContext`` that carries the scope token and the description of the operation. The context is

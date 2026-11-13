@@ -64,7 +64,7 @@ class MockProvider(BaseModelProvider):
         """Format capability results for mock provider."""
         return [{"mock_result": "formatted"} for _ in results]
 
-    def _call_provider(self, request):
+    async def _acall_provider(self, request):
         self.call_count += 1
         if self.fail_count > 0:
             self.fail_count -= 1
@@ -75,8 +75,9 @@ class MockProvider(BaseModelProvider):
             )
         return MagicMock()
 
-    def _call_provider_stream(self, request):
-        return iter([])
+    async def _acall_provider_stream(self, request):
+        return
+        yield
 
     def get_model_info(self):
         return {"provider": "mock"}
@@ -128,11 +129,11 @@ class TestRetryDecorator:
         """A 4xx other than 429 is raised at once (D104)."""
         provider = MockProvider()
 
-        def bad_request(request):
+        async def bad_request(request):
             provider.call_count += 1
             raise BadRequestError("bad", provider="mock", status_code=400)
 
-        provider._call_provider = bad_request  # type: ignore[method-assign]
+        provider._acall_provider = bad_request  # type: ignore[method-assign]
         with pytest.raises(BadRequestError):
             provider.complete(CompleteRequest(messages=[UserMessage(content="test")], model="test-model"))
         assert provider.call_count == 1 and provider.waits == []
@@ -201,14 +202,15 @@ class TestRetryDecorator:
                 return [{"mock_result": "formatted"} for _ in results]
 
             @with_retry(max_retries=2, min_wait=0.1, max_wait=0.2, multiplier=1)
-            def _call_provider(self, request):
+            async def _acall_provider(self, request):
                 self.call_count += 1
                 if self.call_count < 2:
                     raise RateLimitError("test error", provider="mock", status_code=429)
                 return MagicMock()
 
-            def _call_provider_stream(self, request):
-                return iter([])
+            async def _acall_provider_stream(self, request):
+                return
+                yield
 
             def get_model_info(self):
                 return {"provider": "mock"}
@@ -263,11 +265,12 @@ class TestRetryDecorator:
                 """Format capability results for mock provider."""
                 return [{"mock_result": "formatted"} for _ in results]
 
-            def _call_provider(self, request):
+            async def _acall_provider(self, request):
                 raise ProviderError("original error", provider="mock")
 
-            def _call_provider_stream(self, request):
-                return iter([])
+            async def _acall_provider_stream(self, request):
+                return
+                yield
 
             def get_model_info(self):
                 return {"provider": "mock"}
@@ -339,12 +342,13 @@ class TestRetryWithStreaming:
                 """Format capability results for mock provider."""
                 return [{"mock_result": "formatted"} for _ in results]
 
-            def _call_provider(self, request):
+            async def _acall_provider(self, request):
                 return MagicMock()
 
-            def _call_provider_stream(self, request):
+            async def _acall_provider_stream(self, request):
                 self.call_count += 1
                 raise ProviderError("stream error", provider="mock")
+                yield
 
             def get_model_info(self):
                 return {"provider": "mock"}

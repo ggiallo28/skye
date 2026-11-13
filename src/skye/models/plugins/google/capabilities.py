@@ -1,7 +1,10 @@
-"""Google (Gemini): capabilities out and back (D110).
+# D110
+"""Google (Gemini): capabilities out and back.
 
-Skye capabilities become ``functionDeclarations``, the ``functionCall`` parts of a response become ``CapabilityCall`` objects, and the results are
-formatted as ``functionResponse``. Plain functions, so the provider class stays thin; ``GoogleProvider`` keeps the same methods and calls these.
+Skye capabilities become ``functionDeclarations``, the ``functionCall`` parts of a response become
+``CapabilityCall`` objects, and the results are
+formatted as ``functionResponse``. Plain functions, so the provider class stays thin;
+``GoogleProvider`` keeps the same methods and calls these.
 """
 
 import json
@@ -12,7 +15,8 @@ from skye.models.utilities.rest import JsonObject, wrap
 
 
 def as_args(arguments: Any) -> dict[str, Any]:
-    """The arguments of a call as a dict: a JSON string is decoded, anything that is not an object becomes ``{}``."""
+    """The arguments of a call as a dict: a JSON string is decoded, anything that is not an object
+    becomes ``{}``."""
     if isinstance(arguments, str):
         try:
             arguments = json.loads(arguments) if arguments else {}

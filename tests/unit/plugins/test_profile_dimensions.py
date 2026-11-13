@@ -1,4 +1,5 @@
-"""The vector dimensions and the default endpoints of the embedding providers are profile data, not constants in the adapters (D110)."""
+"""The vector dimensions and the default endpoints of the embedding providers are profile data, not
+constants in the adapters (D110)."""
 
 from __future__ import annotations
 
@@ -12,7 +13,8 @@ from skye.models.plugins.cohere import CohereEmbeddingProvider
 from skye.models.plugins.google import GoogleEmbeddingProvider, GoogleMultimodalEmbeddingProvider
 from skye.models.plugins.openai import OpenAIEmbeddingProvider
 
-# The values the adapters held as constants before this change: a frozen copy, so that the move cannot drift.
+# The values the adapters held as constants before this change: a frozen copy, so that the move
+# cannot drift.
 OLD_DIMENSIONS = {
     OpenAIEmbeddingProvider: {
         "text-embedding-3-small": 1536,
@@ -33,7 +35,8 @@ OLD_DIMENSIONS = {
 
 
 def _make(cls, model):
-    """An instance without calling the constructor: the dimension needs no key, no region and no network."""
+    """An instance without calling the constructor: the dimension needs no key, no region and no
+    network."""
     instance = cls.__new__(cls)
     instance.model = model
     return instance
@@ -62,31 +65,30 @@ def test_an_unknown_model_is_a_value_error_as_before(cls):
 
 def test_the_adapters_hold_no_dimension_table_any_more():
     for cls in (*OLD_DIMENSIONS, GoogleMultimodalEmbeddingProvider):
-        assert not hasattr(cls, "MODEL_DIMENSIONS") and not hasattr(cls, "VECTOR_DIMENSION"), (
-            cls.__name__
-        )
+        assert not hasattr(cls, "MODEL_DIMENSIONS") and not hasattr(
+            cls, "VECTOR_DIMENSION"
+        ), cls.__name__
 
 
 def test_a_plugin_profile_gives_its_own_embedding_model_a_dimension():
-    """A third-party embedding provider declares its dimension in its profile, with no table in its class."""
+    """A third-party embedding provider declares its dimension in its profile, with no table in its
+    class."""
     registrar = Registrar()
     registrar.provider(
         "acme-embed",
         "skye.models.plugins.openai:OpenAIEmbeddingProvider",
         profile=ProviderProfile(
             "acme-embed", models={"acme-1": ModelProfile(info={"vector_dimension": 64})}
-        ), function="embedding",
+        ),
+        function="embedding",
     )
 
     class Acme(BaseEmbeddingProvider):
         def _initialize_client(self):
             return None
 
-        def _encode_batch_impl(self, texts):
-            return [[0.0] * 64 for _ in texts]
-
         async def _aencode_batch_impl(self, texts):
-            return self._encode_batch_impl(texts)
+            return [[0.0] * 64 for _ in texts]
 
         def get_vector_dimension(self) -> int:
             return self._profile_dimension("acme-embed")

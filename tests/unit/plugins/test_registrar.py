@@ -1,7 +1,9 @@
-"""The registrar: each kind, duplicates, ``replace``, profiles, lazy text targets and a private registrar (plugins:2.6)."""
+"""The registrar: each kind, duplicates, ``replace``, profiles, lazy text targets and a private
+registrar (plugins:2.6)."""
 
 from __future__ import annotations
 
+import re
 import sys
 import textwrap
 from dataclasses import dataclass
@@ -10,11 +12,8 @@ import pytest
 
 from skye.base.exceptions import ConfigurationError
 from skye.base.interfaces.plugin import RegistrarInterface
-import re
-
 from skye.base.plugins import BUILTIN_PLUGINS, KINDS, Registrar, get_registrar
 from skye.utils.validation import port_signature_mismatches
-
 
 _TEXT_RE = re.compile(r"^[A-Za-z_][\w.]*:[A-Za-z_][\w.]*$")
 
@@ -29,7 +28,9 @@ class FakeProfile:
 
 def register(registrar: Registrar, kind: str, name: str, target: object, **kwargs: object) -> None:
     if kind == "provider":
-        kwargs.setdefault("function", "model")  # an object whose methods say nothing needs the function
+        kwargs.setdefault(
+            "function", "model"
+        )  # an object whose methods say nothing needs the function
     getattr(registrar, kind)(name, target, **kwargs)
 
 
@@ -46,7 +47,9 @@ def test_the_kinds_are_the_nine_registrar_methods():
     methods = {
         n for n, m in vars(RegistrarInterface).items() if not n.startswith("_") and callable(m)
     }
-    assert methods == set(KINDS) | {"profile"}  # the nine kinds and the one call that merges a profile (task 17.1)
+    assert methods == set(KINDS) | {
+        "profile"
+    }  # the nine kinds and the one call that merges a profile (task 17.1)
     assert set(KINDS) == {
         "provider",
         "backend",
@@ -215,7 +218,9 @@ def test_two_different_profiles_for_one_provider_name_raise():
 def test_replace_overrides_the_profile_too():
     registrar = Registrar()
     registrar.provider("acme", object, profile=FakeProfile("acme", "K1"), function="model")
-    registrar.provider("acme", object, profile=FakeProfile("acme", "K2"), replace=True, function="model")
+    registrar.provider(
+        "acme", object, profile=FakeProfile("acme", "K2"), replace=True, function="model"
+    )
     assert registrar.get_profile("acme").key == "K2"
 
 
@@ -343,12 +348,14 @@ def test_a_private_registrar_leaves_the_default_untouched():
     assert all("only-in-private" not in get_registrar().names(kind) for kind in KINDS)
 
 
-# -- the built-in plugins of the owners, loaded at the first use (plugins:4.2) ------------------------------------
+# -- the built-in plugins of the owners, loaded at the first use (plugins:4.2)
+# ------------------------------------
 
 
 @pytest.fixture
 def builtin_modules(tmp_path, monkeypatch):
-    """Two fake owner modules that count how often their ``register`` runs, and a helper to add more."""
+    """Two fake owner modules that count how often their ``register`` runs, and a helper to add
+    more."""
     (tmp_path / "fake_owner_a.py").write_text(
         textwrap.dedent(
             """
@@ -365,7 +372,8 @@ def builtin_modules(tmp_path, monkeypatch):
         encoding="utf-8",
     )
     (tmp_path / "fake_owner_b.py").write_text(
-        "CALLS = []\n\ndef register(registrar):\n    CALLS.append(1)\n    registrar.tokenizer('tok', 'fake_owner_a:Backend')\n",
+        "CALLS = []\n\ndef register(registrar):\n    CALLS.append(1)\n    "
+        "registrar.tokenizer('tok', 'fake_owner_a:Backend')\n",
         encoding="utf-8",
     )
     monkeypatch.syspath_prepend(str(tmp_path))
@@ -376,11 +384,13 @@ def builtin_modules(tmp_path, monkeypatch):
         sys.modules.pop(name, None)
 
 
-def test_the_builtin_plugins_are_the_seven_owners_and_never_imported_by_base():
-    assert BUILTIN_PLUGINS == tuple(
-        f"skye.{owner}.plugins:register"
-        for owner in ("models", "store", "auth", "router", "tools", "prompts", "agents")
-    )
+def test_the_builtin_plugins_are_the_owners_and_never_imported_by_base():
+    owners = ("models", "store", "auth", "router", "tools", "prompts", "agents")
+    expected = [f"skye.{owner}.plugins:register" for owner in owners]
+    expected.insert(
+        owners.index("tools"), "skye.tools.engines:register"
+    )  # the MCP clients of tools (O80 option D)
+    assert BUILTIN_PLUGINS == tuple(expected)
     assert all(_TEXT_RE.match(text) for text in BUILTIN_PLUGINS)
 
 
@@ -413,7 +423,8 @@ def test_the_first_use_loads_the_builtins_once(builtin_modules, first_call):
 
 
 def test_a_builtin_name_is_a_duplicate_for_a_registration_made_first(builtin_modules):
-    """As today: ``register_backend("memory", ...)`` without ``replace`` fails because the built-in is known."""
+    """As today: ``register_backend("memory", ...)`` without ``replace`` fails because the built-in
+    is known."""
     registrar = Registrar(builtin_plugins=("fake_owner_a:register",))
     with pytest.raises(ConfigurationError) as caught:
         registrar.backend("memory", dict)
@@ -448,7 +459,8 @@ def test_a_plugin_module_that_fails_to_import_something_else_raises(builtin_modu
 def test_a_plugin_module_inside_a_missing_package_is_skipped_only_when_the_module_itself_is_missing(
     builtin_modules,
 ):
-    """``exc.name`` is the module asked for: a missing parent package of the owner is the same case, a missing dependency is not."""
+    """``exc.name`` is the module asked for: a missing parent package of the owner is the same case,
+    a missing dependency is not."""
     registrar = Registrar(builtin_plugins=("fake_owner_deep.sub._plugin:register",))
     assert (
         registrar.names("backend") == []
@@ -465,7 +477,8 @@ def test_a_register_that_fails_raises_its_own_error(builtin_modules):
 
 
 def test_a_builtin_that_registers_through_the_registrar_does_not_recurse(builtin_modules):
-    """``register`` calls registration methods, which would ask for the built-ins again: the flag is set first."""
+    """``register`` calls registration methods, which would ask for the built-ins again: the flag is
+    set first."""
     registrar = Registrar(builtin_plugins=("fake_owner_a:register",))
     registrar.get_profile("anything")
     assert sys.modules["fake_owner_a"].CALLS == [1]
@@ -480,7 +493,8 @@ def test_the_default_registrar_is_built_with_the_scan_and_the_builtins(monkeypat
     assert registrar is module.get_registrar()
 
 
-# -- unregister (not part of the Port) --------------------------------------------------------------------------
+# -- unregister (not part of the Port)
+# --------------------------------------------------------------------------
 
 
 def test_unregister_removes_a_name_and_says_whether_it_was_there():

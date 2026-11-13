@@ -1,7 +1,9 @@
+# Requirement 11.6
 """API-key and bearer strategies for OpenAI-compatible providers, Anthropic and Cohere.
 
-Each provider's key comes from the ``api_key_variables`` of its profile (the provider-standard variable, never a prefixed one,
-Requirement 11.6); no table of the names is kept here. A missing key raises ``ConfigurationError`` naming the variable, never a value;
+Each provider's key comes from the ``api_key_variables`` of its profile (the provider-standard
+variable, never a prefixed one); no table of the names is kept here. A missing key raises
+``ConfigurationError`` naming the variable, never a value;
 ``repr`` shows the class name only; ``apply`` returns a new dict and leaves the input alone.
 """
 
@@ -12,7 +14,6 @@ from collections.abc import Mapping
 
 from skye.base.api_keys import api_key_variable
 from skye.base.exceptions import ConfigurationError
-
 
 
 def _key(api_key: str | None, variables: tuple[str, ...]) -> str:
@@ -35,7 +36,8 @@ class ApiKeyAuth:
     """The key in a header of its own (``x-api-key`` for Anthropic).
 
     Args:
-        env_var: The variable to read when no key is passed (the first variable of the profile of the provider); ``None`` means the key must be passed.
+        env_var: The variable to read when no key is passed (the first variable of the profile of
+            the provider); ``None`` means the key must be passed.
         api_key: The key; the variable is not read when it is given.
         header: The header that carries the key.
     """
@@ -60,7 +62,8 @@ class BearerAuth:
     """``Authorization: Bearer <key>``, the scheme of OpenAI and of the providers that copy it.
 
     Args:
-        env_var: The variable to read when no key is passed (the first variable of the profile of the provider); ``None`` means the key must be passed.
+        env_var: The variable to read when no key is passed (the first variable of the profile of
+            the provider); ``None`` means the key must be passed.
         api_key: The key; the variable is not read when it is given.
     """
 
@@ -88,12 +91,14 @@ def openai_authenticator(api_key: str | None = None, *, env_var: str | None = No
 
 
 def anthropic_authenticator(api_key: str | None = None) -> ApiKeyAuth:
-    """The ``x-api-key`` header of Anthropic, with the key from the variable of the profile of ``anthropic``."""
+    """The ``x-api-key`` header of Anthropic, with the key from the variable of the profile of
+    ``anthropic``."""
     return ApiKeyAuth(api_key_variable("anthropic"), api_key, header="x-api-key")
 
 
 def cohere_authenticator(api_key: str | None = None) -> BearerAuth:
-    """Bearer authentication for Cohere, with the key from the variable of the profile of ``cohere``."""
+    """Bearer authentication for Cohere, with the key from the variable of the profile of
+    ``cohere``."""
     return BearerAuth(api_key_variable("cohere"), api_key)
 
 
@@ -104,7 +109,8 @@ def api_key_authenticator(provider: str, api_key: str | None = None) -> ApiKeyAu
 
     Raises:
         ConfigurationError: For a provider with no variable in its profile (register it with
-            ``ProviderProfile(api_key_variables=...)``, or pass ``env_var`` to ``BearerAuth`` yourself).
+            ``ProviderProfile(api_key_variables=...)``, or pass ``env_var`` to ``BearerAuth``
+            yourself).
     """
     variable = api_key_variable(provider)
     if variable is None:

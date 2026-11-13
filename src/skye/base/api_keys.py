@@ -1,9 +1,13 @@
-"""The API-key variables of a provider, read from its profile (Requirement 60.3, 11.6).
+# Requirement 60.3, 11.6
+"""The API-key variables of a provider, read from its profile.
 
-The names of the variables live in one place: ``api_key_variables`` of the ``ProviderProfile`` that the provider is registered with. Nothing else
-holds a table of them. ``auth``, the router and the adapters call these functions with the name of the provider.
+The names of the variables live in one place: ``api_key_variables`` of the ``ProviderProfile`` that
+the provider is registered with. Nothing else
+holds a table of them. ``auth``, the router and the adapters call these functions with the name of
+the provider.
 
-Raises: nothing; a provider with no profile, or a profile with no variable, gives an empty tuple and no key.
+Raises: nothing; a provider with no profile, or a profile with no variable, gives an empty tuple and
+no key.
 Missing: the functions never read a file; they read the registrar and the process environment.
 Concurrency: a read of the registrar takes no lock; the environment is read at each call.
 """
@@ -19,7 +23,8 @@ __all__ = ["api_key_from_environment", "api_key_variable", "api_key_variables"]
 
 
 def api_key_variables(provider: str, registrar: Registrar | None = None) -> tuple[str, ...]:
-    """The variables that hold the key of ``provider``, in the order they are read; empty when it has none.
+    """The variables that hold the key of ``provider``, in the order they are read; empty when it
+    has none.
 
     Args:
         provider: The registered name of the provider, for example ``"openai"``.
@@ -33,7 +38,8 @@ def api_key_variables(provider: str, registrar: Registrar | None = None) -> tupl
 
 
 def api_key_variable(provider: str, registrar: Registrar | None = None) -> str | None:
-    """The first variable that holds the key of ``provider`` (the one an error names), or ``None`` when it has none."""
+    """The first variable that holds the key of ``provider`` (the one an error names), or ``None``
+    when it has none."""
     variables = api_key_variables(provider, registrar)
     return variables[0] if variables else None
 
@@ -43,7 +49,8 @@ def api_key_from_environment(
     environ: Mapping[str, str] | None = None,
     registrar: Registrar | None = None,
 ) -> str | None:
-    """The key of ``provider`` from the environment: the value of the first variable of its profile that is set and not empty.
+    """The key of ``provider`` from the environment: the value of the first variable of its profile
+    that is set and not empty.
 
     Args:
         provider: The registered name of the provider.

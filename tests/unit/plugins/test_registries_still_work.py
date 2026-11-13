@@ -1,12 +1,17 @@
 """Every call to a registry of today works as before (task 7.4, Requirement 56.7).
 
-One compact case for each registry: it registers through the old call, finds what it registered through the new word (``plugins.names`` or
-``plugins.get``) where the registry is a view of the registrar, builds it through the old call, and removes it. The registries are tested one
-by one in more depth elsewhere (``test_provider_registry_view.py``, ``test_store_view.py``, ``test_default_sets.py``, ``tests/unit/auth/test_registry.py``,
-``tests/unit/agents/test_registry.py``, ``tests/unit/tools/test_mcp_impl_registry.py``); this file is the one place that runs them all next to each
+One compact case for each registry: it registers through the old call, finds what it registered
+through the new word (``plugins.names`` or
+``plugins.get``) where the registry is a view of the registrar, builds it through the old call, and
+removes it. The registries are tested one
+by one in more depth elsewhere (``test_provider_registry_view.py``, ``test_store_view.py``,
+``test_default_sets.py``, ``tests/unit/auth/test_registry.py``,
+``tests/unit/agents/test_registry.py``, ``tests/unit/tools/test_mcp_impl_registry.py``); this file
+is the one place that runs them all next to each
 other against the default registrar, which it puts back after each test.
 
-``create_embedding_provider`` is not a function of the library (the embedding providers are built by ``ProviderRegistry.get_embedding_provider`` and
+``create_embedding_provider`` is not a function of the library (the embedding providers are built by
+``ProviderRegistry.get_embedding_provider`` and
 by ``skye.provider(..., provider_type="embedding")``), so the embedding case uses those two.
 """
 
@@ -103,7 +108,8 @@ def plugins() -> Plugins:
     return Plugins()
 
 
-# -- ProviderRegistry (models) -----------------------------------------------------------------------------------
+# -- ProviderRegistry (models)
+# -----------------------------------------------------------------------------------
 
 
 def test_provider_registry_model_and_embedding_calls_work_and_are_found_by_the_new_word(plugins):
@@ -140,7 +146,8 @@ def test_decision_models_are_built_by_create_decision_model_from_the_provider_ki
     assert "zz-decider" in str(caught.value)
 
 
-# -- skye.store -----------------------------------------------------------------------------------------------------
+# -- skye.store
+# --------------------------------------------------------------------------------------------------
 
 
 def test_store_register_backend_and_backend_work_and_the_name_is_found_by_the_new_word(plugins):
@@ -158,7 +165,8 @@ def test_store_register_backend_and_backend_work_and_the_name_is_found_by_the_ne
     assert "zz-store" not in available_backends()
 
 
-# -- skye.auth ------------------------------------------------------------------------------------------------------
+# -- skye.auth
+# --------------------------------------------------------------------------------------------------
 
 
 def test_auth_register_resolve_list_and_unregister_work_and_the_name_is_found_by_the_new_word(
@@ -176,7 +184,8 @@ def test_auth_register_resolve_list_and_unregister_work_and_the_name_is_found_by
     assert "aws" in list_credential_sources()  # a built-in one is never lost by this
 
 
-# -- skye.agents ----------------------------------------------------------------------------------------------------
+# -- skye.agents
+# --------------------------------------------------------------------------------------------------
 
 
 def test_agents_register_get_create_and_list_work_and_the_name_is_found_by_the_new_word(plugins):
@@ -196,7 +205,8 @@ def test_agents_register_get_create_and_list_work_and_the_name_is_found_by_the_n
     assert "react" in list_agent_types()  # the built-in one stays
 
 
-# -- skye.tools: the MCP clients ---------------------------------------------------------------------------------------
+# -- skye.tools: the MCP clients
+# ---------------------------------------------------------------------------------------
 
 
 def test_mcp_create_mcp_client_builds_the_built_in_and_a_plugin_client_by_impl(plugins):
@@ -216,7 +226,8 @@ def test_mcp_create_mcp_client_builds_the_built_in_and_a_plugin_client_by_impl(p
     assert "skyemcp" in str(caught.value)
 
 
-# -- TokenCounter.register_tokenizer: outside the plugin interface, and it still works ----------------------------------------
+# -- TokenCounter.register_tokenizer: outside the plugin interface, and it still works
+# ----------------------------------------
 
 
 def test_token_counter_register_tokenizer_and_unregister_work_outside_the_registrar(plugins):
@@ -233,7 +244,8 @@ def test_token_counter_register_tokenizer_and_unregister_work_outside_the_regist
     assert TokenCounter.unregister_tokenizer("zz-tok-model") is False
 
 
-# -- the prompt builder: register_filter and the default set ---------------------------------------------------------------------
+# -- the prompt builder: register_filter and the default set
+# ---------------------------------------------------------------------
 
 
 def test_prompt_builder_register_filter_stays_local_and_the_default_set_is_a_view(plugins):
@@ -255,7 +267,8 @@ def test_prompt_builder_register_filter_stays_local_and_the_default_set_is_a_vie
     assert fresh.render("zz-d", {"name": "ada"})[0].content == "<ada>"
 
 
-# -- CapabilityRegistry: not a view of the registrar, and it works on its own ----------------------------------------------------
+# -- CapabilityRegistry: not a view of the registrar, and it works on its own
+# ----------------------------------------------------
 
 
 def test_capability_registry_works_on_its_own_and_is_not_a_view_of_the_registrar(plugins):

@@ -1,4 +1,5 @@
-"""The layout of ``store/plugins`` (D110, Requirements 56.9 and 56.10): one folder per backend, one door, the same file names."""
+"""The layout of ``store/plugins`` (D110, Requirements 56.9 and 56.10): one folder per backend, one
+door, the same file names."""
 
 from __future__ import annotations
 
@@ -72,7 +73,8 @@ def test_a_text_points_at_the_door_and_never_at_an_inner_file():
 
 @pytest.mark.parametrize("folder", FOLDERS)
 def test_importing_a_folder_imports_no_inner_file_and_no_driver(folder):
-    """The door alone imports nothing of its folder and no driver (``skye.store`` imports the classes itself, so an empty package stands in for it)."""
+    """The door alone imports nothing of its folder and no driver (``skye.store`` imports the
+    classes itself, so an empty package stands in for it)."""
     store_dir = ROOT.parent
     code = (
         "import sys, types\n"
@@ -83,7 +85,8 @@ def test_importing_a_folder_imports_no_inner_file_and_no_driver(folder):
         f"import skye.store.plugins.{folder}\n"
         f"inner = [m for m in sys.modules if m.startswith('skye.store.plugins.{folder}.')]\n"
         "assert not inner, inner\n"
-        "assert not {'boto3', 'botocore', 'redis', 'valkey', 'pg8000', 'asyncpg'} & set(sys.modules), 'a driver was imported'\n"
+        "assert not {'boto3', 'botocore', 'redis', 'valkey', 'pg8000', 'asyncpg'} "
+        "& set(sys.modules), 'a driver was imported'\n"
     )
     done = subprocess.run(
         [sys.executable, "-I", "-c", code],

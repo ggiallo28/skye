@@ -1,15 +1,16 @@
-"""Shared store Component: the state backends behind the storage Ports (Requirement 12).
+# Requirement 12, D110, decisions D96, D99, D97, D100, D98
+"""Shared store Component: the state backends behind the storage Ports.
 
-Six backends, each in its own folder of ``store/plugins`` (D110), with its driver imported only on first
-use (decisions D96, D99):
-``InMemoryBackend`` (the default, D97), ``FileSystemBackend``, ``DynamoDBBackend`` (boto3; extra
+Six backends, each in its own folder of ``store/plugins``, with its driver imported only on first
+use:
+``InMemoryBackend`` (the default), ``FileSystemBackend``, ``DynamoDBBackend`` (boto3; extra
 ``aws`` outside Lambda),
 ``RedisBackend`` (extra ``redis``), ``PostgreSQLBackend`` (RDS Data API, then pg8000 with extra
 ``postgres``, then asyncpg with
-extra ``postgres-asyncpg``; D100) and ``DurableFunctionBackend`` (the caller's durable context).
+extra ``postgres-asyncpg``) and ``DurableFunctionBackend`` (the caller's durable context).
 ``backend(name, **config)``
 builds one by name, ``register_backend`` adds one from outside Skye, and ``check_backend`` (from
-``skye.store.conformance``) checks any backend (D98). ``namespaced(store, prefix)`` gives each component its own
+``skye.store.conformance``) checks any backend. ``namespaced(store, prefix)`` gives each component its own
 namespace over one store (the router takes ``"router"``, and the memory and the agents will take theirs).
 
 Codename: lake.

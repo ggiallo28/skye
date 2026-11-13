@@ -1,7 +1,8 @@
+# decision D24
 """Validated dataclasses for the base contracts, in the standard library only.
 
 The shared contracts (messages, completion request and response, configuration) are plain
-``dataclasses`` (decision D24). This module gives them what pydantic gave them, without importing
+``dataclasses``. This module gives them what pydantic gave them, without importing
 it: every field is checked against its annotation when the object is built, a value that can be
 read safely is converted (an ``int`` where a ``float`` is expected, a numeric string where an
 ``int`` is expected, a ``dict`` where a nested dataclass is expected), and a value that cannot be

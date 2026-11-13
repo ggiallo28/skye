@@ -1,4 +1,5 @@
-"""Reading what the Anthropic Messages endpoint returns: a response, and each event of a stream (D110).
+# D110
+"""Reading what the Anthropic Messages endpoint returns: a response, and each event of a stream.
 
 Raises: nothing of its own; a malformed response raises whatever attribute error the missing field causes, as the provider always did.
 Missing: absent optional fields (``stop_sequence``, ``usage`` of a stream event, the text of a delta) become ``None`` or an empty string.

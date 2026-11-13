@@ -1,7 +1,7 @@
+# task 4.6, Requirement 10.1, decision D41
 """Registry Port: the provider registry contract.
 
-Single home for the registry contract (structure task 4.6, Overlap A,
-Requirement 10.1). The route registry Port was removed (decision D41): the router keeps its aliases itself.
+Single home for the registry contract (Overlap A). The route registry Port was removed: the router keeps its aliases itself.
 The provider registry discovers and instantiates providers. Consumers (e.g. the
 router) reach the implementation in ``models`` only through this Port.
 

@@ -26,7 +26,8 @@ from skye.base.profile import ModelProfile, ProviderProfile, find_model_profile
 def usage_of(prompt: Any, completion: Any, total: Any = None) -> TokenUsage | None:
     """The tokens a provider reported, or ``None`` when it reported none.
 
-    A missing, ``None`` or negative number counts as 0; both counts at 0 mean the provider said nothing.
+    A missing, ``None`` or negative number counts as 0; both counts at 0 mean the provider said
+    nothing.
     ``total`` defaults to the sum of the two.
 
     Example:
@@ -50,7 +51,8 @@ def usage_of(prompt: Any, completion: Any, total: Any = None) -> TokenUsage | No
 
 
 def check_pricing(pricing: object) -> dict[str, float] | None:
-    """Return ``pricing`` when it is ``None`` or ``{"prompt": p, "completion": c}`` (USD per 1M tokens, 0 or more).
+    """Return ``pricing`` when it is ``None`` or ``{"prompt": p, "completion": c}`` (USD per 1M
+    tokens, 0 or more).
 
     Raises:
         ValidationError: The prices are not those two non-negative numbers.
@@ -78,14 +80,16 @@ def check_pricing(pricing: object) -> dict[str, float] | None:
 
 
 def _price_of(entry: ModelProfile) -> dict[str, float] | None:
-    """``{"prompt": p, "completion": c}`` of a model profile, or ``None`` when either price is unknown."""
+    """``{"prompt": p, "completion": c}`` of a model profile, or ``None`` when either price is
+    unknown."""
     if entry.prompt_price is None or entry.completion_price is None:
         return None
     return {"prompt": entry.prompt_price, "completion": entry.completion_price}
 
 
 def _profiles() -> list[ProviderProfile]:
-    """The provider profiles in force: every one registered with the default registrar (the built-in ones included), by provider name."""
+    """The provider profiles in force: every one registered with the default registrar (the built-in
+    ones included), by provider name."""
     registrar = get_registrar()
     found: dict[str, ProviderProfile] = {}
     for name in registrar.names("provider"):
@@ -95,16 +99,21 @@ def _profiles() -> list[ProviderProfile]:
     return list(found.values())
 
 
+# Requirement 59
 class CostCalculator(CostCalculatorInterface):
     """Calculate API costs based on token usage.
 
     This class provides methods to estimate costs for API calls based on
     token usage and model pricing. Pricing is per 1M tokens.
 
-    It holds no price list. The prices of a provider are in its ``ProviderProfile``, registered with the provider
-    (Requirement 59 of steering); ``add_custom_pricing`` adds a user layer that wins over every profile. The built-in
-    prices are the list prices of November 2024 and are not kept up to date: newer models are missing and prices change.
-    For a real bill, pass your own prices (``add_custom_pricing``) or read the provider's current price list.
+    It holds no price list. The prices of a provider are in its ``ProviderProfile``, registered with
+    the provider
+    (of steering); ``add_custom_pricing`` adds a user layer that wins over every profile. The
+    built-in
+    prices are the list prices of November 2024 and are not kept up to date: newer models are
+    missing and prices change.
+    For a real bill, pass your own prices (``add_custom_pricing``) or read the provider's current
+    price list.
 
     Example:
         >>> usage = TokenUsage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
@@ -113,7 +122,8 @@ class CostCalculator(CostCalculatorInterface):
         True
     """
 
-    # The user layer of ``add_custom_pricing``: model name -> {"prompt": ..., "completion": ...} (USD per 1M tokens).
+    # The user layer of ``add_custom_pricing``: model name -> {"prompt": ..., "completion": ...}
+    # (USD per 1M tokens).
     _custom: dict[str, dict[str, float]] = {}
 
     @classmethod
@@ -201,16 +211,21 @@ class CostCalculator(CostCalculatorInterface):
 
     @classmethod
     def pricing_for(cls, model: str) -> dict[str, float] | None:
-        """Pricing of ``model``, allowing a dated or versioned name: ``claude-3-opus-20240229`` finds ``claude-3-opus``.
+        """Pricing of ``model``, allowing a dated or versioned name: ``claude-3-opus-20240229``
+        finds ``claude-3-opus``.
 
-        The exact name wins. Otherwise the longest known name counts only when what follows it is a date or a version
-        (``-2024-08-06``, ``-20240229``, ``-0613``, ``@001``, ``:0``). Another model that merely starts with a known
-        name (``gpt-4o`` for ``gpt-4``) is not priced at the price of the shorter one: it has no price here.
+        The exact name wins. Otherwise the longest known name counts only when what follows it is a
+        date or a version
+        (``-2024-08-06``, ``-20240229``, ``-0613``, ``@001``, ``:0``). Another model that merely
+        starts with a known
+        name (``gpt-4o`` for ``gpt-4``) is not priced at the price of the shorter one: it has no
+        price here.
 
         Example:
             >>> CostCalculator.pricing_for("gpt-4-0613") == CostCalculator.get_pricing("gpt-4")
             True
-            >>> CostCalculator.pricing_for("claude-3-opus-20240229") == CostCalculator.get_pricing("claude-3-opus")
+            >>> by_id = CostCalculator.pricing_for("claude-3-opus-20240229")
+            >>> by_id == CostCalculator.get_pricing("claude-3-opus")
             True
             >>> CostCalculator.pricing_for("no-such-model") is None
             True
@@ -218,7 +233,8 @@ class CostCalculator(CostCalculatorInterface):
         exact = cls.get_pricing(model)
         if exact is not None:
             return exact
-        # The user layer is searched as one more profile, so that its dated names are found by the same rule as the others.
+        # The user layer is searched as one more profile, so that its dated names are found by the
+        # same rule as the others.
         layers = [
             ProviderProfile(
                 "custom",
@@ -248,15 +264,19 @@ class CostCalculator(CostCalculatorInterface):
         *,
         exact: bool = True,
     ) -> dict[str, Any] | None:
-        """The cost of ``usage`` split into the prompt and the completion, or ``None`` when the model has no price.
+        """The cost of ``usage`` split into the prompt and the completion, or ``None`` when the
+        model has no price.
 
-        Unlike :meth:`calculate_cost`, an unknown model is not 0.0: it is ``None``, so "free" is never guessed.
+        Unlike :meth:`calculate_cost`, an unknown model is not 0.0: it is ``None``, so "free" is
+        never guessed.
 
         Args:
             model: Model identifier (a dated name is accepted, see :meth:`pricing_for`).
             usage: The tokens to price.
-            custom_pricing: Prices that win over the table (``prompt`` and ``completion``, USD per 1M tokens).
-            exact: ``True`` when the tokens are the provider's count, ``False`` when they were estimated.
+            custom_pricing: Prices that win over the table (``prompt`` and ``completion``, USD per
+                1M tokens).
+            exact: ``True`` when the tokens are the provider's count, ``False`` when they were
+                estimated.
 
         Returns:
             ``{"prompt": usd, "completion": usd, "total": usd, "currency": "USD", "exact": bool}``.

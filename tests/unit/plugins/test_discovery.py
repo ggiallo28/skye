@@ -1,6 +1,8 @@
-"""Discovery of installed plugins with a fake ``entry_points`` whose values are modules (plugins:4.1, 4.5; 4.7 extends this file).
+"""Discovery of installed plugins with a fake ``entry_points`` whose values are modules
+(plugins:4.1, 4.5; 4.7 extends this file).
 
-An entry point is a module: loading it imports the module, and the decorators of ``skye.Plugins`` in it register. The fake modules here are real
+An entry point is a module: loading it imports the module, and the decorators of ``skye.Plugins`` in
+it register. The fake modules here are real
 files on ``sys.path`` that are removed from ``sys.modules`` after each test.
 """
 
@@ -9,7 +11,6 @@ from __future__ import annotations
 import importlib
 import logging
 import sys
-from collections.abc import Callable
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -33,7 +34,8 @@ B_STORE = PRELUDE + "plugins.backend('b-store', dict)\n"
 
 
 class FakeEntryPoint:
-    """The part of ``importlib.metadata.EntryPoint`` that discovery reads: loading imports a module, as the real one does."""
+    """The part of ``importlib.metadata.EntryPoint`` that discovery reads: loading imports a module,
+    as the real one does."""
 
     def __init__(
         self,
@@ -85,7 +87,8 @@ def clean_reports(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(discovery, "_reports", ())
 
 
-# -- discover: an entry point is a module -------------------------------------------------------------------------
+# -- discover: an entry point is a module
+# -------------------------------------------------------------------------
 
 
 def test_discover_imports_each_entry_point_module_and_reports_what_it_registered(
@@ -235,7 +238,8 @@ def test_a_name_already_registered_makes_the_module_fail_and_the_scan_goes_on(
 
 
 def test_a_module_the_program_imported_before_the_scan_registers_once(monkeypatch, make_module):
-    """Importing the module is the registration: the scan finds it imported, adds nothing and finds no duplicate."""
+    """Importing the module is the registration: the scan finds it imported, adds nothing and finds
+    no duplicate."""
     name = make_module("acme_plugin", ACME)
     registrar = Registrar()
     default = base_plugins._default
@@ -291,7 +295,8 @@ def test_the_real_metadata_scan_finds_nothing_for_an_unused_group_and_does_not_r
     assert isinstance(discover(Registrar()), list)
 
 
-# -- failures: logged once, skipped, and the error after the scan (plugins:4.4; Requirements 57.6, 57.7) ----------
+# -- failures: logged once, skipped, and the error after the scan (plugins:4.4; Requirements 57.6,
+# 57.7) ----------
 
 
 def _warnings(caplog: pytest.LogCaptureFixture) -> list[logging.LogRecord]:
@@ -373,7 +378,8 @@ def test_an_unknown_name_after_the_scan_lists_the_failures_of_the_scan(
     assert "bad" in str(caught.value)
 
 
-# -- the scan at the first miss of the registrar (plugins:4.2) --------------------------------------------------
+# -- the scan at the first miss of the registrar (plugins:4.2)
+# --------------------------------------------------
 
 
 class CountingScan:
@@ -471,7 +477,8 @@ def test_a_lookup_made_while_scanning_does_not_start_another_scan(monkeypatch, m
 
 
 def test_import_skye_loads_no_entry_point(tmp_path):
-    """A fake distribution whose entry point raises on load: ``import skye`` and a first lookup that hits must not touch it."""
+    """A fake distribution whose entry point raises on load: ``import skye`` and a first lookup that
+    hits must not touch it."""
     import subprocess
     import sys
 
@@ -507,7 +514,8 @@ def test_import_skye_loads_no_entry_point(tmp_path):
     assert done.returncode == 0 and done.stdout.strip() == "ok", done.stdout + done.stderr
 
 
-# -- the `plugins` allowlist of the configuration file (plugins:4.3, Requirement 57.5) ---------------------------
+# -- the `plugins` allowlist of the configuration file (plugins:4.3, Requirement 57.5)
+# ---------------------------
 
 
 def _write_config(tmp_path, monkeypatch, body: str) -> None:
@@ -603,7 +611,8 @@ def test_a_plugins_key_that_is_not_a_list_of_names_is_a_configuration_error_nami
 
 
 def test_the_scan_does_not_change_a_logger_level(monkeypatch, tmp_path, make_module):
-    """Reading the allowlist must not apply the ``log_level`` of the file: the scan runs at a lookup, not at start-up."""
+    """Reading the allowlist must not apply the ``log_level`` of the file: the scan runs at a
+    lookup, not at start-up."""
     _write_config(tmp_path, monkeypatch, '{"log_level": "ERROR", "plugins": ["a"]}')
     install(monkeypatch, FakeEntryPoint("a", make_module("a_plugin", ACME)))
     logger = logging.getLogger("skye")
@@ -630,7 +639,8 @@ def test_the_allowlist_works_through_the_registrar_miss(monkeypatch, tmp_path, m
 
 
 def test_an_unlisted_entry_point_is_not_imported_by_the_real_scan(tmp_path):
-    """A fake distribution whose entry point raises when imported: the allowlist keeps it from ever loading."""
+    """A fake distribution whose entry point raises when imported: the allowlist keeps it from ever
+    loading."""
     import subprocess
     import sys
 

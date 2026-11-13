@@ -1,6 +1,7 @@
 """Google (Gemini Enterprise Agent Platform, formerly Vertex AI) multimodal embedding provider.
 
-Renamed from `vertex` (Google renamed Vertex AI to Gemini Enterprise Agent Platform in April 2026); the extra is now `google`.
+Renamed from `vertex` (Google renamed Vertex AI to Gemini Enterprise Agent Platform in April 2026);
+the extra is now `google`.
 
 This module provides the GoogleMultimodalEmbeddingProvider class for generating
 embeddings from text and images using Google's multimodal embedding model.
@@ -20,6 +21,7 @@ Example:
     >>> vectors = embedder.encode_batch(["text1", "path/to/image.jpg"])
 """
 
+import asyncio
 import base64
 from typing import Any
 
@@ -95,8 +97,9 @@ class GoogleMultimodalEmbeddingProvider(BaseEmbeddingProvider):
         first: dict[str, Any] = predictions[0]
         return first
 
-    def _encode_batch_impl(self, texts: list[str]) -> list[list[float]]:
-        """Encode multiple texts/images to vectors.
+    async def _aencode_batch_impl(self, texts: list[str]) -> list[list[float]]:
+        """Encode multiple texts/images to vectors (each item runs in a worker thread: it reads
+        files and calls the network).
 
         Each item in texts can be:
         - Plain text string
@@ -116,10 +119,10 @@ class GoogleMultimodalEmbeddingProvider(BaseEmbeddingProvider):
             # Try to detect if it's an image
             if self._is_image_input(item):
                 # Process as image
-                embedding = self._encode_image(item)
+                embedding = await asyncio.to_thread(self._encode_image, item)
             else:
                 # Process as text
-                embedding = self._encode_text(item)
+                embedding = await asyncio.to_thread(self._encode_text, item)
 
             embeddings.append(embedding)
 

@@ -1,4 +1,5 @@
-"""PostgreSQL backend with three optional drivers, chosen in order (decision D100).
+# decision D100
+"""PostgreSQL backend with three optional drivers, chosen in order.
 
 1. The **RDS Data API** through ``boto3`` when ``cluster_arn`` and ``secret_arn`` are given: HTTP
    calls, no connection to manage, IAM
@@ -266,8 +267,9 @@ class AsyncpgExecutor:
             self._connection = None
 
 
+# D100
 def choose_driver(dsn: str | None, cluster_arn: str | None, secret_arn: str | None) -> Driver:
-    """The first available driver of D100, or ``MissingExtraError`` naming the extras."""
+    """The first available driver, or ``MissingExtraError`` naming the extras."""
     if cluster_arn and secret_arn:
         return "data-api"
     if dsn is None:
@@ -290,6 +292,7 @@ def choose_driver(dsn: str | None, cluster_arn: str | None, secret_arn: str | No
     raise error
 
 
+# D100
 class PostgreSQLBackend(StorageBackend, ScanStore, ExpiryStore):
     """Key-value, counter, scan and expiry in a PostgreSQL table.
 
@@ -299,8 +302,9 @@ class PostgreSQLBackend(StorageBackend, ScanStore, ExpiryStore):
         cluster_arn: The Aurora cluster ARN, for the Data API.
         secret_arn: The Secrets Manager ARN of the database credentials, for the Data API.
         database: The database name, for the Data API.
-        region_name: The AWS region of the Data API; ``None`` reads ``AWS_REGION`` then ``AWS_DEFAULT_REGION`` and, when none is set, leaves the choice to ``boto3``.
-        driver: Force a driver instead of the order of D100.
+        region_name: The AWS region of the Data API; ``None`` reads ``AWS_REGION`` then
+            ``AWS_DEFAULT_REGION`` and, when none is set, leaves the choice to ``boto3``.
+        driver: Force a driver instead of the usual order.
         executor: A driver object to use instead of building one (tests pass a fake one).
         clock: The time source for expiry; ``time.time`` by default.
     """
@@ -370,17 +374,20 @@ class PostgreSQLBackend(StorageBackend, ScanStore, ExpiryStore):
         return _row_value(await self._run("get", "get", key=check_key(key), now=self._clock()))
 
     async def count(self, key: str) -> int:
-        """The count of ``key``, 0 when it is absent or expired: the ``get`` statement already leaves out an expired row."""
+        """The count of ``key``, 0 when it is absent or expired: the ``get`` statement already
+        leaves out an expired row."""
         rows = await self._run("get", "count", key=check_key(key), now=self._clock())
         return count_of(_row_value(rows))
 
     async def is_alive(self, key: str) -> bool:
-        """``True`` when ``key`` has a row that has not expired: the ``expiry`` statement leaves out an expired one."""
+        """``True`` when ``key`` has a row that has not expired: the ``expiry`` statement leaves out
+        an expired one."""
         rows = await self._run("expiry", "is_alive", key=check_key(key), now=self._clock())
         return bool(rows)
 
     async def remaining(self, key: str) -> int | None:
-        """The seconds left to ``expires_at`` (rounded up), or ``None`` when there is no live row or no expiry."""
+        """The seconds left to ``expires_at`` (rounded up), or ``None`` when there is no live row or
+        no expiry."""
         rows = await self._run("expiry", "remaining", key=check_key(key), now=self._clock())
         if not rows or rows[0]["expires_at"] is None:
             return None
@@ -428,7 +435,8 @@ class PostgreSQLBackend(StorageBackend, ScanStore, ExpiryStore):
 
 
 def _row_value(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
-    """The JSON object of the first row of a ``get`` statement, or ``None`` when there is no live row."""
+    """The JSON object of the first row of a ``get`` statement, or ``None`` when there is no live
+    row."""
     if not rows:
         return None
     data = rows[0]["data"]

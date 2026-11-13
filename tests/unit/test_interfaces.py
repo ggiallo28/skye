@@ -1088,13 +1088,11 @@ class TestVectorEncoderInterface:
         """Test that VectorEncoderInterface defines all required abstract methods."""
         abstract_methods = VectorEncoderInterface.__abstractmethods__
         expected_methods = {
-            "encode",
-            "encode_batch",
             "aencode",
             "aencode_batch",
             "get_vector_dimension",
         }
-        assert abstract_methods == expected_methods
+        assert abstract_methods == expected_methods  # ``encode`` and ``encode_batch`` are derived (20.3)
 
     def test_complete_implementation_works(self):
         """Test that a complete implementation can be instantiated."""

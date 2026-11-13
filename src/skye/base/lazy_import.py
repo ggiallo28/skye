@@ -21,8 +21,9 @@ def missing_extra(module: str, extra: str, package: str | None = None) -> Module
         raise MissingExtraError(extra=extra, missing=module, package=package) from e
 
 
+# D110
 def lazy_names(package: str, names: Mapping[str, str]) -> Callable[[str], Any]:
-    """The module ``__getattr__`` of a plugin folder (D110): ``names`` maps a public name to the inner module of ``package`` that defines it.
+    """The module ``__getattr__`` of a plugin folder: ``names`` maps a public name to the inner module of ``package`` that defines it.
 
     A name is resolved from its inner file only when it is first asked for and is then kept as an attribute of the package, so importing the
     folder imports no inner file and no vendor library. A name the folder does not offer is an ``AttributeError``; a missing inner file is an

@@ -10,8 +10,8 @@ import pytest
 
 pytest.importorskip("fastmcp", reason="fastmcp not installed (dev/test dependency group)")
 
-from skye.tools.plugins.skyemcp import SkyeMCPClient  # noqa: E402
-from skye.tools.plugins.fastmcp import FastMCPClient  # noqa: E402
+from skye.tools.engines.skyemcp import SkyeMCPClient  # noqa: E402
+from skye.tools.engines.fastmcp import FastMCPClient  # noqa: E402
 from tests.budget.test_boundary_rule import _foreign_types  # noqa: E402
 
 

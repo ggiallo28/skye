@@ -1,4 +1,5 @@
-"""Building the request of the Anthropic Messages format: the messages, the system text, the tools, the structured output, the parameters (D110).
+# D110
+"""Building the request of the Anthropic Messages format: the messages, the system text, the tools, the structured output, the parameters.
 
 Raises: ``ValueError`` when the request has no messages, or when capabilities are given but the capabilities module is not available.
 Missing: optional fields (``system``, ``top_p``, ``stop_sequences``, ``tools``, ``tool_choice``, ``output_config``) are left out when the request does not set them.

@@ -21,8 +21,9 @@ STS_VERSION = "2011-06-15"
 _FORM = "application/x-www-form-urlencoded; charset=utf-8"
 
 
+# Requirement 59.6
 def _region(region: str | None) -> str:
-    """The region to sign with: the one given, else the variables of the AWS profile; no default (Requirement 59.6)."""
+    """The region to sign with: the one given, else the variables of the AWS profile; no default."""
     found = region_for("bedrock", region, required=True)
     assert found is not None  # a required region is found or the call raised
     return found

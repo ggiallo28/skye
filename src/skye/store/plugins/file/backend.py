@@ -1,3 +1,4 @@
+# D95
 """File backend: one JSON file per key in a folder, standard library only.
 
 For local development and single-host persistence. The file name is the key percent-encoded, so
@@ -17,7 +18,7 @@ Example:
     ...     asyncio.run(demo(folder))
     ({'x': 1}, ['a/b'])
 
-Raises: ``ValidationError`` for an invalid key, value or time to live (D95); ``ProviderError`` when
+Raises: ``ValidationError`` for an invalid key, value or time to live; ``ProviderError`` when
     the folder cannot be read or
     written.
 Missing: an absent, expired or unreadable file reads as ``None``.
@@ -84,7 +85,8 @@ class FileSystemBackend(StorageBackend, ScanStore, ExpiryStore):
         return None if entry is None else entry[0]
 
     def _read_entry(self, key: str) -> tuple[dict[str, Any], float | None] | None:
-        """The live value of ``key`` and its absolute expiry, or ``None``; an expired file is removed."""
+        """The live value of ``key`` and its absolute expiry, or ``None``; an expired file is
+        removed."""
         path = self._path(key)
         try:
             stored = json.loads(path.read_text(encoding="utf-8"))
@@ -162,7 +164,8 @@ class FileSystemBackend(StorageBackend, ScanStore, ExpiryStore):
             return value
 
     async def count(self, key: str) -> int:
-        """The count of ``key``; 0 when it is absent or expired. It reads the file and does not rewrite it."""
+        """The count of ``key``; 0 when it is absent or expired. It reads the file and does not
+        rewrite it."""
         check_key(key)
         with provider_errors("file", "count"):
             return count_of(await asyncio.to_thread(self._read, key))
@@ -174,7 +177,8 @@ class FileSystemBackend(StorageBackend, ScanStore, ExpiryStore):
             return await asyncio.to_thread(self._read_entry, key) is not None
 
     async def remaining(self, key: str) -> int | None:
-        """The seconds ``key`` has left (rounded up), or ``None`` when absent, expired or without expiry."""
+        """The seconds ``key`` has left (rounded up), or ``None`` when absent, expired or without
+        expiry."""
         check_key(key)
         with provider_errors("file", "remaining"):
             entry = await asyncio.to_thread(self._read_entry, key)

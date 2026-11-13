@@ -1,6 +1,7 @@
 """Unit tests for the Google embedding provider (REST, no SDK)."""
 
 import ast
+import asyncio
 from pathlib import Path
 from unittest.mock import patch
 
@@ -56,7 +57,7 @@ def test_encode_single() -> None:
 def test_chunks_over_250() -> None:
     resp = JsonObject({"predictions": [{"embeddings": {"values": [0.0]}}] * 250})
     with patch("skye.models.utilities.rest.post_json", return_value=resp) as post:
-        out = make()._encode_batch_impl(["t"] * 250 + ["u"])
+        out = asyncio.run(make()._aencode_batch_impl(["t"] * 250 + ["u"]))
     assert post.call_count == 2 and len(out) == 500
 
 

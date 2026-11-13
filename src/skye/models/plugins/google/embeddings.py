@@ -1,6 +1,7 @@
 """Google (Gemini Enterprise Agent Platform, formerly Vertex AI) embedding provider implementation.
 
-Renamed from `vertex` (Google renamed Vertex AI to Gemini Enterprise Agent Platform in April 2026); the extra is now `google`.
+Renamed from `vertex` (Google renamed Vertex AI to Gemini Enterprise Agent Platform in April 2026);
+the extra is now `google`.
 
 This module provides the GoogleEmbeddingProvider class for generating embeddings
 using Google's embedding models.
@@ -17,6 +18,7 @@ Example:
     >>> vectors = embedder.encode_batch(["text1", "text2"])
 """
 
+import asyncio
 from typing import Any
 
 from skye.auth.plugins.google import resolve_google_auth
@@ -70,8 +72,9 @@ class GoogleEmbeddingProvider(BaseEmbeddingProvider):
             self._authenticator = resolve_google_auth(self.credentials)
         return self._authenticator
 
-    def _encode_batch_impl(self, texts: list[str]) -> list[list[float]]:
-        """Encode multiple texts to vectors using Google API.
+    async def _aencode_batch_impl(self, texts: list[str]) -> list[list[float]]:
+        """Encode multiple texts to vectors using Google API (each blocking call runs in a worker
+        thread).
 
         Args:
             texts: List of texts to encode
@@ -84,8 +87,8 @@ class GoogleEmbeddingProvider(BaseEmbeddingProvider):
         for i in range(0, len(texts), self.MAX_INSTANCES):
             batch = texts[i : i + self.MAX_INSTANCES]
             body = {"instances": [{"content": t} for t in batch]}
-            response = rest.post_json(
-                url, body, authenticator=self.authenticator, provider="google"
+            response = await asyncio.to_thread(
+                rest.post_json, url, body, authenticator=self.authenticator, provider="google"
             )
             vectors.extend(
                 list(p["embeddings"]["values"]) for p in response.to_dict().get("predictions", [])

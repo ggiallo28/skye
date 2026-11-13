@@ -1,4 +1,5 @@
-"""One home for the API-key variables: the ``api_key_variables`` of the profile of a provider (task 6.3, Requirements 60.3 and 11.6)."""
+"""One home for the API-key variables: the ``api_key_variables`` of the profile of a provider (task
+6.3, Requirements 60.3 and 11.6)."""
 
 from __future__ import annotations
 
@@ -40,7 +41,8 @@ def private() -> Registrar:
     return registrar
 
 
-# -- the helper ---------------------------------------------------------------------------------------------------------------------------
+# -- the helper
+# --------------------------------------------------------------------------------------------------
 
 
 def test_the_variables_are_the_ones_of_the_profile_in_order(private):
@@ -79,7 +81,8 @@ def test_every_built_in_provider_names_its_standard_variable(provider, variable)
     assert api_key_from_environment(provider, {variable: "secret"}) == "secret"
 
 
-# -- the tables are gone ------------------------------------------------------------------------------------------------------------------
+# -- the tables are gone
+# --------------------------------------------------------------------------------------------------
 
 
 def test_the_tables_of_auth_and_the_router_no_longer_exist():
@@ -91,7 +94,8 @@ def test_the_tables_of_auth_and_the_router_no_longer_exist():
         from skye.auth.plugins.openai_compatible.source import STANDARD_ENV_VARS  # noqa: F401
 
 
-# -- auth ---------------------------------------------------------------------------------------------------------------------------------
+# -- auth
+# --------------------------------------------------------------------------------------------------
 
 
 def test_auth_reads_the_variable_of_the_profile(monkeypatch):
@@ -119,7 +123,8 @@ def test_a_provider_with_a_profile_is_known_by_name_to_auth(monkeypatch):
         oc.api_key_authenticator("acme-auth")  # restored: the provider is gone
 
 
-# -- a plugin provider: no change in auth or the router -------------------------------------------------------------------------------------
+# -- a plugin provider: no change in auth or the router
+# -------------------------------------------------------------------------------------
 
 
 def test_a_plugin_provider_gets_its_key_from_its_profile(monkeypatch):
@@ -167,7 +172,8 @@ def test_a_built_in_provider_still_reads_its_own_variable(monkeypatch):
     assert skye.provider("anthropic").api_key == "ka"  # type: ignore[attr-defined]
 
 
-# -- the router ---------------------------------------------------------------------------------------------------------------------------
+# -- the router
+# --------------------------------------------------------------------------------------------------
 
 
 def test_the_router_reads_the_variable_of_the_profile_of_a_target(monkeypatch):

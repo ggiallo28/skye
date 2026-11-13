@@ -30,17 +30,22 @@ from skye.base.plugins import get_registrar
 from skye.base.profile import ModelProfile, find_model_profile
 from skye.models.lazy_import import LazyImporter
 
-#: Tokens added per message for a model that has no profile. It is the one number this module keeps; every model that a provider
+# : Tokens added per message for a model that has no profile. It is the one number this module
+# keeps; every model that a provider
 #: profile declares carries its own ``message_overhead`` (Requirement 60.2).
 DEFAULT_MESSAGE_OVERHEAD = 3
 
 
 def tiktoken_tokenizer(model: str) -> Any:
-    """The ``"tiktoken"`` tokenizer a ``ModelProfile`` names: the encoding of ``model``, or the estimate when ``tiktoken`` is missing.
+    """The ``"tiktoken"`` tokenizer a ``ModelProfile`` names: the encoding of ``model``, or the
+    estimate when ``tiktoken`` is missing.
 
-    Registered in the registrar as the text ``"skye.models.token_counter:tiktoken_tokenizer"`` by the built-in plugin of
-    ``models``. A tokenizer factory takes the model name, because one tokenizer name can serve models with different encodings.
-    An unknown model name falls back to ``cl100k_base``; with no ``tiktoken`` installed the estimate is used (no error).
+    Registered in the registrar as the text ``"skye.models.token_counter:tiktoken_tokenizer"`` by
+    the built-in plugin of
+    ``models``. A tokenizer factory takes the model name, because one tokenizer name can serve
+    models with different encodings.
+    An unknown model name falls back to ``cl100k_base``; with no ``tiktoken`` installed the estimate
+    is used (no error).
     """
     try:
         tiktoken = LazyImporter.import_module("tiktoken", install_extra="tokens")
@@ -52,19 +57,23 @@ def tiktoken_tokenizer(model: str) -> Any:
         return TokenCounter._approximate_tokenizer()
 
 
+# Requirement 59.3, Requirement 59.10
 class TokenCounter(TokenCounterInterface):
     """Calculate token counts for different models.
 
     This class provides methods to count tokens in text and messages using
     provider-specific tokenizers. Tokenizers are lazy-loaded only when needed.
 
-    Which tokenizer a model uses and how many tokens each message adds are read from the ``ModelProfile`` of the model (Requirement 59.3),
-    found by ``find_model_profile`` in the profiles of the registered providers. A model with no profile is counted with the estimate
-    (about 4 characters per token) and ``DEFAULT_MESSAGE_OVERHEAD`` (Requirement 59.10).
+    Which tokenizer a model uses and how many tokens each message adds are read from the
+    ``ModelProfile`` of the model,
+    found by ``find_model_profile`` in the profiles of the registered providers. A model with no
+    profile is counted with the estimate
+    (about 4 characters per token) and ``DEFAULT_MESSAGE_OVERHEAD``.
 
     Attributes:
         _tokenizers: Cache of the tokenizer chosen for each model name.
-        _registered: The tokenizers set with :meth:`register_tokenizer`, by model name or name prefix (a table of this class, not of the registrar).
+        _registered: The tokenizers set with :meth:`register_tokenizer`, by model name or name
+            prefix (a table of this class, not of the registrar).
 
     Example:
         >>> count = TokenCounter.count_tokens("Hello", "gpt-4")
@@ -74,29 +83,40 @@ class TokenCounter(TokenCounterInterface):
 
     # The tokenizer chosen for a model name (lazy loaded)
     _tokenizers: dict[str, Any] = {}
-    # The profiles token (``Registrar.profiles_token``) the cache was made under; a write to a profile changes it and empties the cache
+    # The profiles token (``Registrar.profiles_token``) the cache was made under; a write to a
+    # profile changes it and empties the cache
     _tokenizers_token: object | None = None
-    # The tokenizers that ``register_tokenizer`` sets, by model name or prefix; read without the lock (a copy is published at each write)
+    # The tokenizers that ``register_tokenizer`` sets, by model name or prefix; read without the
+    # lock (a copy is published at each write)
     _registered: dict[str, Any] = {}
     _registered_lock = threading.Lock()
 
     @classmethod
     def register_tokenizer(cls, model: str, tokenizer: Any) -> None:
-        """Use ``tokenizer`` to count the tokens of ``model``, for a more exact count than the estimate.
+        """Use ``tokenizer`` to count the tokens of ``model``, for a more exact count than the
+        estimate.
 
-        This is a call of ``TokenCounter`` and not of the plugin interface: the table it writes is the one of this class, and the registrar
-        is not touched. A plugin names a tokenizer with ``plugins.tokenizer("name")`` and gives it to the models of a provider through
-        ``ModelProfile(tokenizer="name")`` (``plugins.profile(...)`` does it for a model of a provider that exists).
+        This is a call of ``TokenCounter`` and not of the plugin interface: the table it writes is
+        the one of this class, and the registrar
+        is not touched. A plugin names a tokenizer with ``plugins.tokenizer("name")`` and gives it
+        to the models of a provider through
+        ``ModelProfile(tokenizer="name")`` (``plugins.profile(...)`` does it for a model of a
+        provider that exists).
 
-        ``model`` is a model name or the start of one: ``"claude-"`` covers every Claude model, and the longest
-        match wins, so ``"claude-3-opus"`` can have its own. A registered tokenizer wins over the one the model's profile names
-        and over the estimate. A second call with the same name replaces it. Nothing is installed by this call: the tokenizer is whatever
+        ``model`` is a model name or the start of one: ``"claude-"`` covers every Claude model, and
+        the longest
+        match wins, so ``"claude-3-opus"`` can have its own. A registered tokenizer wins over the
+        one the model's profile names
+        and over the estimate. A second call with the same name replaces it. Nothing is installed by
+        this call: the tokenizer is whatever
         the caller already has. Safe to call from several threads.
 
         Args:
             model: A model name or a name prefix.
-            tokenizer: Any object with ``encode(text)`` returning a sized sequence (a ``tiktoken`` encoding, a
-                ``tokenizers`` or ``transformers`` tokenizer through a small wrapper, a function of your own).
+            tokenizer: Any object with ``encode(text)`` returning a sized sequence (a ``tiktoken``
+                encoding, a
+                ``tokenizers`` or ``transformers`` tokenizer through a small wrapper, a function of
+                your own).
 
         Raises:
             ValidationError: ``model`` is empty, or ``tokenizer`` has no callable ``encode``.
@@ -122,9 +142,11 @@ class TokenCounter(TokenCounterInterface):
 
     @classmethod
     def unregister_tokenizer(cls, model: str) -> bool:
-        """Remove the tokenizer set under exactly ``model`` by ``register_tokenizer``; ``True`` when there was one.
+        """Remove the tokenizer set under exactly ``model`` by ``register_tokenizer``; ``True`` when
+        there was one.
 
-        A tokenizer factory that a provider profile names (``"tiktoken"``) is a registration of the registrar and is not removed by this call.
+        A tokenizer factory that a provider profile names (``"tiktoken"``) is a registration of the
+        registrar and is not removed by this call.
         """
         with cls._registered_lock:
             if model not in cls._registered:
@@ -136,16 +158,19 @@ class TokenCounter(TokenCounterInterface):
 
     @classmethod
     def _registered_tokenizer(cls, model: str) -> Any | None:
-        """The tokenizer set for ``model`` by ``register_tokenizer``: the exact name, else the longest registered prefix."""
+        """The tokenizer set for ``model`` by ``register_tokenizer``: the exact name, else the
+        longest registered prefix."""
         table = cls._registered
         names = [name for name in table if model.startswith(name)]
         return table[max(names, key=len)] if names else None
 
     @classmethod
     def _model_profile(cls, model: str) -> ModelProfile | None:
-        """The ``ModelProfile`` of ``model`` in the profiles of every registered provider, or ``None``.
+        """The ``ModelProfile`` of ``model`` in the profiles of every registered provider, or
+        ``None``.
 
-        An exact name beats a family (a name followed by a date or a version); among families the longest name wins.
+        An exact name beats a family (a name followed by a date or a version); among families the
+        longest name wins.
         """
         registrar = get_registrar()
         best: tuple[bool, int, ModelProfile] | None = None
@@ -238,7 +263,8 @@ class TokenCounter(TokenCounterInterface):
 
     @classmethod
     def _profile_tokenizer(cls, model: str) -> Any:
-        """The tokenizer the profile of ``model`` names, or the estimate when it names none or the model has no profile.
+        """The tokenizer the profile of ``model`` names, or the estimate when it names none or the
+        model has no profile.
 
         Raises:
             ConfigurationError: The profile names a tokenizer that no plugin has registered.
@@ -253,13 +279,15 @@ class TokenCounter(TokenCounterInterface):
     def _get_message_overhead(cls, model: str) -> int:
         """Get per-message token overhead.
 
-        Different models add different amounts of overhead for message formatting; it is the ``message_overhead`` of the model's profile.
+        Different models add different amounts of overhead for message formatting; it is the
+        ``message_overhead`` of the model's profile.
 
         Args:
             model: The model identifier.
 
         Returns:
-            The number of overhead tokens per message; ``DEFAULT_MESSAGE_OVERHEAD`` for a model with no profile.
+            The number of overhead tokens per message; ``DEFAULT_MESSAGE_OVERHEAD`` for a model with
+            no profile.
 
         Example:
             >>> overhead = TokenCounter._get_message_overhead("gpt-4")

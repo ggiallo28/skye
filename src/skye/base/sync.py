@@ -1,19 +1,29 @@
-"""Run async code from sync code: ``run_sync`` and ``iterate_sync`` (Requirement 56.13, decision D111).
+# Requirement 56.13, decision D111
+"""Run async code from sync code: ``run_sync`` and ``iterate_sync``.
 
-A plugin author writes only the async method of a Port (``acomplete``, ``astream``, ``aencode``, ``invoke``). Skye derives the sync
+A plugin author writes only the async method of a Port (``acomplete``, ``astream``, ``aencode``,
+``invoke``). Skye derives the sync
 method with these two functions, so no plugin keeps a second code path for the sync caller.
 
-- ``run_sync(coroutine)`` runs a coroutine to completion and returns its result. With no event loop running it uses ``asyncio.run``. When a
-  loop is already running (a notebook, a server) it runs the coroutine on its own loop in one worker thread and waits for it.
-- ``iterate_sync(source)`` iterates an async iterable, usually an async generator, from sync code. One thread runs a loop of its own and
-  pulls the items, so it also works inside a running loop. At most ``buffer`` items wait for the caller, plus the one the producer holds,
+- ``run_sync(coroutine)`` runs a coroutine to completion and returns its result. With no event loop
+  running it uses ``asyncio.run``. When a
+  loop is already running (a notebook, a server) it runs the coroutine on its own loop in one worker
+  thread and waits for it.
+- ``iterate_sync(source)`` iterates an async iterable, usually an async generator, from sync code.
+  One thread runs a loop of its own and
+  pulls the items, so it also works inside a running loop. At most ``buffer`` items wait for the
+  caller, plus the one the producer holds,
   so a slow caller never lets the producer run ahead.
 
-Raises: whatever the coroutine or the async iterable raises, in the caller, at the point where it happened (``iterate_sync`` hands over the
+Raises: whatever the coroutine or the async iterable raises, in the caller, at the point where it
+happened (``iterate_sync`` hands over the
     items before the error first). ``ValidationError`` when ``buffer`` is below 1.
-Missing: ``iterate_sync`` opens nothing until the first item is asked for; an iterator that is never used never starts the generator. A
-    generator that ignores its cancellation keeps its thread for as long as it runs; ``close`` waits for it at most ``_JOIN_SECONDS``.
-Concurrency: each call uses its own loop and its own thread, so calls from many threads or tasks do not share state. The caller blocks
+Missing: ``iterate_sync`` opens nothing until the first item is asked for; an iterator that is never
+used never starts the generator. A
+    generator that ignores its cancellation keeps its thread for as long as it runs; ``close`` waits
+    for it at most ``_JOIN_SECONDS``.
+Concurrency: each call uses its own loop and its own thread, so calls from many threads or tasks do
+not share state. The caller blocks
     while it waits: from a running loop, prefer the async method.
 """
 
@@ -39,7 +49,8 @@ _ITEM, _ERROR, _DONE = "item", "error", "done"
 def run_sync(coroutine: Coroutine[Any, Any, _T]) -> _T:
     """Run ``coroutine`` to completion from sync code, inside or outside a running event loop.
 
-    Inside a running loop the coroutine runs on its own loop in one worker thread, which is joined before returning.
+    Inside a running loop the coroutine runs on its own loop in one worker thread, which is joined
+    before returning.
 
     Raises:
         Exception: Whatever the coroutine raises.
@@ -60,7 +71,8 @@ def iterate_sync(source: AsyncIterable[_T], *, buffer: int = 1) -> Iterator[_T]:
         buffer: How many items may wait for the caller (1 or more).
 
     Returns:
-        A sync iterator. Closing it, or letting it be collected, cancels the producer, closes the generator with ``aclose`` and ends the
+        A sync iterator. Closing it, or letting it be collected, cancels the producer, closes the
+        generator with ``aclose`` and ends the
         thread.
 
     Raises:
@@ -100,7 +112,8 @@ def _iterate(source: AsyncIterable[_T], buffer: int) -> Iterator[_T]:
 async def _pump(
     source: AsyncIterable[_T], out: queue.SimpleQueue[tuple[str, Any]], slots: asyncio.Semaphore
 ) -> None:
-    """Move the items to the caller, never more than the semaphore allows; an error goes to the caller as a message."""
+    """Move the items to the caller, never more than the semaphore allows; an error goes to the
+    caller as a message."""
     try:
         async for item in source:
             await slots.acquire()

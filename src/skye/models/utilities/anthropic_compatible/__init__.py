@@ -1,4 +1,5 @@
-"""The Anthropic Messages wire format, for any endpoint that speaks it (a shared base of ``models``, D110).
+# D110
+"""The Anthropic Messages wire format, for any endpoint that speaks it (a shared base of ``models``).
 
 ``AnthropicCompatibleProvider`` serves every endpoint that implements ``POST /v1/messages``,
 keyed by ``api_base`` + ``api_key``. What belongs to Anthropic itself lives in ``plugins/anthropic``.

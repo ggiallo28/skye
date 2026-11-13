@@ -9,6 +9,7 @@ Only the agent-type registry and a ReAct placeholder live here.
 Codename: cyclone.
 """
 
+from skye.base.lazy_import import lazy_names as _lazy_names
 from skye.agents.registry import (
     REACT,
     ReActAgent,
@@ -18,7 +19,12 @@ from skye.agents.registry import (
     register_agent_type,
 )
 
+# The offline check is read at first use, so importing the package does not import it.
+_LAZY = {"check_agent": "conformance"}
+__getattr__ = _lazy_names(__name__, _LAZY)
+
 __all__ = [
+    *_LAZY,
     "REACT",
     "ReActAgent",
     "create_agent",

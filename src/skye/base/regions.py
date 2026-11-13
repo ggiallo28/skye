@@ -1,12 +1,19 @@
-"""The cloud region of a provider, read through the rule of its profile (Requirements 60.6, 59.5, 59.6).
+# Requirements 60.6, 59.5, 59.6
+"""The cloud region of a provider, read through the rule of its profile.
 
-The names of the region variables live in one place: ``region`` of the ``ProviderProfile`` that the provider is registered with (the
-``[region]`` table of its ``profile.toml``). ``region_for`` reads that rule through the registrar and applies ``resolve_region``: the region
-passed, then the one of the authenticator, then the variables in order. AWS code outside a provider (the credential sources of ``auth``, the
-backends of ``store``) asks for the region of the profile ``"bedrock"``, the one AWS profile, so the names are written once.
+The names of the region variables live in one place: ``region`` of the ``ProviderProfile`` that the
+provider is registered with (the
+``[region]`` table of its ``profile.toml``). ``region_for`` reads that rule through the registrar
+and applies ``resolve_region``: the region
+passed, then the one of the authenticator, then the variables in order. AWS code outside a provider
+(the credential sources of ``auth``, the
+backends of ``store``) asks for the region of the profile ``"bedrock"``, the one AWS profile, so the
+names are written once.
 
-Raises: ``ConfigurationError`` when the region is required and none is found (the error names the variables); there is no default region.
-Missing: a provider with no profile or no region rule has no rule: the result is ``None``, or an error when ``required`` is true.
+Raises: ``ConfigurationError`` when the region is required and none is found (the error names the
+variables); there is no default region.
+Missing: a provider with no profile or no region rule has no rule: the result is ``None``, or an
+error when ``required`` is true.
 Concurrency: a read of the registrar takes no lock; the environment is read at each call.
 """
 
@@ -32,13 +39,16 @@ def region_for(
     environ: Mapping[str, str] | None = None,
     registrar: Registrar | None = None,
 ) -> str | None:
-    """The region for ``provider``: the one passed, then the authenticator's, then the variables of its profile in order.
+    """The region for ``provider``: the one passed, then the authenticator's, then the variables of
+    its profile in order.
 
     Args:
         provider: The registered name whose profile holds the rule, for example ``"bedrock"``.
         passed: A region given by the caller.
-        authenticator: An object with a ``region`` attribute, as the authenticators of ``auth`` have.
-        required: ``True`` to raise when none is found, ``False`` to return ``None``; the rule of the profile decides when omitted.
+        authenticator: An object with a ``region`` attribute, as the authenticators of ``auth``
+            have.
+        required: ``True`` to raise when none is found, ``False`` to return ``None``; the rule of
+            the profile decides when omitted.
         environ: The environment to read; ``os.environ`` when omitted.
         registrar: The registrar to read; the default registrar of the process when omitted.
 
@@ -46,7 +56,8 @@ def region_for(
         The region, or ``None`` when none is found and it is not required.
 
     Raises:
-        ConfigurationError: A required region is not found; the error names the variables (or says the provider has no region rule).
+        ConfigurationError: A required region is not found; the error names the variables (or says
+            the provider has no region rule).
 
     Example:
         >>> region_for("bedrock", "eu-west-1")

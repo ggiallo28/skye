@@ -6,7 +6,7 @@ for LLM and embedding providers.
 
 import time
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -187,11 +187,11 @@ class MockModelProvider(BaseModelProvider):
         """Transform stream chunk."""
         return chunk
     
-    def _call_provider(self, request: dict) -> dict:
+    async def _acall_provider(self, request: dict) -> dict:
         """Call provider."""
         return {"choices": [{"message": {"content": "test"}}]}
     
-    def _call_provider_stream(self, request: dict):
+    async def _acall_provider_stream(self, request: dict):
         """Call provider stream."""
         yield {"choices": [{"delta": {"content": "test"}}]}
     
@@ -223,7 +223,7 @@ class MockEmbeddingProvider(BaseEmbeddingProvider):
         """Return mock client."""
         return MagicMock()
     
-    def _encode_batch_impl(self, texts: list[str]) -> list[list[float]]:
+    async def _aencode_batch_impl(self, texts: list[str]) -> list[list[float]]:
         """Encode batch."""
         return [[0.1, 0.2, 0.3] for _ in texts]
     
@@ -252,7 +252,7 @@ class TestModelProviderHealthTracking:
     def test_complete_records_failure(self) -> None:
         """Test that complete() records failed requests."""
         provider = MockModelProvider()
-        provider._call_provider = MagicMock(side_effect=Exception("API error"))
+        provider._acall_provider = AsyncMock(side_effect=Exception("API error"))
         
         request = CompleteRequest(
             messages=[UserMessage(content="test")],
@@ -269,12 +269,12 @@ class TestModelProviderHealthTracking:
         """Test that complete() tracks latency."""
         provider = MockModelProvider()
         
-        # Mock _call_provider to add delay
-        def slow_call(request: dict) -> dict:
+        # Mock _acall_provider to add delay
+        async def slow_call(request: dict) -> dict:
             time.sleep(0.01)  # 10ms delay
             return {"choices": [{"message": {"content": "test"}}]}
         
-        provider._call_provider = slow_call
+        provider._acall_provider = slow_call
         
         request = CompleteRequest(
             messages=[UserMessage(content="test")],
@@ -305,7 +305,7 @@ class TestModelProviderHealthTracking:
     def test_stream_records_failure(self) -> None:
         """Test that stream() records failed requests."""
         provider = MockModelProvider()
-        provider._call_provider_stream = MagicMock(side_effect=Exception("Stream error"))
+        provider._acall_provider_stream = MagicMock(side_effect=Exception("Stream error"))
         
         request = CompleteRequest(
             messages=[UserMessage(content="test")],
@@ -356,7 +356,7 @@ class TestEmbeddingProviderHealthTracking:
     def test_encode_records_failure(self) -> None:
         """Test that encode() records failed requests."""
         provider = MockEmbeddingProvider(model="test-model")
-        provider._encode_batch_impl = MagicMock(side_effect=Exception("Encoding error"))
+        provider._aencode_batch_impl = AsyncMock(side_effect=Exception("Encoding error"))
         
         with pytest.raises(Exception):
             provider.encode("test text")
@@ -377,7 +377,7 @@ class TestEmbeddingProviderHealthTracking:
     def test_encode_batch_records_failure(self) -> None:
         """Test that encode_batch() records failed requests."""
         provider = MockEmbeddingProvider(model="test-model")
-        provider._encode_batch_impl = MagicMock(side_effect=Exception("Batch error"))
+        provider._aencode_batch_impl = AsyncMock(side_effect=Exception("Batch error"))
         
         with pytest.raises(Exception):
             provider.encode_batch(["text1", "text2"])
@@ -439,12 +439,12 @@ class TestHealthMetricsIntegration:
         provider.complete(request)
         
         # Failed request
-        provider._call_provider = MagicMock(side_effect=Exception("Error"))
+        provider._acall_provider = AsyncMock(side_effect=Exception("Error"))
         with pytest.raises(Exception):
             provider.complete(request)
         
         # Another successful request
-        provider._call_provider = MagicMock(return_value={"choices": [{"message": {"content": "test"}}]})
+        provider._acall_provider = AsyncMock(return_value={"choices": [{"message": {"content": "test"}}]})
         provider.complete(request)
         
         metrics = provider.get_health_metrics()

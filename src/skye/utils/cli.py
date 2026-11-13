@@ -43,8 +43,9 @@ from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any
 
-from skye.base.dsl import TEMPLATES, block_schema, build, check_text, skeleton, to_mermaid
+from skye.base.dsl import TEMPLATES, Resolved, block_schema, build, check_text, skeleton, to_mermaid
 from skye.base.dsl.fmt import FormatError, format_text
+from skye.base.dsl.include import Resolver
 from skye.base.dsl.info import PromptInfo, describe_prompt, header_fields, prompt_help
 from skye.base.dsl.metadata import split_metadata
 from skye.base.dsl.specs import FlowSpec, RouterSpec
@@ -57,6 +58,7 @@ from skye.utils.skill import (
     skill_status,
     skill_text,
 )
+from skye.utils.skye_files import file_resolver
 from skye.utils.vscode import (
     COMMAND_HINT,
     build_vsix,
@@ -261,6 +263,17 @@ def _read_input(name: str, stdin_name: str) -> tuple[str, str]:
     return Path(name).read_text(encoding="utf-8"), name
 
 
+def _no_folder(target: str, from_key: str | None) -> Resolved:
+    raise ValueError("a text on stdin needs --stdin-filename to know its folder")
+
+
+def _resolution(label: str) -> tuple[Resolver, str | None]:
+    """The resolver and the key for the includes of the file named ``label`` (``<stdin>`` has no folder)."""
+    if label == "<stdin>":
+        return _no_folder, None
+    return file_resolver(label), str(Path(label).resolve())
+
+
 def _check(args: argparse.Namespace) -> int:
     if args.schema:
         print(json.dumps(block_schema(), indent=2))
@@ -279,7 +292,7 @@ def _check(args: argparse.Namespace) -> int:
             print(f"{name}: cannot read the file: {exc}", file=sys.stderr)
             status = max(status, 2)
             continue
-        diagnostics = check_text(text, name, names)
+        diagnostics = check_text(text, name, names, *_resolution(name))
         if args.format == "json":
             found.extend(
                 {
@@ -289,6 +302,7 @@ def _check(args: argparse.Namespace) -> int:
                     "reason": d.reason,
                     "fix": d.fix,
                     "message": d.message,
+                    **({"via": [dict(zip(("file", "line", "column"), v)) for v in d.via]} if d.via else {}),
                 }
                 for d in diagnostics
             )
@@ -300,7 +314,8 @@ def _check(args: argparse.Namespace) -> int:
         if diagnostics:
             status = max(status, 1) if status != 2 else 2
         else:
-            print(f"{name}: ok")
+            partial = split_metadata(text, name)[0].get("partial") is True
+            print(f"{name}: ok" + (" (a partial: the rest is checked where it is used)" if partial else ""))
     if args.format == "json" and status != 2:
         print(json.dumps({"diagnostics": found}))
     return status
@@ -489,11 +504,12 @@ def _skill(args: argparse.Namespace) -> int:
     return 0
 
 
+# task 24.7
 def _loaders() -> Any:
     """The module that finds the bundled prompts, imported at the first use.
 
     ``utils`` sits in Layer 0 and may not import ``prompts`` in a statement; the CLI needs only this one lookup, so it asks the import
-    system by name (see the note for the owner in the task 24.7 report).
+    system by name (see the note for the owner in the report).
     """
     return importlib.import_module("skye.prompts.loaders")
 
@@ -514,6 +530,8 @@ def _prompt_list(as_json: bool) -> int:
             metadata, _, _ = split_metadata(_loaders().read_bundled(name), path)
         except (OSError, UnicodeDecodeError, ValidationError):
             metadata = {}
+        if metadata.get("partial") is True:  # a partial is not a template
+            continue
         meta = header_fields(metadata)
         rows.append(
             {
@@ -538,8 +556,9 @@ def _prompt_list(as_json: bool) -> int:
 def _prompt_info(args: argparse.Namespace) -> int:
     target: str = args.target
     bundled = _bundled()
+    catalogue = False
     if target != "-" and target in bundled and not Path(target).exists():
-        name, path = target, bundled[target]
+        name, path, catalogue = target, bundled[target], True
         try:
             text = _loaders().read_bundled(target)
         except (OSError, UnicodeDecodeError, ValidationError) as exc:
@@ -560,7 +579,8 @@ def _prompt_info(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 2
-    document = build(text, filename=path)
+    resolver, key = (_loaders().catalogue_resolver, f"{name}.skye") if catalogue else _resolution(path)
+    document = build(text, filename=path, resolver=resolver, key=key)
     if document.diagnostics:
         for item in document.diagnostics:
             print(item.format())
@@ -581,6 +601,7 @@ def _prompt_info(args: argparse.Namespace) -> int:
 def _prompt_export(args: argparse.Namespace) -> int:
     """Write every bundled prompt as ``<name>.skye`` into a folder, from the source checkout or from the archive."""
     names = list(_bundled())
+    shared = _loaders().bundled_partials()  # the files that the templates include, written next to them
     folder = Path(args.directory)
     existing = [name for name in names if (folder / f"{name}.skye").exists()]
     if existing and not args.force:
@@ -594,10 +615,13 @@ def _prompt_export(args: argparse.Namespace) -> int:
         folder.mkdir(parents=True, exist_ok=True)
         for name in names:
             (folder / f"{name}.skye").write_text(_loaders().read_bundled(name), encoding="utf-8")
+        for path in shared:
+            (folder / path).parent.mkdir(parents=True, exist_ok=True)
+            (folder / path).write_text(_loaders().catalogue_resolver(path, None).text, encoding="utf-8")
     except (OSError, UnicodeDecodeError, ValidationError) as exc:
         print(f"skye prompt export: {folder}: {exc}", file=sys.stderr)
         return 2
-    print(f"wrote {len(names)} prompts to {folder}")
+    print(f"wrote {len(names)} prompts to {folder}" + (f" and {len(shared)} shared files" if shared else ""))
     return 0
 
 
@@ -633,8 +657,9 @@ def _vscode(args: argparse.Namespace) -> int:
     return 0
 
 
+# Requirement 57.9
 def _plugins(args: argparse.Namespace) -> int:
-    """Print what is registered: the built-ins by kind, then each entry point of ``skye.plugins`` (Requirement 57.9)."""
+    """Print what is registered: the built-ins by kind, then each entry point of ``skye.plugins``."""
     from skye.base.plugins import KINDS, get_registrar
     from skye.utils.plugins import GROUP, scan
 

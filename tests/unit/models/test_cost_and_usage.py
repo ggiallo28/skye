@@ -131,9 +131,15 @@ def _delta(text: str | None, finish: str | None = None) -> Any:
     return wrap({"id": "s", "choices": [{"index": 0, "delta": delta, "finish_reason": finish}]})
 
 
+async def _agen(items: Any) -> Any:
+    """The events as an async generator: what a provider's async stream transport returns."""
+    for item in items:
+        yield item
+
+
 def _stream(events: list[Any], model: str = "gpt-4", **config: Any) -> list[StreamChunk]:
     client = OpenAIProvider(api_key="k", **config)
-    client._call_provider_stream = lambda request: iter(events)  # type: ignore[method-assign]
+    client._acall_provider_stream = lambda request: _agen(events)  # type: ignore[method-assign]
     return list(client.stream("tell me something", model=model))
 
 

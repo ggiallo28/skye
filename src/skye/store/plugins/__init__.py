@@ -1,11 +1,17 @@
-"""The built-in plugin of ``store``: one folder per backend, registered by text (plugins:7.1 and 7.5, D110, Requirement 56.6).
+# plugins:7.1, D110, Requirement 56.6, D102
+"""The built-in plugin of ``store``: one folder per backend, registered by text (and 7.5).
 
-``register(registrar)`` is the same call a third-party plugin makes. It calls the ``register`` of each folder of ``IMPLEMENTATIONS``. A folder is a
-backend (``memory``, ``file``, ``dynamodb``, ``redis``, ``postgres``, ``durable_function``) with its code (``backend.py``) and one ``__init__.py`` that is
-the only door to it. Each class is a ``"module:attribute"`` text, so registering imports no backend module: naming a backend imports only its folder
-and its driver only on first use. ``valkey`` is a second name for the Redis backend (D102). ``BACKENDS`` is the name to text map of every folder.
+``register(registrar)`` is the same call a third-party plugin makes. It calls the ``register`` of
+each folder of ``IMPLEMENTATIONS``. A folder is a
+backend (``memory``, ``file``, ``dynamodb``, ``redis``, ``postgres``, ``durable_function``) with its
+code (``backend.py``) and one ``__init__.py`` that is
+the only door to it. Each class is a ``"module:attribute"`` text, so registering imports no backend
+module: naming a backend imports only its folder
+and its driver only on first use. ``valkey`` is a second name for the Redis backend. ``BACKENDS`` is
+the name to text map of every folder.
 
-Raises: ``ConfigurationError`` from the registrar for a name already registered (not for the first call on a fresh registrar).
+Raises: ``ConfigurationError`` from the registrar for a name already registered (not for the first
+call on a fresh registrar).
 Missing: not applicable.
 Concurrency: called once per registrar, at its first lookup of a ``backend`` name.
 """

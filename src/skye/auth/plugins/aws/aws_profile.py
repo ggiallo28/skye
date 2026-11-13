@@ -1,8 +1,9 @@
+# Requirement 11.3
 """AWS profiles in ``~/.aws/config``: assume-role, web identity and IAM Identity Center (SSO).
 
 SSO needs an earlier ``aws sso login``: ``auth`` reads the token that command left in
 ``~/.aws/sso/cache`` and, when it is missing or expired, raises ``LoginRequiredError`` saying to log
-in again. It never launches a login (Requirement 11.3).
+in again. It never launches a login.
 """
 
 from __future__ import annotations
@@ -84,8 +85,8 @@ def sso_credentials(
     except (OSError, ValueError, KeyError):
         raise LoginRequiredError("aws", command, "missing") from None
     if expires.tzinfo is None:
-        expires = expires.replace(tzinfo=_dt.timezone.utc)
-    if expires <= (now or _dt.datetime.now(_dt.timezone.utc)):
+        expires = expires.replace(tzinfo=_dt.UTC)
+    if expires <= (now or _dt.datetime.now(_dt.UTC)):
         raise LoginRequiredError("aws", command, "expired")
     base = endpoint or f"https://portal.sso.{settings['sso_region']}.amazonaws.com"
     query = urllib.parse.urlencode(
@@ -101,7 +102,7 @@ def sso_credentials(
     )
     try:
         role = json.loads(raw.decode("utf-8"))["roleCredentials"]
-        expiry = _dt.datetime.fromtimestamp(int(role["expiration"]) / 1000, _dt.timezone.utc)
+        expiry = _dt.datetime.fromtimestamp(int(role["expiration"]) / 1000, _dt.UTC)
         return role["accessKeyId"], role["secretAccessKey"], role["sessionToken"], expiry
     except (ValueError, KeyError, TypeError):
         raise ConfigurationError(

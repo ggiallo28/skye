@@ -1,5 +1,5 @@
-"""Storage Ports: small capability Protocols for the key-value stores of ``store`` (Requirement 12,
-decision D98).
+# Requirement 12, decision D98, Requirement 60.10, D41, D95
+"""Storage Ports: small capability Protocols for the key-value stores of ``store``.
 
 A component asks only for the capabilities it uses, and a backend implements what it can:
 
@@ -9,16 +9,16 @@ A component asks only for the capabilities it uses, and a backend implements wha
 * ``ScanStore``: ``keys(prefix, limit)``, implemented by five backends of ``store`` (in-memory,
   file, Redis/Valkey, DynamoDB, PostgreSQL): every backend but the durable function;
 * ``ExpiryStore``: ``is_alive(key)`` and ``remaining(key)``, the lifetime of a key without reading
-  its value (the router keeps a cooldown as a key with a ``ttl`` and asks it here, Requirement 60.10);
+  its value (the router keeps a cooldown as a key with a ``ttl`` and asks it here);
   every backend of ``store`` keeps an expiry, so every backend implements it.
 
 ``StorageBackend`` is key-value plus counter, the abstract base class every backend of ``store``
 subclasses, so the code that typed
-against it keeps working. A vector store is added with the first vector store of ``memory`` (D41).
+against it keeps working. A vector store is added with the first vector store of ``memory``.
 
 A stored value is a JSON-compatible ``dict``. A time to live is ``None`` (no expiry) or a positive
 ``int`` of seconds; any other value
-raises ``ValidationError`` before anything is written (D95). ``check_ttl`` is the one place that
+raises ``ValidationError`` before anything is written. ``check_ttl`` is the one place that
 rule lives.
 
 Raises: ``ValidationError`` for an invalid key or time to live; ``ProviderError`` when the backend
@@ -39,15 +39,15 @@ from typing import Any, Protocol, runtime_checkable
 from skye.base.exceptions import ValidationError
 
 
+# decision D95
 def check_ttl(ttl: object) -> int | None:
-    """Return ``ttl`` when it is ``None`` or a positive ``int``; raise otherwise (decision D95).
+    """Return ``ttl`` when it is ``None`` or a positive ``int``; raise otherwise.
 
     Example:
         >>> check_ttl(30), check_ttl(None)
         (30, None)
         >>> check_ttl(0)
-        Traceback (most recent call last):
-        ...
+        Traceback (most recent call last):...
         skye.base.exceptions.ValidationError: ttl must be None or a positive number of seconds, got 0 | Details: {'field': 'ttl', 'value': 0}
     """
     if ttl is None:
@@ -142,8 +142,9 @@ class ScanStore(Protocol):
         ...
 
 
+# decision D98
 class StorageBackend(KeyValueStore, CounterStore, ABC):
-    """Key-value plus counter: the base class of every backend of ``store`` (decision D98).
+    """Key-value plus counter: the base class of every backend of ``store``.
 
     ``connect`` prepares the backend (a client, a table) and ``close`` releases it; both are safe to
     call more than once and

@@ -1,8 +1,9 @@
-"""Create a backend by name and add backends from outside Skye (Requirement 12.6, decision D98).
+# Requirement 12.6, decision D98, plugins:7.1
+"""Create a backend by name and add backends from outside Skye.
 
 ``backend(name, **config)`` builds one of the registered backends, in the style of ``provider(name,
 **config)``. Both functions are a view of the ``backend`` table of the default registrar
-(plugins:7.1). The ones of Skye are registered by module path (``skye.store.plugins``), so naming
+. The ones of Skye are registered by module path (``skye.store.plugins``), so naming
 one imports only its module, and its driver only on first use. ``register_backend`` adds any
 other backend (a class or a function that returns one) without changing Skye; check it with
 ``skye.store.conformance``.
@@ -40,10 +41,11 @@ def _registrar() -> Registrar:
     return get_registrar()
 
 
+# Requirement 56.7
 def register_backend(name: str, factory: Factory, *, replace: bool = False) -> None:
     """Register ``factory`` under ``name``; ``factory(**config)`` returns the backend.
 
-    This is ``registrar.backend(name, factory)`` of the default registrar (Requirement 56.7).
+    This is ``registrar.backend(name, factory)`` of the default registrar.
 
     Args:
         name: The name passed to ``backend``.

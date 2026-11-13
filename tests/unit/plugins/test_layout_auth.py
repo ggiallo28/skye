@@ -1,4 +1,5 @@
-"""The layout of ``auth/plugins`` (D110, Requirements 56.9 and 56.10): one folder per family of credential sources, one door, the same file names."""
+"""The layout of ``auth/plugins`` (D110, Requirements 56.9 and 56.10): one folder per family of
+credential sources, one door, the same file names."""
 
 from __future__ import annotations
 
@@ -14,7 +15,8 @@ from skye.base.plugins import Registrar
 
 ROOT = Path(plugins.__file__).parent
 FOLDERS = list(plugins.IMPLEMENTATIONS)
-#: The file names a folder may have: the door, the main code, and the helpers that only the AWS family uses.
+# : The file names a folder may have: the door, the main code, and the helpers that only the AWS
+# family uses.
 ALLOWED_FILES = {"__init__.py", "source.py", "aws_profile.py", "sts.py", "sigv4.py"}
 #: Every credential source that ships with ``auth``, as registered before the layout of D110.
 SOURCE_NAMES = [

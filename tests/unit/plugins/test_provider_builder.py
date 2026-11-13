@@ -1,7 +1,10 @@
-"""``skye.provider`` builds the three functions of the single kind ``provider`` (tasks 15.3 and 15.5, Requirements 56.11, 56.12, 58.3).
+"""``skye.provider`` builds the three functions of the single kind ``provider`` (tasks 15.3 and
+15.5, Requirements 56.11, 56.12, 58.3).
 
-A model provider is the default, ``provider_type="embedding"`` and ``provider_type="decision"`` give the others, and a name that has one
-function only gives that one. ``create_decision_model`` stays as the typed accessor and builds the same object.
+A model provider is the default, ``provider_type="embedding"`` and ``provider_type="decision"`` give
+the others, and a name that has one
+function only gives that one. ``create_decision_model`` stays as the typed accessor and builds the
+same object.
 """
 
 from __future__ import annotations
@@ -35,7 +38,8 @@ class FirstOption:
 
 @pytest.fixture
 def first_option() -> Iterator[str]:
-    """``first-option`` registered on the default registrar as a decision provider, and taken away after the test."""
+    """``first-option`` registered on the default registrar as a decision provider, and taken away
+    after the test."""
     registrar = get_registrar()
     registrar.provider("first-option", FirstOption, function="decision", replace=True)
     try:

@@ -1,4 +1,5 @@
-"""The kind ``provider``: one table keyed by name and function, the function deduced from the class (task 15.1, Requirement 56.12)."""
+"""The kind ``provider``: one table keyed by name and function, the function deduced from the class
+(task 15.1, Requirement 56.12)."""
 
 from __future__ import annotations
 

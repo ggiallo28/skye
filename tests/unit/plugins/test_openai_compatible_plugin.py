@@ -1,13 +1,19 @@
-"""An OpenAI-compatible endpoint is a plugin with no class of its own: ``OpenAICompatibleProvider`` plus a ``ProviderProfile`` (plugins:5.3, Requirement 59.9).
+"""An OpenAI-compatible endpoint is a plugin with no class of its own: ``OpenAICompatibleProvider``
+plus a ``ProviderProfile`` (plugins:5.3, Requirement 59.9).
 
-The provider is registered on a private ``Registrar`` with the profile of a made-up vendor, Acme, and called offline: ``rest.post_json`` is patched, so
-nothing leaves the machine. What the test fixes today, so that a later task that moves more of the profile into the adapter changes it on purpose:
+The provider is registered on a private ``Registrar`` with the profile of a made-up vendor, Acme,
+and called offline: ``rest.post_json`` is patched, so
+nothing leaves the machine. What the test fixes today, so that a later task that moves more of the
+profile into the adapter changes it on purpose:
 
 * the registrar returns the class itself, and the profile it holds is the one that was given;
-* the call goes to ``{default_api_base}/chat/completions`` with the bearer key; the class does not yet read ``default_api_base`` or the key variable
-  from the profile (plugins:6.3 and 6.4), so the caller passes both, as the profile declares them;
-* the cost comes from the profile: a dated name finds its family, and a model with no price, or not in the profile, has an unknown cost (59.10);
-* one provider name has one profile: a second, different profile raises unless ``replace=True`` (59.8).
+* the call goes to ``{default_api_base}/chat/completions`` with the bearer key; the class alone does
+  not read ``default_api_base`` or the key variable from the profile, the registry gives both to a
+  provider it builds by name (plugins:6.3, 6.4 and F4 of the final check);
+* the cost comes from the profile: a dated name finds its family, and a model with no price, or not
+  in the profile, has an unknown cost (59.10);
+* one provider name has one profile: a second, different profile raises unless ``replace=True``
+  (59.8).
 """
 
 from __future__ import annotations
@@ -62,7 +68,8 @@ def _response(model: str = "acme-large") -> JsonObject:
 
 @pytest.fixture
 def registrar() -> Registrar:
-    """A private registrar with Acme registered the way a plugin does it: the class and a profile, no subclass."""
+    """A private registrar with Acme registered the way a plugin does it: the class and a profile,
+    no subclass."""
     fresh = Registrar()
     fresh.provider("acme", OpenAICompatibleProvider, profile=PROFILE, function="model")
     return fresh
@@ -70,19 +77,22 @@ def registrar() -> Registrar:
 
 @pytest.fixture
 def default_registrar(registrar: Registrar, monkeypatch: pytest.MonkeyPatch) -> Registrar:
-    """Make ``registrar`` the default of the process for the test, so ``CostCalculator`` and ``skye.provider`` read it; restored afterwards."""
+    """Make ``registrar`` the default of the process for the test, so ``CostCalculator`` and
+    ``skye.provider`` read it; restored afterwards."""
     monkeypatch.setattr(plugins_module, "_default", registrar)
     return registrar
 
 
 def _client(registrar: Registrar, api_key: str | None = "acme-secret") -> Any:
-    """The client a user gets from what the registrar holds: the class, with the endpoint and key the profile declares."""
+    """The client a user gets from what the registrar holds: the class, with the endpoint and key
+    the profile declares."""
     provider_class = registrar.get("provider", "acme", "model")
     profile = registrar.get_profile("acme")
     return provider_class(api_key=api_key, api_base=profile.default_api_base)
 
 
-# -- registered with no class of its own ------------------------------------------------------------------------
+# -- registered with no class of its own
+# ------------------------------------------------------------------------
 
 
 def test_the_registrar_holds_the_class_itself_and_the_profile(registrar):
@@ -93,7 +103,8 @@ def test_the_registrar_holds_the_class_itself_and_the_profile(registrar):
     assert registrar.names("provider", "model") == ["acme"]
 
 
-# -- the call, offline ------------------------------------------------------------------------------------------
+# -- the call, offline
+# ------------------------------------------------------------------------------------------
 
 
 def test_complete_goes_to_the_endpoint_of_the_profile_with_the_bearer_key(registrar):
@@ -128,13 +139,12 @@ def test_a_trailing_slash_in_the_endpoint_is_harmless(registrar):
     assert post.call_args.args[0] == URL
 
 
-def test_the_class_does_not_read_the_endpoint_or_the_key_variable_from_the_profile_yet(
+def test_the_class_alone_does_not_read_the_endpoint_or_the_key_variable_from_the_profile(
     registrar, monkeypatch
 ):
-    """True today: the caller passes both, and a missing ``api_base`` surfaces as a ``ProviderError`` at the call (the ``ConfigurationError`` is its cause).
-
-    Plugins 6.3 and 6.4 move the key variable and the endpoint into the profile; update this test then.
-    """
+    """The class built by hand has no name to look up: the caller passes both, and a missing
+    ``api_base`` surfaces as a ``ProviderError`` at the call (the ``ConfigurationError`` is its
+    cause). ``ProviderRegistry`` builds it by name and supplies both, see the next test."""
     monkeypatch.setenv("ACME_API_KEY", "from-the-environment")
     provider_class = registrar.get("provider", "acme", "model")
     with pytest.raises(ConfigurationError, match="No API key"):
@@ -150,7 +160,42 @@ def test_the_class_does_not_read_the_endpoint_or_the_key_variable_from_the_profi
         )
 
 
-# -- the cost comes from the profile ----------------------------------------------------------------------------
+def test_a_provider_built_by_name_gets_the_endpoint_and_the_key_from_the_profile(
+    default_registrar, monkeypatch
+):
+    monkeypatch.setenv("ACME_API_KEY", "from-the-environment")
+    provider = ProviderRegistry.get_model_provider("acme")
+    assert provider.api_base == "https://api.acme.example/v1"
+    with patch(POST, return_value=_response()) as post:
+        provider.complete(CompleteRequest(messages=[UserMessage(content="Hi")], model="acme-small"))
+    assert post.call_args.args[0] == URL
+    assert post.call_args.kwargs["headers"] == {"Authorization": "Bearer from-the-environment"}
+    # an endpoint that is passed is never replaced
+    other = ProviderRegistry.get_model_provider("acme", api_base="http://localhost:8000/v1")
+    assert other.api_base == "http://localhost:8000/v1"
+    # the registry names the instance, so the profile of `acme` (info, prices) is found by it
+    assert provider.provider_name == "acme"
+
+
+def test_get_model_info_carries_the_info_of_the_profile(monkeypatch):
+    class Acme(OpenAICompatibleProvider):
+        provider_name = "acme"
+
+    profile = ProviderProfile(
+        "acme",
+        ("ACME_API_KEY",),
+        models={"acme-small": ModelProfile(info={"supports_reasoning": True})},
+    )
+    fresh = Registrar()
+    fresh.provider("acme", Acme, profile=profile, function="model")
+    monkeypatch.setattr(plugins_module, "_default", fresh)
+    info = Acme(api_key="k", api_base="http://x/v1", model="acme-small").get_model_info()
+    assert info["supports_reasoning"] is True and info["supports_streaming"] is True
+    assert "supports_reasoning" not in Acme(api_key="k", api_base="http://x/v1").get_model_info()
+
+
+# -- the cost comes from the profile
+# ----------------------------------------------------------------------------
 
 
 def test_the_cost_is_priced_from_the_profile(default_registrar):
@@ -169,12 +214,12 @@ def test_a_dated_name_finds_its_family(default_registrar):
 def test_a_model_with_no_price_or_not_in_the_profile_has_an_unknown_cost(default_registrar):
     usage = TokenUsage(prompt_tokens=1000, completion_tokens=1000, total_tokens=2000)
     for model in ("acme-preview", "acme-not-listed"):
-        assert CostCalculator.pricing_for(model) is None, (
-            model
-        )  # unknown, not zero (Requirement 59.10)
-        assert CostCalculator.calculate_cost(model, usage) == 0.0, (
-            model
-        )  # as for any model the table does not know
+        assert (
+            CostCalculator.pricing_for(model) is None
+        ), model  # unknown, not zero (Requirement 59.10)
+        assert (
+            CostCalculator.calculate_cost(model, usage) == 0.0
+        ), model  # as for any model the table does not know
 
 
 def test_a_provider_without_a_profile_has_no_price():
@@ -186,7 +231,8 @@ def test_a_provider_without_a_profile_has_no_price():
     assert bare.get("provider", "acme", "model") is OpenAICompatibleProvider
 
 
-# -- one provider name, one profile -----------------------------------------------------------------------------
+# -- one provider name, one profile
+# -----------------------------------------------------------------------------
 
 OTHER = ProviderProfile("acme", ("ACME_KEY",), default_api_base="https://api.acme.example/v2")
 
@@ -196,33 +242,44 @@ def test_the_same_name_registered_again_is_refused_unless_replaced(registrar):
         registrar.provider("acme", OpenAICompatibleProvider, profile=PROFILE, function="model")
     assert registrar.get_profile("acme") is PROFILE
 
-    registrar.provider("acme", OpenAICompatibleProvider, profile=OTHER, replace=True, function="model")
+    registrar.provider(
+        "acme", OpenAICompatibleProvider, profile=OTHER, replace=True, function="model"
+    )
     assert registrar.get_profile("acme") is OTHER
     assert registrar.get("provider", "acme", "model") is OpenAICompatibleProvider
 
 
 def test_a_second_different_profile_for_the_same_provider_name_is_refused(registrar):
-    """The embedding side of the same vendor may not bring a different profile (59.8); the same one is accepted."""
+    """The embedding side of the same vendor may not bring a different profile (59.8); the same one
+    is accepted."""
     with pytest.raises(ConfigurationError, match="different profile") as caught:
         registrar.provider(
-            "acme", "skye.models.plugins.openai:OpenAIEmbeddingProvider", profile=OTHER, function="embedding"
+            "acme",
+            "skye.models.plugins.openai:OpenAIEmbeddingProvider",
+            profile=OTHER,
+            function="embedding",
         )
     assert caught.value.details["name"] == "acme"
     assert registrar.names("provider", "embedding") == []  # nothing was registered
     assert registrar.get_profile("acme") is PROFILE
 
     registrar.provider(
-        "acme", "skye.models.plugins.openai:OpenAIEmbeddingProvider", profile=PROFILE, function="embedding"
+        "acme",
+        "skye.models.plugins.openai:OpenAIEmbeddingProvider",
+        profile=PROFILE,
+        function="embedding",
     )
     assert registrar.names("provider", "embedding") == ["acme"]
 
 
-# -- by name, through skye.provider -----------------------------------------------------------------------------
+# -- by name, through skye.provider
+# -----------------------------------------------------------------------------
 
 
 @pytest.mark.skipif(
     hasattr(ProviderRegistry, "_model_providers"),
-    reason="waits for plugins:5.2: ProviderRegistry still keeps a table of its own and does not read the registrar",
+    reason="waits for plugins:5.2: ProviderRegistry still keeps a table of its own and does not "
+    "read the registrar",
 )
 def test_skye_provider_reaches_a_plugin_registered_on_the_registrar(default_registrar):
     import skye

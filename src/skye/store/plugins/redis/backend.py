@@ -1,4 +1,5 @@
-"""Redis and Valkey backend (decisions D99, D102): any server that speaks the Redis protocol.
+# decisions D99, D102
+"""Redis and Valkey backend: any server that speaks the Redis protocol.
 
 The driver is ``valkey`` (valkey-py, extra ``valkey``) when installed, else ``redis`` (redis-py,
 extra ``redis``); both have the same API, so install only one. ``driver=`` forces one, and
@@ -64,8 +65,9 @@ _GLOB = str.maketrans({c: "\\" + c for c in "*?[]\\"})
 Driver = Literal["valkey", "redis"]
 
 
+# D102
 def choose_driver() -> Driver:
-    """``valkey`` when installed, else ``redis``, else ``MissingExtraError`` (D102)."""
+    """``valkey`` when installed, else ``redis``, else ``MissingExtraError``."""
     if importlib.util.find_spec("valkey") is not None:
         return "valkey"
     if importlib.util.find_spec("redis") is not None:
@@ -75,6 +77,7 @@ def choose_driver() -> Driver:
     raise error
 
 
+# D102
 class RedisBackend(StorageBackend, ScanStore, ExpiryStore):
     """Key-value, counter, scan and expiry in Redis or Valkey.
 
@@ -82,7 +85,7 @@ class RedisBackend(StorageBackend, ScanStore, ExpiryStore):
         redis_url: The connection URL (``redis://``, ``rediss://`` for TLS); it may hold a password,
             so it is never logged.
         key_prefix: Prepended to every key, so several applications can share one database.
-        driver: Force ``"valkey"`` or ``"redis"`` instead of the order of D102.
+        driver: Force ``"valkey"`` or ``"redis"`` instead of the usual order.
         client: An asyncio client to use instead of creating one (tests pass a fake one).
     """
 
@@ -157,7 +160,8 @@ class RedisBackend(StorageBackend, ScanStore, ExpiryStore):
             return int(await self._client().eval(INCREMENT_SCRIPT, 1, name, amount, expiry))
 
     async def count(self, key: str) -> int:
-        """One ``GET``; the count of ``key``, 0 when it is absent or expired. A ``GET`` does not move the server's expiry."""
+        """One ``GET``; the count of ``key``, 0 when it is absent or expired. A ``GET`` does not
+        move the server's expiry."""
         name = self._key(key)
         with provider_errors("redis", "count"):
             raw = await self._client().get(name)
@@ -170,7 +174,8 @@ class RedisBackend(StorageBackend, ScanStore, ExpiryStore):
             return bool(await self._client().exists(name))
 
     async def remaining(self, key: str) -> int | None:
-        """One ``PTTL`` (milliseconds, rounded up to whole seconds); ``None`` when absent, expired or without expiry."""
+        """One ``PTTL`` (milliseconds, rounded up to whole seconds); ``None`` when absent, expired
+        or without expiry."""
         name = self._key(key)
         with provider_errors("redis", "remaining"):
             millis = int(await self._client().pttl(name))

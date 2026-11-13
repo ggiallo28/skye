@@ -1,11 +1,11 @@
-"""DynamoDB backend through ``boto3`` (preinstalled in AWS Lambda; extra ``aws`` elsewhere, decision
-D99).
+# decision D99, D95
+"""DynamoDB backend through ``boto3`` (preinstalled in AWS Lambda; extra ``aws`` elsewhere).
 
 The table has a string partition key ``pk``; the expiry is the number attribute ``ttl`` (seconds
 since the epoch), which you can
 enable as the table's TTL attribute so DynamoDB deletes expired items. DynamoDB deletes them late
 (within days), so this backend also
-checks the expiry on every read: an expired item is absent at once (D95). ``boto3`` is synchronous,
+checks the expiry on every read: an expired item is absent at once. ``boto3`` is synchronous,
 so every call runs in a worker
 thread (``asyncio.to_thread``). There is no default region: it comes from the argument or from the
 usual AWS configuration (in
@@ -85,8 +85,10 @@ class DynamoDBBackend(StorageBackend, ScanStore, ExpiryStore):
 
     Args:
         table_name: The table; its partition key is the string ``pk``.
-        region_name: The AWS region; ``None`` reads ``AWS_REGION`` then ``AWS_DEFAULT_REGION`` (the rule of the AWS
-            profile) and, when none is set, leaves the choice to ``boto3`` (its own chain: the config file, the instance
+        region_name: The AWS region; ``None`` reads ``AWS_REGION`` then ``AWS_DEFAULT_REGION`` (the
+            rule of the AWS
+            profile) and, when none is set, leaves the choice to ``boto3`` (its own chain: the
+            config file, the instance
             metadata); there is no silent ``us-east-1``.
         resource: A ``boto3`` DynamoDB resource to use instead of creating one (tests pass a fake
             one).
@@ -211,7 +213,8 @@ class DynamoDBBackend(StorageBackend, ScanStore, ExpiryStore):
         return int(response["Attributes"]["count"])
 
     async def count(self, key: str) -> int:
-        """The ``count`` of the item of ``key`` in one consistent ``GetItem``; 0 when it is absent or expired."""
+        """The ``count`` of the item of ``key`` in one consistent ``GetItem``; 0 when it is absent
+        or expired."""
         check_key(key)
         with provider_errors("dynamodb", "count"):
             table = self._get_table()
@@ -219,7 +222,8 @@ class DynamoDBBackend(StorageBackend, ScanStore, ExpiryStore):
         return count_of(self._item_value(response.get("Item")))
 
     async def _live_item(self, key: str, operation: str) -> dict[str, Any] | None:
-        """The item of ``key`` from one consistent ``GetItem``, or ``None`` when it is absent or expired."""
+        """The item of ``key`` from one consistent ``GetItem``, or ``None`` when it is absent or
+        expired."""
         check_key(key)
         with provider_errors("dynamodb", operation):
             table = self._get_table()
@@ -228,11 +232,13 @@ class DynamoDBBackend(StorageBackend, ScanStore, ExpiryStore):
         return item if self._item_value(item) is not None else None
 
     async def is_alive(self, key: str) -> bool:
-        """One consistent ``GetItem``; ``True`` when the item is present and its ``ttl`` is not past."""
+        """One consistent ``GetItem``; ``True`` when the item is present and its ``ttl`` is not
+        past."""
         return await self._live_item(key, "is_alive") is not None
 
     async def remaining(self, key: str) -> int | None:
-        """The seconds left to the ``ttl`` attribute (rounded up), or ``None`` when absent, expired or without ``ttl``."""
+        """The seconds left to the ``ttl`` attribute (rounded up), or ``None`` when absent, expired
+        or without ``ttl``."""
         item = await self._live_item(key, "remaining")
         expiry = None if item is None else item.get(_TTL)
         return remaining_of(None if expiry is None else float(expiry), self._clock)

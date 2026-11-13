@@ -1,4 +1,5 @@
-"""A small JSON Schema check for structured replies (standard library only, Requirement 27.2).
+# Requirement 27.2
+"""A small JSON Schema check for structured replies (standard library only).
 
 It covers what output schemas use: ``type`` (one or a list; an integer is never a boolean),
 ``properties``, ``required``, ``additionalProperties`` (``false`` or a schema), ``items`` (one
@@ -15,8 +16,7 @@ Example:
     >>> check_json({"age": 3}, {"type": "object", "properties": {"age": {"type": "integer"}}})
     >>> schema = {"type": "object", "properties": {"age": {"type": "integer"}}}
     >>> check_json({"age": "3"}, schema, name="person")
-    Traceback (most recent call last):
-    ...
+    Traceback (most recent call last):...
     skye.base.exceptions.ValidationError: The response does not conform to person: ...
 """
 

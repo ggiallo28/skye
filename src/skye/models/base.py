@@ -36,13 +36,13 @@ To add a new provider, you only need to:
 See docs/guides/extend/custom-provider.md for how provider adapters are built.
 """
 
-import asyncio
 import dataclasses
+import inspect
 import logging
-import threading
 import time
 from abc import ABC, abstractmethod
-from collections.abc import AsyncIterator, Callable, Iterator
+from contextlib import aclosing
+from collections.abc import AsyncGenerator, AsyncIterator, Callable, Iterator
 from typing import Any
 
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk, TokenUsage
@@ -60,15 +60,16 @@ from skye.base.log_event import (
     new_correlation_id,
 )
 from skye.base.prompt_parts import PromptParts
-from skye.base.sync import run_sync
-from skye.models.utilities.capability_choice import complete_emulated, emulated_request, forced_choice
+from skye.base.sync import iterate_sync, run_sync
+from skye.models.utilities.capability_choice import acomplete_emulated, emulated_request, forced_choice
 from skye.models.cost import CostCalculator, check_pricing
 from skye.models.utilities.prompt_parts import request_from_parts
 from skye.models.utilities.retry import (
     DEFAULT_MAX_RETRIES,
-    call_with_retry,
+    acall_with_retry,
     is_retryable,
     retry_wait,
+    sleep_for,
 )
 from skye.models.utilities.structured import parse_structured
 from skye.models.token_counter import TokenCounter
@@ -112,6 +113,7 @@ def capability_list(source: Any) -> list[Any]:
     )
 
 
+# decision D104, Requirement 9.2, Requirement 19
 class BaseModelProvider(ModelInterface, ABC):
     """Abstract base class for model providers.
     
@@ -139,44 +141,39 @@ class BaseModelProvider(ModelInterface, ABC):
     - _transform_messages(): Convert Skye messages to provider format
     - _transform_capabilities(): Convert Skye capabilities to provider format
     - _extract_capability_calls(): Extract capability calls from provider response
-    - _call_provider(): Make the actual provider API call
-    - _call_provider_stream(): Make streaming provider API call
+    - _acall_provider(): Make the actual provider API call (async; ``complete`` and ``stream`` are derived from the async methods)
+    - _acall_provider_stream(): Make streaming provider API call (an async generator)
     - get_model_info(): Return model metadata
     
     Example:
         >>> class OpenAIProvider(BaseModelProvider):
         ...     def _initialize_client(self):
         ...         import openai
-        ...         return openai.OpenAI(api_key=self.config["api_key"])
-        ...
+        ...         return openai.OpenAI(api_key=self.config["api_key"])...
         ...     def _transform_request(self, request):
         ...         # Use internal transformation methods
         ...         return {
         ...             "model": request.model,
         ...             "messages": self._transform_messages(request.messages),
         ...             "tools": self._transform_capabilities(request.capabilities)
-        ...         }
-        ...
+        ...         }...
         ...     def _transform_messages(self, messages):
         ...         # OpenAI-specific message transformation
-        ...         return [{"role": m.role, "content": m.content} for m in messages]
-        ...
+        ...         return [{"role": m.role, "content": m.content} for m in messages]...
         ...     def _transform_capabilities(self, capabilities):
         ...         # OpenAI-specific capability transformation
-        ...         return [{"type": "function", "function": {...}} for c in capabilities]
-        ...
+        ...         return [{"type": "function", "function": {...}} for c in capabilities]...
         ...     def _extract_capability_calls(self, response):
         ...         # Extract capability calls from OpenAI response
-        ...         return [CapabilityCall(...) for tc in response.capability_calls]
-        ...
+        ...         return [CapabilityCall(...) for tc in response.capability_calls]...
         ...     # ... implement other abstract methods
 
-    Retries (decision D104): a client retries a ``RateLimitError``, a ``ServerError`` or a ``ProviderTimeoutError`` up to
-    ``max_retries`` times (3 by default, Requirement 9.2), waiting with exponential backoff or the server's ``Retry-After``; any other error
+    Retries: a client retries a ``RateLimitError``, a ``ServerError`` or a ``ProviderTimeoutError`` up to
+    ``max_retries`` times (3 by default), waiting with exponential backoff or the server's ``Retry-After``; any other error
     is raised at once. A stream is retried only before its first chunk. ``max_retries=0`` turns retries off (the router
     does this for its targets, so its own policy decides).
 
-    Cost (Requirement 19): every response carries ``metadata["cost"]`` (``prompt``, ``completion``, ``total``, ``currency``,
+    Cost: every response carries ``metadata["cost"]`` (``prompt``, ``completion``, ``total``, ``currency``,
     ``exact``), priced with the provider's own token count; the tokens are estimated, with ``exact`` false, only when the
     provider reports none. A model with no price has ``cost`` ``None``. ``pricing={"prompt": p, "completion": c}`` (USD per 1M
     tokens) prices this client's calls with your own numbers. A stream carries the running tokens and cost on its chunks.
@@ -195,7 +192,7 @@ class BaseModelProvider(ModelInterface, ABC):
             router: Model router for load balancing (optional)
             **config: Provider-specific configuration parameters. Three are read here and not kept in ``config``:
                 ``max_retries`` (retries of a transient failure, default 3; ``0`` turns them off), ``retry_sleep``
-                (the function that waits between attempts, ``time.sleep`` by default; tests pass one that records) and
+                (the function that waits between attempts, ``asyncio.sleep`` by default; tests pass one that records, and if it returns an awaitable that is awaited) and
                 ``pricing`` (``{"prompt": p, "completion": c}`` in USD per 1M tokens, for the cost of this client's calls).
         """
         if model is not None and router is not None:
@@ -204,7 +201,7 @@ class BaseModelProvider(ModelInterface, ABC):
         if not isinstance(max_retries, int) or isinstance(max_retries, bool) or max_retries < 0:
             raise ValueError(f"max_retries must be an integer >= 0, got {max_retries!r}")
         self.max_retries: int = max_retries
-        self.retry_sleep: Callable[[float], Any] = config.pop("retry_sleep", None) or time.sleep
+        self.retry_sleep: Callable[[float], Any] | None = config.pop("retry_sleep", None)
         self.pricing: dict[str, float] | None = check_pricing(config.pop("pricing", None))
 
         self.model = model
@@ -317,38 +314,40 @@ class BaseModelProvider(ModelInterface, ABC):
         """
         pass
     
+    # Requirement 56.13
     @abstractmethod
-    def _call_provider(self, request: dict[str, Any]) -> Any:
-        """Make the actual provider API call.
-        
+    async def _acall_provider(self, request: dict[str, Any]) -> Any:
+        """Make the actual provider API call (async: a plugin writes this one only).
+
         Args:
             request: Provider-specific request dictionary
-            
+
         Returns:
             Provider-specific response object
-            
+
         Example:
-            >>> def _call_provider(self, request):
-            ...     return self.client.chat.completions.create(**request)
+            >>> async def _acall_provider(self, request):
+            ...     return await self.client.chat.completions.create(**request)
         """
         pass
-    
+
     @abstractmethod
-    def _call_provider_stream(self, request: dict[str, Any]) -> Iterator[Any]:
-        """Make streaming provider API call.
-        
+    def _acall_provider_stream(self, request: dict[str, Any]) -> AsyncGenerator[Any, None]:
+        """Make streaming provider API call (an async generator: ``async def`` with ``yield``).
+
         Args:
             request: Provider-specific request dictionary
-            
+
         Yields:
             Provider-specific stream chunks
-            
+
         Example:
-            >>> def _call_provider_stream(self, request):
-            ...     return self.client.chat.completions.create(**request)
+            >>> async def _acall_provider_stream(self, request):
+            ...     async for chunk in await self.client.chat.completions.create(**request):
+            ...         yield chunk
         """
         pass
-    
+
     @abstractmethod
     def _transform_messages(self, messages: list[Any]) -> Any:
         """Transform Skye messages to provider-specific format.
@@ -575,20 +574,20 @@ class BaseModelProvider(ModelInterface, ABC):
         """
         pass
     
-    def _select_with_router(self, router: Any, messages: list[Any] | str) -> str:
+    async def _aselect_with_router(self, router: Any, messages: list[Any] | str) -> str:
         """Ask a router which model to use for these messages.
 
-        ``select_model`` of the router Port is ``async`` and takes a request, so the messages are wrapped in one
-        and the coroutine is run to completion from this synchronous code.
+        ``select_model`` of the router Port is ``async`` and takes a request, so the messages are wrapped in one and the result is awaited
+        (a router that answers with the name itself is accepted).
         """
         from skye.base.messages import UserMessage
 
         if isinstance(messages, str):
             messages = [UserMessage(content=messages)]
         selection = router.select_model(CompleteRequest(messages=messages, model=self.default_model or ""))
-        if not asyncio.iscoroutine(selection):
-            return selection  # type: ignore[no-any-return]
-        return run_sync(selection)  # type: ignore[no-any-return]
+        if inspect.isawaitable(selection):
+            selection = await selection
+        return selection  # type: ignore[no-any-return]
 
     @staticmethod
     def _resolved(request: CompleteRequest) -> CompleteRequest:
@@ -614,8 +613,9 @@ class BaseModelProvider(ModelInterface, ABC):
             error_type=type(error).__name__,
         )
 
+    # Requirement 33.9, decisions D81, D101
     def request_from_parts(self, parts: PromptParts, model: str | None = None, **options: Any) -> CompleteRequest:
-        """The completion request for rendered prompt parts on this provider (Requirement 33.9, decisions D81, D101).
+        """The completion request for rendered prompt parts on this provider.
 
         The capabilities this adapter reports in ``get_model_info()`` decide whether the system text and the output schema travel
         in native fields or as text. ``complete(parts, model=...)`` calls it for you.
@@ -636,6 +636,7 @@ class BaseModelProvider(ModelInterface, ABC):
             raise ValueError("Either 'model' or a default model is required for prompt parts")
         return request_from_parts(parts, model=effective_model, info=self.get_model_info(), **options)
 
+    # Requirement 56.13
     def complete(
         self,
         messages: list[Any] | str | CompleteRequest | PromptParts | None = None,
@@ -646,7 +647,10 @@ class BaseModelProvider(ModelInterface, ABC):
         **kwargs: Any,
     ) -> CompleteResponse:
         """Execute synchronous completion.
-        
+
+        Runs :meth:`acomplete`, the one implementation, to the end (``run_sync``); inside a running event loop prefer
+        :meth:`acomplete`.
+
         Supports both boto3-style direct calls and CompleteRequest objects.
         
         Boto3-style usage:
@@ -681,86 +685,16 @@ class BaseModelProvider(ModelInterface, ABC):
             ProviderError: If the provider API call fails
             ValueError: If required parameters are missing or both model and router provided
         """
-        # Handle polymorphic input
-        if isinstance(messages, PromptParts):
-            # Rendered prompt parts (D101): this model's capabilities choose native fields or text
-            if router is not None:
-                raise ValueError("Prompt parts need a 'model'; route first, then pass the chosen model")
-            sampling: dict[str, Any] = {k: v for k, v in {"temperature": temperature, "max_tokens": max_tokens}.items() if v is not None}
-            messages = self.request_from_parts(messages, model=model or self.default_model, **sampling, **kwargs)
-        if isinstance(messages, CompleteRequest):
-            request = messages
-        else:
-            # Convert to CompleteRequest
-            if messages is None:
-                raise ValueError("messages parameter is required")
-            
-            # Validate model/router parameters
-            if model is not None and router is not None:
-                raise ValueError("Cannot specify both 'model' and 'router' parameters")
-            
-            # Use provided model, router, or fall back to default
-            effective_model = model or self.default_model
-            
-            if router is not None:
-                # Router will select the model
-                effective_model = self._select_with_router(router, messages)
-            elif effective_model is None:
-                raise ValueError(
-                    "Either 'model' or 'router' parameter is required"
-                )
-            
-            # Convert string to UserMessage if needed
-            if isinstance(messages, str):
-                from skye.base.messages import UserMessage
-                messages = [UserMessage(content=messages)]
-            
-            # Only what the caller set: an omitted temperature or max_tokens keeps the request default.
-            sampling = {k: v for k, v in {"temperature": temperature, "max_tokens": max_tokens}.items() if v is not None}
-            request = CompleteRequest(
-                messages=messages,
-                model=effective_model,
-                **sampling,
-                **kwargs,
-            )
-        
-        offered = request.capabilities
-        start_time = time.time()
-        correlation_id = new_correlation_id()
-        try:
-            request = self._resolved(request)
-            self._emit(lambda: model_invocation_start(request, provider=self._log_provider(), correlation_id=correlation_id))
-            response = self._complete_with_retry(request)
-            self._parse_structured_output(request, response)
-            self._account(request, response)
+        return run_sync(self.acomplete(messages, model, router, temperature, max_tokens, **kwargs))
 
-            # Attach capabilities to response for direct execution (the registry itself when one was given)
-            if offered:
-                response._capabilities = offered
-            
-            # Record success with latency (only on final success)
-            latency_ms = (time.time() - start_time) * 1000
-            self.health_metrics.record_success(latency_ms)
-            self._emit(lambda: model_invocation_end(response, correlation_id=correlation_id, latency_ms=latency_ms))
-
-            return response
-        except Exception as e:
-            # Record failure (only on final failure after all retries)
-            self.health_metrics.record_failure()
-            self._emit(
-                lambda: model_invocation_error(
-                    e, model=request.model, provider=self._log_provider(), correlation_id=correlation_id
-                )
-            )
-            raise
-    
+    # Requirement 27.2
     @staticmethod
     def _parse_structured_output(request: CompleteRequest, response: CompleteResponse) -> None:
         """Validate the text of the response against the declared output schema and attach the result.
 
         The REST adapters return plain JSON text (no SDK ``parsed`` field), so the shape is checked here, once, for every provider;
         the schema is a dataclass, or any class with ``model_validate_json``.
-        A result that does not conform raises ``ValidationError`` naming the field (Requirement 27.2); it is not retried.
+        A result that does not conform raises ``ValidationError`` naming the field; it is not retried.
         """
         schema = getattr(request, "response_schema", None)
         if schema is None or response.structured_output is not None or not response.content:
@@ -773,9 +707,10 @@ class BaseModelProvider(ModelInterface, ABC):
         """The provider name for the log: ``provider_name`` when the class has one, else the class name (``BedrockProvider``: ``bedrock``)."""
         return getattr(self, "provider_name", None) or type(self).__name__.removesuffix("Provider").lower()
 
+    # Requirement 18.3
     @staticmethod
     def _emit(build: Callable[[], ModelInvocationEvent]) -> None:
-        """Log a model invocation event (Requirement 18.3) with structured ``extra``, never an f-string.
+        """Log a model invocation event with structured ``extra``, never an f-string.
 
         A start is DEBUG, an end INFO and a failure WARNING (a fallback may still serve the request). The event holds no
         message content. One correlation id ties the start, the end and the error of one call. Logging never breaks a call:
@@ -818,8 +753,9 @@ class BaseModelProvider(ModelInterface, ABC):
         """The tokens of the request messages by the counter of the model (a registered tokenizer, ``tiktoken`` or the estimate)."""
         return TokenCounter.count_message_tokens(list(request.messages or []), request.model)
 
+    # Requirement 19.1
     def _account(self, request: CompleteRequest, response: CompleteResponse) -> None:
-        """Put the cost in ``response.metadata["cost"]`` (Requirement 19.1).
+        """Put the cost in ``response.metadata["cost"]``.
 
         The provider's token count is used as it is. When it reported none (all zero), the tokens are estimated from the
         messages and the answer, ``response.usage`` takes the estimate, ``metadata["usage_estimated"]`` is true and the cost
@@ -838,7 +774,9 @@ class BaseModelProvider(ModelInterface, ABC):
             cost = self._price(response.model, usage, exact)  # the provider may name the model differently
         response.metadata["cost"] = cost
 
-    def _with_running_cost(self, request: CompleteRequest, chunks: Iterator[StreamChunk]) -> Iterator[StreamChunk]:
+    async def _with_running_cost(
+        self, request: CompleteRequest, chunks: AsyncGenerator[StreamChunk, None]
+    ) -> AsyncGenerator[StreamChunk, None]:
         """Give every chunk the running tokens and cost of the call (``chunk.usage`` and ``chunk.cost``).
 
         The prompt is counted once, from the messages. The completion is counted from the text received so far. As soon as
@@ -853,7 +791,7 @@ class BaseModelProvider(ModelInterface, ABC):
         reported_prompt = reported_completion = 0
         usage: TokenUsage | None = None
         cost: dict[str, Any] | None = None
-        for chunk in chunks:
+        async for chunk in chunks:
             if not isinstance(chunk, StreamChunk):
                 yield chunk  # a provider that yields something else keeps its own chunks, with no counter
                 continue
@@ -873,8 +811,9 @@ class BaseModelProvider(ModelInterface, ABC):
             chunk.cost = None if cost is None else dict(cost)
             yield chunk
 
+    # Requirement 59.2
     def _profile_info(self, provider: str, model: str | None = None) -> dict[str, Any]:
-        """The ``info`` of the entry of ``model`` (the default model when omitted) in the profile registered for ``provider`` (Requirement 59.2).
+        """The ``info`` of the entry of ``model`` (the default model when omitted) in the profile registered for ``provider``.
 
         Empty when the provider has no profile or the profile has no entry for the model: the keys the adapter itself knows are then all there is.
         """
@@ -884,40 +823,43 @@ class BaseModelProvider(ModelInterface, ABC):
         entry = find_model_profile(get_registrar().get_profile(provider), model if model is not None else self.model or "")
         return dict(entry.info) if entry is not None else {}
 
+    # decision D109
     def refuses_forced_choice(self, model: str) -> bool:
         """Whether ``model`` refuses a forced ``capability_choice`` (``"required"`` or a name).
 
         ``False`` here; an adapter whose provider has such models overrides it, reading ``supports_forced_capability_choice`` of the model's
-        ``info`` in its profile. For those models the client emulates the forced choice (decision D109, ``skye.models.utilities.capability_choice``).
+        ``info`` in its profile. For those models the client emulates the forced choice (``skye.models.utilities.capability_choice``).
         """
         return False
 
-    def _complete_with_retry(self, request: CompleteRequest) -> CompleteResponse:
-        """One completion, retried on a transient failure (D104); health metrics are not tracked here.
+    # D104, D109
+    async def _acomplete_with_retry(self, request: CompleteRequest) -> CompleteResponse:
+        """One completion, retried on a transient failure; health metrics are not tracked here.
 
-        A forced capability choice that the model refuses is emulated (D109). A retry is not counted
-        as a separate failure: ``complete`` records the outcome once.
+        A forced capability choice that the model refuses is emulated. A retry is not counted
+        as a separate failure: ``acomplete`` records the outcome once.
         """
         if forced_choice(request) and self.refuses_forced_choice(request.model):
-            return complete_emulated(request, self._complete_with_transport_retry, self._provider_label())
-        return self._complete_with_transport_retry(request)
+            return await acomplete_emulated(request, self._acomplete_with_transport_retry, self._provider_label())
+        return await self._acomplete_with_transport_retry(request)
 
-    def _complete_with_transport_retry(self, request: CompleteRequest) -> CompleteResponse:
-        """One completion, retried on a transient failure (D104)."""
-        return call_with_retry(
-            lambda: self._complete_once(request),
+    # D104
+    async def _acomplete_with_transport_retry(self, request: CompleteRequest) -> CompleteResponse:
+        """One completion, retried on a transient failure."""
+        return await acall_with_retry(
+            lambda: self._acomplete_once(request),
             max_retries=getattr(self, "max_retries", DEFAULT_MAX_RETRIES),
-            sleep=getattr(self, "retry_sleep", time.sleep),
+            sleep=getattr(self, "retry_sleep", None),
             base_wait=self.retry_base_wait,
             max_wait=self.retry_max_wait,
             name=f"{type(self).__name__}.complete",
         )
 
-    def _complete_once(self, request: CompleteRequest) -> CompleteResponse:
+    async def _acomplete_once(self, request: CompleteRequest) -> CompleteResponse:
         """One attempt: transform, call, transform back. A ``ProviderError`` keeps its class (429, 5xx, 401, ...)."""
         try:
             provider_request = self._transform_request(request)
-            provider_response = self._call_provider(provider_request)
+            provider_response = await self._acall_provider(provider_request)
             return self._transform_response(provider_response)
         except (ValidationError, ProviderError):
             # The caller's input is wrong, or the transport already said what failed: raise it as it is.
@@ -925,6 +867,7 @@ class BaseModelProvider(ModelInterface, ABC):
         except Exception as e:
             raise self._wrap_failure(e, "Provider call failed") from e
 
+    # Requirement 56.13
     def stream(
         self,
         messages: list[Any] | str | CompleteRequest | PromptParts | None = None,
@@ -935,7 +878,10 @@ class BaseModelProvider(ModelInterface, ABC):
         **kwargs: Any,
     ) -> Iterator[StreamChunk]:
         """Execute streaming completion.
-        
+
+        Iterates :meth:`astream`, the one implementation, from sync code (``iterate_sync``): one worker thread runs it,
+        and closing the iterator early stops it. Inside a running event loop prefer :meth:`astream`.
+
         Supports both boto3-style direct calls and CompleteRequest objects.
         
         Boto3-style usage:
@@ -973,6 +919,48 @@ class BaseModelProvider(ModelInterface, ABC):
             ProviderError: If the provider API call fails
             ValueError: If required parameters are missing or both model and router provided
         """
+        return iterate_sync(self.astream(messages, model, router, temperature, max_tokens, **kwargs))
+
+    async def invoke(self, input: CompleteRequest) -> CompleteResponse:
+        """Runnable Port entry point: one request in, one response out.
+
+        Delegates to :meth:`acomplete`; satisfies ``Runnable`` structurally.
+        """
+        return await self.acomplete(input)
+
+    async def ainvoke(self, input: CompleteRequest) -> CompleteResponse:
+        """A thin alias of :meth:`invoke` (the ``x`` / ``ax`` pair users of other libraries try first)."""
+        return await self.invoke(input)
+
+    # D104
+    async def acomplete(
+        self,
+        messages: list[Any] | str | CompleteRequest | PromptParts | None = None,
+        model: str | None = None,
+        router: Any | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        **kwargs: Any,
+    ) -> CompleteResponse:
+        """Execute asynchronous completion: the one implementation (``complete`` runs it to the end).
+
+        The request is checked, sent through ``_acall_provider`` with the retries, parsed and costed here, for every provider.
+
+        Args:
+            messages: List of SkyeMessage objects, string, CompleteRequest, or rendered PromptParts
+            model: Model identifier (mutually exclusive with router)
+            router: Router instance for load balancing (mutually exclusive with model)
+            temperature: Sampling temperature
+            max_tokens: Maximum tokens to generate
+            **kwargs: Additional provider-specific parameters
+
+        Returns:
+            CompleteResponse with the model's output
+
+        Raises:
+            ProviderError: If the provider API call fails
+            ValueError: If required parameters are missing or both model and router provided
+        """
         # Handle polymorphic input
         if isinstance(messages, PromptParts):
             # Rendered prompt parts (D101): this model's capabilities choose native fields or text
@@ -996,7 +984,110 @@ class BaseModelProvider(ModelInterface, ABC):
             
             if router is not None:
                 # Router will select the model
-                effective_model = self._select_with_router(router, messages)
+                effective_model = await self._aselect_with_router(router, messages)
+            elif effective_model is None:
+                raise ValueError(
+                    "Either 'model' or 'router' parameter is required"
+                )
+            
+            # Convert string to UserMessage if needed
+            if isinstance(messages, str):
+                from skye.base.messages import UserMessage
+                messages = [UserMessage(content=messages)]
+            
+            # Only what the caller set: an omitted temperature or max_tokens keeps the request default.
+            sampling = {k: v for k, v in {"temperature": temperature, "max_tokens": max_tokens}.items() if v is not None}
+            request = CompleteRequest(
+                messages=messages,
+                model=effective_model,
+                **sampling,
+                **kwargs,
+            )
+        
+        offered = request.capabilities
+        start_time = time.time()
+        correlation_id = new_correlation_id()
+        try:
+            request = self._resolved(request)
+            self._emit(lambda: model_invocation_start(request, provider=self._log_provider(), correlation_id=correlation_id))
+            response = await self._acomplete_with_retry(request)
+            self._parse_structured_output(request, response)
+            self._account(request, response)
+
+            # Attach capabilities to response for direct execution (the registry itself when one was given)
+            if offered:
+                response._capabilities = offered
+            
+            # Record success with latency (only on final success)
+            latency_ms = (time.time() - start_time) * 1000
+            self.health_metrics.record_success(latency_ms)
+            self._emit(lambda: model_invocation_end(response, correlation_id=correlation_id, latency_ms=latency_ms))
+
+            return response
+        except Exception as e:
+            # Record failure (only on final failure after all retries)
+            self.health_metrics.record_failure()
+            self._emit(
+                lambda: model_invocation_error(
+                    e, model=request.model, provider=self._log_provider(), correlation_id=correlation_id
+                )
+            )
+            raise
+    
+
+    async def astream(
+        self,
+        messages: list[Any] | str | CompleteRequest | PromptParts | None = None,
+        model: str | None = None,
+        router: Any | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[StreamChunk]:
+        """Execute asynchronous streaming completion: the one implementation (``stream`` iterates it).
+
+        Takes the same arguments as :meth:`stream`. When the caller stops early, the transport is closed and the end of the stream is
+        logged as interrupted.
+
+        Args:
+            messages: List of SkyeMessage objects, string, CompleteRequest, or rendered PromptParts
+            model: Model identifier (mutually exclusive with router)
+            router: Router instance for load balancing (mutually exclusive with model)
+            temperature: Sampling temperature
+            max_tokens: Maximum tokens to generate
+            **kwargs: Additional provider-specific parameters
+
+        Yields:
+            StreamChunk objects with incremental content
+
+        Raises:
+            ProviderError: If the provider API call fails
+            ValueError: If required parameters are missing or both model and router provided
+        """
+        # Handle polymorphic input
+        if isinstance(messages, PromptParts):
+            # Rendered prompt parts (D101): this model's capabilities choose native fields or text
+            if router is not None:
+                raise ValueError("Prompt parts need a 'model'; route first, then pass the chosen model")
+            sampling: dict[str, Any] = {k: v for k, v in {"temperature": temperature, "max_tokens": max_tokens}.items() if v is not None}
+            messages = self.request_from_parts(messages, model=model or self.default_model, **sampling, **kwargs)
+        if isinstance(messages, CompleteRequest):
+            request = messages
+        else:
+            # Convert to CompleteRequest
+            if messages is None:
+                raise ValueError("messages parameter is required")
+            
+            # Validate model/router parameters
+            if model is not None and router is not None:
+                raise ValueError("Cannot specify both 'model' and 'router' parameters")
+            
+            # Use provided model, router, or fall back to default
+            effective_model = model or self.default_model
+            
+            if router is not None:
+                # Router will select the model
+                effective_model = await self._aselect_with_router(router, messages)
             elif effective_model is None:
                 raise ValueError(
                     "Either 'model' or 'router' parameter is required"
@@ -1024,11 +1115,12 @@ class BaseModelProvider(ModelInterface, ABC):
         try:
             request = self._resolved(request)
             self._emit(lambda: model_invocation_start(request, provider=self._log_provider(), correlation_id=correlation_id))
-            for chunk in self._with_running_cost(request, self._stream_with_retry(request)):
-                if isinstance(chunk, StreamChunk):
-                    last = chunk
-                    finish_reason = chunk.finish_reason or finish_reason
-                yield chunk
+            async with aclosing(self._with_running_cost(request, self._astream_with_retry(request))) as chunks:
+                async for chunk in chunks:
+                    if isinstance(chunk, StreamChunk):
+                        last = chunk
+                        finish_reason = chunk.finish_reason or finish_reason
+                    yield chunk
 
             # Record success with latency after all chunks are yielded
             latency_ms = (time.time() - start_time) * 1000
@@ -1051,154 +1143,51 @@ class BaseModelProvider(ModelInterface, ABC):
                 self._emit_stream_end(
                     request, correlation_id, finish_reason or "interrupted", last, (time.time() - start_time) * 1000
                 )
-    
-    def _stream_with_retry(self, request: CompleteRequest) -> Iterator[StreamChunk]:
-        """The stream, retried on a transient failure only before its first chunk (D104).
+
+    # D104, D109
+    async def _astream_with_retry(self, request: CompleteRequest) -> AsyncGenerator[StreamChunk, None]:
+        """The stream, retried on a transient failure only before its first chunk.
 
         Once a chunk has reached the caller a failure is raised: the text cannot be taken back. A
-        forced capability choice that the model refuses is sent emulated, with no check (D109).
+        forced capability choice that the model refuses is sent emulated, with no check.
         """
         if forced_choice(request) and self.refuses_forced_choice(request.model):
             request, _ = emulated_request(request)
         attempt = 1
         while True:
-            chunks = self._stream_once(request)
-            try:
-                first = next(chunks)
-            except StopIteration:
+            async with aclosing(self._astream_once(request)) as chunks:
+                try:
+                    first = await anext(chunks)
+                except StopAsyncIteration:
+                    return
+                except ProviderError as error:
+                    if not is_retryable(error) or attempt > getattr(self, "max_retries", DEFAULT_MAX_RETRIES):
+                        raise
+                    await sleep_for(
+                        getattr(self, "retry_sleep", None),
+                        retry_wait(error, attempt, base_wait=self.retry_base_wait, max_wait=self.retry_max_wait),
+                    )
+                    attempt += 1
+                    continue
+                yield first
+                async for chunk in chunks:
+                    yield chunk
                 return
-            except ProviderError as error:
-                if not is_retryable(error) or attempt > getattr(self, "max_retries", DEFAULT_MAX_RETRIES):
-                    raise
-                getattr(self, "retry_sleep", time.sleep)(
-                    retry_wait(error, attempt, base_wait=self.retry_base_wait, max_wait=self.retry_max_wait)
-                )
-                attempt += 1
-                continue
-            yield first
-            yield from chunks
-            return
 
-    def _stream_once(self, request: CompleteRequest) -> Iterator[StreamChunk]:
+    async def _astream_once(self, request: CompleteRequest) -> AsyncGenerator[StreamChunk, None]:
         """One streaming attempt; a ``ProviderError`` keeps its class, another failure is wrapped."""
         try:
             provider_request = self._transform_request(request)
             provider_request["stream"] = True
 
-            for chunk in self._call_provider_stream(provider_request):
-                yield self._transform_stream_chunk(chunk)
+            async with aclosing(self._acall_provider_stream(provider_request)) as events:
+                async for chunk in events:
+                    yield self._transform_stream_chunk(chunk)
         except (ValidationError, ProviderError):
             raise
         except Exception as e:
             raise self._wrap_failure(e, "Provider streaming failed") from e
 
-    async def invoke(self, input: CompleteRequest) -> CompleteResponse:
-        """Runnable Port entry point: one request in, one response out.
-
-        Delegates to :meth:`acomplete`; satisfies ``Runnable`` structurally.
-        """
-        return await self.acomplete(input)
-
-    async def ainvoke(self, input: CompleteRequest) -> CompleteResponse:
-        """A thin alias of :meth:`invoke` (the ``x`` / ``ax`` pair users of other libraries try first)."""
-        return await self.invoke(input)
-
-    async def acomplete(
-        self,
-        messages: list[Any] | str | CompleteRequest | PromptParts | None = None,
-        model: str | None = None,
-        router: Any | None = None,
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-        **kwargs: Any,
-    ) -> CompleteResponse:
-        """Execute asynchronous completion.
-
-        The synchronous call runs in a worker thread of the event loop's executor, so the loop is never blocked; the
-        call is over when this returns. Override this method to use a native asynchronous transport.
-        
-        Args:
-            messages: List of SkyeMessage objects, string, CompleteRequest, or rendered PromptParts
-            model: Model identifier (mutually exclusive with router)
-            router: Router instance for load balancing (mutually exclusive with model)
-            temperature: Sampling temperature
-            max_tokens: Maximum tokens to generate
-            **kwargs: Additional provider-specific parameters
-            
-        Returns:
-            CompleteResponse with the model's output
-            
-        Raises:
-            ProviderError: If the provider API call fails
-        """
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None, lambda: self.complete(messages, model, router, temperature, max_tokens, **kwargs)
-        )
-
-    async def astream(
-        self,
-        messages: list[Any] | str | CompleteRequest | PromptParts | None = None,
-        model: str | None = None,
-        router: Any | None = None,
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-        **kwargs: Any,
-    ) -> AsyncIterator[StreamChunk]:
-        """Execute asynchronous streaming completion without blocking the event loop.
-
-        The synchronous :meth:`stream` runs in a worker thread of the event loop's executor and hands each chunk to this
-        generator through a queue, so other tasks run while the provider is sending. Nothing outlives the call: when the
-        caller stops early the worker stops at the next chunk, and this generator waits for it before closing.
-        Takes the same arguments as :meth:`stream`.
-        
-        Args:
-            messages: List of SkyeMessage objects, string, CompleteRequest, or rendered PromptParts
-            model: Model identifier (mutually exclusive with router)
-            router: Router instance for load balancing (mutually exclusive with model)
-            temperature: Sampling temperature
-            max_tokens: Maximum tokens to generate
-            **kwargs: Additional provider-specific parameters
-            
-        Yields:
-            StreamChunk objects with incremental content
-            
-        Raises:
-            ProviderError: If the provider API call fails
-        """
-        loop = asyncio.get_running_loop()
-        queue: asyncio.Queue[tuple[bool, Any]] = asyncio.Queue()
-        stop = threading.Event()
-
-        def produce() -> None:
-            chunks = self.stream(messages, model, router, temperature, max_tokens, **kwargs)
-            try:
-                for chunk in chunks:
-                    if stop.is_set():
-                        break
-                    loop.call_soon_threadsafe(queue.put_nowait, (False, chunk))
-            except BaseException as error:  # handed to the caller, raised there
-                loop.call_soon_threadsafe(queue.put_nowait, (True, error))
-                return
-            finally:
-                close = getattr(chunks, "close", None)
-                if close is not None:
-                    close()
-            loop.call_soon_threadsafe(queue.put_nowait, (True, None))
-
-        producer = loop.run_in_executor(None, produce)
-        try:
-            while True:
-                done, item = await queue.get()
-                if done:
-                    if item is not None:
-                        raise item
-                    return
-                yield item
-        finally:
-            stop.set()
-            await producer
-    
     def get_health_metrics(self) -> dict[str, Any]:
         """Get health metrics for this provider.
         
@@ -1228,6 +1217,7 @@ class BaseModelProvider(ModelInterface, ABC):
         return self.health_metrics.get_health_metrics()
 
 
+# Requirement 56.13
 class BaseEmbeddingProvider(VectorEncoderInterface, ABC):
     """Abstract base class for embedding providers.
     
@@ -1236,24 +1226,23 @@ class BaseEmbeddingProvider(VectorEncoderInterface, ABC):
     
     Subclasses must implement:
     - _initialize_client(): Create the provider-specific client
-    - encode_batch(): Encode multiple texts to vectors
+    - _aencode_batch_impl(): Encode multiple texts to vectors (async, the only form)
     - get_vector_dimension(): Return the vector dimension
-    
-    The encode() method is implemented using encode_batch() for consistency.
+
+    The sync ``encode`` and ``encode_batch`` are derived from the async methods (``run_sync``); health tracking is in
+    ``aencode_batch``. A subclass that only defines ``_encode_batch_impl`` no longer instantiates.
     
     Example:
         >>> class OpenAIEmbeddingProvider(BaseEmbeddingProvider):
         ...     def _initialize_client(self):
         ...         import openai
-        ...         return openai.OpenAI(api_key=self.config["api_key"])
-        ...
-        ...     def encode_batch(self, texts):
-        ...         response = self.client.embeddings.create(
+        ...         return openai.OpenAI(api_key=self.config["api_key"])...
+        ...     async def _aencode_batch_impl(self, texts):
+        ...         response = await self.client.embeddings.create(
         ...             model=self.model,
         ...             input=texts
         ...         )
-        ...         return [item.embedding for item in response.data]
-        ...
+        ...         return [item.embedding for item in response.data]...
         ...     def get_vector_dimension(self):
         ...         return 1536
     """
@@ -1301,66 +1290,6 @@ class BaseEmbeddingProvider(VectorEncoderInterface, ABC):
         """
         pass
     
-    def encode(self, text: str) -> list[float]:
-        """Encode single text to vector.
-        
-        This method uses encode_batch() internally for consistency.
-        Health metrics are NOT tracked here to avoid double counting
-        (encode_batch already tracks metrics).
-        
-        Args:
-            text: The text to encode
-            
-        Returns:
-            Vector representation of the text
-        """
-        return self.encode_batch([text])[0]
-    
-    def encode_batch(self, texts: list[str]) -> list[list[float]]:
-        """Encode multiple texts to vectors.
-        
-        This method wraps _encode_batch_impl() with health tracking.
-        Subclasses should implement _encode_batch_impl() instead.
-        
-        Args:
-            texts: List of texts to encode
-            
-        Returns:
-            List of vector representations
-        """
-        start_time = time.time()
-        try:
-            result = self._encode_batch_impl(texts)
-            latency_ms = (time.time() - start_time) * 1000
-            self.health_metrics.record_success(latency_ms)
-            return result
-        except Exception as e:
-            self.health_metrics.record_failure()
-            raise
-    
-    @abstractmethod
-    def _encode_batch_impl(self, texts: list[str]) -> list[list[float]]:
-        """Encode multiple texts to vectors (implementation).
-        
-        Subclasses must implement this method instead of encode_batch().
-        The encode_batch() method wraps this with health tracking.
-        
-        Args:
-            texts: List of texts to encode
-            
-        Returns:
-            List of vector representations
-            
-        Example:
-            >>> def _encode_batch_impl(self, texts):
-            ...     response = self.client.embeddings.create(
-            ...         model=self.model,
-            ...         input=texts
-            ...     )
-            ...     return [item.embedding for item in response.data]
-        """
-        pass
-    
     async def aencode(self, text: str) -> list[float]:
         """Encode single text to vector asynchronously.
         
@@ -1381,7 +1310,6 @@ class BaseEmbeddingProvider(VectorEncoderInterface, ABC):
         """Encode multiple texts to vectors asynchronously.
         
         This method wraps _aencode_batch_impl() with health tracking.
-        Default implementation uses synchronous version.
         
         Args:
             texts: List of texts to encode
@@ -1399,25 +1327,23 @@ class BaseEmbeddingProvider(VectorEncoderInterface, ABC):
             self.health_metrics.record_failure()
             raise
     
+    @abstractmethod
     async def _aencode_batch_impl(self, texts: list[str]) -> list[list[float]]:
-        """Encode multiple texts to vectors asynchronously (implementation).
-        
-        Default implementation uses synchronous version. Override this method
-        in subclasses to provide true async support using the provider's
-        async client.
-        
-        Note: Calls _encode_batch_impl() directly to avoid double metric tracking.
-        
+        """Encode multiple texts to vectors (implementation, async).
+
+        Subclasses must implement this method; ``aencode_batch`` wraps it with health tracking and the sync ``encode_batch`` runs it to the
+        end. A blocking call (``urllib``) goes through ``asyncio.to_thread``.
+
         Args:
             texts: List of texts to encode
-            
+
         Returns:
             List of vector representations
         """
-        return self._encode_batch_impl(texts)
-    
+
+    # D110
     def _profile_dimension(self, provider: str) -> int:
-        """The vector dimension of ``self.model``, from ``info["vector_dimension"]`` of its entry in the profile of ``provider`` (D110).
+        """The vector dimension of ``self.model``, from ``info["vector_dimension"]`` of its entry in the profile of ``provider``.
 
         Raises:
             ValueError: The provider has no profile, or the profile has no entry for the model with a dimension.

@@ -22,6 +22,8 @@ from unittest.mock import patch
 import pytest
 
 import skye
+from skye.models.utilities.blocking import aiterate_blocking
+from skye.models.utilities.rest import wrap
 from skye.base.completion import CompleteRequest, StreamChunk
 from skye.base.exceptions import (
     AuthenticationError,
@@ -324,12 +326,12 @@ def test_bedrock_sends_the_schema_with_tools_as_text() -> None:
 def test_astream_does_not_block_the_event_loop() -> None:
     client = _client()
 
-    def slow_stream(*args: Any, **kwargs: Any) -> Iterator[StreamChunk]:
+    def slow_events() -> Iterator[Any]:
         for text in ("a", "b"):
             time.sleep(0.2)
-            yield StreamChunk(id="s", delta=text, finish_reason=None, index=0)
+            yield wrap({"id": "s", "choices": [{"index": 0, "delta": {"content": text}, "finish_reason": None}]})
 
-    client.stream = slow_stream  # type: ignore[method-assign]
+    client._acall_provider_stream = lambda request: aiterate_blocking(slow_events)  # type: ignore[method-assign]
     ticks: list[float] = []
 
     async def ticker() -> None:

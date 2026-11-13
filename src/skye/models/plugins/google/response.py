@@ -1,18 +1,21 @@
-"""Google (Gemini): how a response and a stream chunk are read (D110).
+# D110
+"""Google (Gemini): how a response and a stream chunk are read.
 
-A ``generateContent`` JSON response becomes a ``CompleteResponse`` and one SSE event of ``streamGenerateContent`` becomes a ``StreamChunk``. Plain
-functions, so the provider class stays thin; ``GoogleProvider`` keeps the same methods and calls these.
+A ``generateContent`` JSON response becomes a ``CompleteResponse`` and one SSE event of
+``streamGenerateContent`` becomes a ``StreamChunk``. Plain
+functions, so the provider class stays thin; ``GoogleProvider`` keeps the same methods and calls
+these.
 """
 
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from skye.base.completion import CompleteResponse, StreamChunk, TokenUsage
+from skye.models.cost import usage_of
 from skye.models.plugins.google.capabilities import (
     extract_capability_calls as default_extract_capability_calls,
 )
-from skye.models.cost import usage_of
 from skye.models.utilities.rest import JsonObject, wrap
 
 
@@ -23,7 +26,8 @@ def first_candidate(response: JsonObject) -> JsonObject | None:
 
 
 def finish_reason(candidate: JsonObject) -> str | None:
-    """The finish reason of a candidate in lower case; ``None`` when it has none or says it is unspecified."""
+    """The finish reason of a candidate in lower case; ``None`` when it has none or says it is
+    unspecified."""
     raw = candidate.get("finishReason")
     if raw is None:
         return None
@@ -37,7 +41,8 @@ def transform_response(
     response: Any,
     capability_extractor: Callable[[Any], list[Any] | None] = default_extract_capability_calls,
 ) -> CompleteResponse:
-    """Transform a ``generateContent`` JSON response to CompleteResponse (``capability_extractor`` is the provider's own method)."""
+    """Transform a ``generateContent`` JSON response to CompleteResponse (``capability_extractor``
+    is the provider's own method)."""
     response = wrap(response)
     content = ""
     reason = "stop"
@@ -80,7 +85,7 @@ def transform_response(
             total_tokens=usage.get("totalTokenCount", 0),
         ),
         capability_calls=capability_calls,
-        created_at=datetime.now(tz=timezone.utc),
+        created_at=datetime.now(tz=UTC),
         metadata=metadata,
     )
 

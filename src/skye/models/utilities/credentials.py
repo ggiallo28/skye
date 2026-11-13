@@ -1,6 +1,7 @@
+# D18, Requirement 11.6, task 6.3
 """The API key and the AWS region of a client: the one passed, or the variable of the profile.
 
-The key variables are the ``api_key_variables`` of the profile of the provider (D18, Requirement 11.6, task 6.3): the provider-standard
+The key variables are the ``api_key_variables`` of the profile of the provider: the provider-standard
 variable, never a prefixed one. A missing key or region raises ``ConfigurationError`` naming the variable, never a value.
 """
 

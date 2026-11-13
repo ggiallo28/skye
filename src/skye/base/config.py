@@ -35,8 +35,9 @@ from skye.base.validated import Validated, field, validated
 logger = logging.getLogger(__name__)
 
 
+# decision D62
 def reject_yaml(path: str | Path) -> None:
-    """Raise ``ConfigurationError`` when ``path`` is a YAML file: the library reads no YAML (decision D62).
+    """Raise ``ConfigurationError`` when ``path`` is a YAML file: the library reads no YAML.
 
     Args:
         path: The configuration file about to be read.
@@ -52,12 +53,13 @@ def reject_yaml(path: str | Path) -> None:
         )
 
 
+# decision D66
 def substitute_env_vars(config: dict[str, Any] | list[Any] | str | Any) -> Any:
     """Recursively substitute environment variables in configuration.
 
     Substitutes ${VAR_NAME} patterns with environment variable values throughout
     the configuration structure. Supports nested dictionaries, lists, and strings.
-    Each reference reads the environment when it is substituted (decision D66), so a variable
+    Each reference reads the environment when it is substituted, so a variable
     changed between two loads is seen by the second.
 
     Args:
@@ -264,13 +266,14 @@ class ModelConfig(Validated):
     cost_per_1k_completion_tokens: float | None = None
 
 
+# decision D106, Requirement 57.5
 @validated
 class SkyeConfig(Validated):
     """Global Skye configuration.
 
     The settings of the library itself: the log levels and the correlation header. A key that
     nothing reads is not a field, and an unknown key in a configuration file is a
-    ``ConfigurationError`` (decision D106); a key comes back only with the code that reads it.
+    ``ConfigurationError``; a key comes back only with the code that reads it.
 
     Attributes:
         log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL).
@@ -280,7 +283,7 @@ class SkyeConfig(Validated):
             ``log_level``.
         plugins: The names of the installed plugins (entry points of the group ``skye.plugins``)
             that may load; ``None`` (no key) lets all of them load, ``[]`` lets none. Read by the
-            scan of ``skye.utils.plugins`` (Requirement 57.5); an entry point not listed is never
+            scan of ``skye.utils.plugins``; an entry point not listed is never
             imported.
 
     Example:
@@ -406,12 +409,13 @@ ENV_CONFIG_VARS = frozenset({"SKYE_LOG_LEVEL"})
 ALL_ENV_VARS = ENV_CONFIG_VARS | {"SKYE_CONFIG"}
 
 
+# Requirement 3.2, D91
 class ConfigLoader:
     """Builds the Skye configuration from the text of a file, the environment and code overrides.
 
     Precedence, highest first: code overrides, then the ``SKYE_`` environment variables, then the
     configuration file (JSON). This class takes the **text** of the file and opens nothing: ``base``
-    does no file I/O (Requirement 3.2, D91). To read a file, call ``skye.load_config(path)``,
+    does no file I/O. To read a file, call ``skye.load_config(path)``,
     which opens it (or the one ``SKYE_CONFIG`` names) and passes the text here.
 
     Example:
@@ -506,9 +510,10 @@ class ConfigLoader:
                 details={"validation_errors": _validation_errors(e)},
             ) from e
 
+    # D106
     @staticmethod
     def _reject_unknown_keys(values: dict[str, Any], where: str) -> None:
-        """Raise ``ConfigurationError`` naming each key of ``values`` that is not a field (D106)."""
+        """Raise ``ConfigurationError`` naming each key of ``values`` that is not a field."""
         known = {f.name for f in dataclasses.fields(SkyeConfig)}
         unknown = sorted(key for key in values if key not in known)
         if unknown:
@@ -561,6 +566,7 @@ class ConfigLoader:
         """The file that ``SKYE_CONFIG`` names, or ``None``; nothing is opened here."""
         return os.environ.get("SKYE_CONFIG") or None
 
+    # D106
     @staticmethod
     def _load_from_env() -> dict[str, Any]:
         """Load configuration from environment variables.
@@ -569,7 +575,7 @@ class ConfigLoader:
         to configuration keys. The prefix is removed and the key is lowercased. There are
         two Skye-prefixed variables: SKYE_LOG_LEVEL (read here) and SKYE_CONFIG (names the
         config file, which ``skye.load_config`` opens); the telemetry variable left with the
-        ``enable_telemetry`` key (D106). Provider credentials never come from a Skye-prefixed
+        ``enable_telemetry`` key. Provider credentials never come from a Skye-prefixed
         variable.
 
         For example:

@@ -1,4 +1,5 @@
-"""``Plugins``: a handle on the registrar that registers by call or by decorator, at once, from any part of the program (task 14.1)."""
+"""``Plugins``: a handle on the registrar that registers by call or by decorator, at once, from any
+part of the program (task 14.1)."""
 
 from __future__ import annotations
 
@@ -18,7 +19,8 @@ PROVIDER_KINDS = ("provider",)
 
 
 def options(kind: str) -> dict[str, str]:
-    """``provider`` needs the function of an object whose methods do not say it; the other kinds need nothing."""
+    """``provider`` needs the function of an object whose methods do not say it; the other kinds
+    need nothing."""
     return {"function": "model"} if kind == "provider" else {}
 
 
@@ -289,7 +291,8 @@ def test_the_name_is_found_at_once_by_the_owners_of_the_kind(plugins: Plugins, p
 
 
 class FakeCapability:
-    """Stands in for a capability made by ``@capability``: the registrar only needs ``get_schema``."""
+    """Stands in for a capability made by ``@capability``: the registrar only needs
+    ``get_schema``."""
 
     def __init__(self, name: str) -> None:
         self.name = name
@@ -399,7 +402,8 @@ def test_an_empty_name_raises(plugins: Plugins):
             pass
 
 
-# -- task 14.4: what the clauses of Requirements 56.1 to 56.7 still need ---------------------------------------------
+# -- task 14.4: what the clauses of Requirements 56.1 to 56.7 still need
+# ---------------------------------------------
 
 
 def test_unregister_removes_and_the_name_can_be_registered_again(plugins: Plugins):
@@ -454,7 +458,8 @@ def test_a_registration_is_in_memory_only(plugins: Plugins, tmp_path, monkeypatc
 
 
 def test_the_built_ins_register_with_the_calls_a_plugin_uses():
-    """Requirement 56.7: a built-in door registers through the methods of the registrar, and the handle sees it."""
+    """Requirement 56.7: a built-in door registers through the methods of the registrar, and the
+    handle sees it."""
     registrar = Registrar(builtin_plugins=("skye.agents.plugins:register",))
     handle = Plugins(registrar=registrar)
     assert handle.names("agent") == ["react"]

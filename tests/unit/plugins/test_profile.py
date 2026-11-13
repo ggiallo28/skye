@@ -1,4 +1,5 @@
-"""The provider profile: validation, ``find_model_profile``, ``resolve_region`` and total lookups (plugins:3.1 to 3.4)."""
+"""The provider profile: validation, ``find_model_profile``, ``resolve_region`` and total lookups
+(plugins:3.1 to 3.4)."""
 
 from __future__ import annotations
 
@@ -17,7 +18,8 @@ from skye.base.profile import (
     resolve_region,
 )
 
-# -- the dataclasses (3.1) ---------------------------------------------------------------------------------------
+# -- the dataclasses (3.1)
+# ---------------------------------------------------------------------------------------
 
 
 def test_profiles_are_frozen():
@@ -71,7 +73,9 @@ def test_defaults_declare_nothing():
 
 
 def test_equal_profiles_compare_equal():
-    make = lambda: ProviderProfile("acme", ("K",), models={"m": ModelProfile(1.0, 2.0)})  # noqa: E731
+    def make():
+        return ProviderProfile("acme", ("K",), models={"m": ModelProfile(1.0, 2.0)})
+
     assert make() == make()
     assert make() != ProviderProfile("acme", ("OTHER",), models={"m": ModelProfile(1.0, 2.0)})
 
@@ -122,7 +126,8 @@ def test_a_region_rule_needs_names():
         RegionRule(("",))
 
 
-# -- find_model_profile (3.2) ------------------------------------------------------------------------------------
+# -- find_model_profile (3.2)
+# ------------------------------------------------------------------------------------
 
 
 def _profile(*names: str) -> ProviderProfile:
@@ -206,7 +211,8 @@ def test_no_profile_no_model_and_an_empty_name_find_nothing():
     assert find_model_profile(_profile("gpt-4o"), "") is None
 
 
-# -- resolve_region (3.3) ----------------------------------------------------------------------------------------
+# -- resolve_region (3.3)
+# ----------------------------------------------------------------------------------------
 
 
 class Authenticator:
@@ -277,8 +283,10 @@ def test_the_process_environment_is_the_default(monkeypatch):
         resolve_region(RegionRule(("PLUGINS_TEST_REGION",)))
 
 
-# -- a lookup is total (3.4, Requirement 59.10) ------------------------------------------------------------------
-# Property tests with a seeded generator: the same 500 cases on every run, and no test dependency to add.
+# -- a lookup is total (3.4, Requirement 59.10)
+# ------------------------------------------------------------------
+# Property tests with a seeded generator: the same 500 cases on every run, and no test dependency to
+# add.
 
 ALPHABET = string.ascii_letters + string.digits + "-.:@_/ \u00e9\u4e2d"
 CASES = 500

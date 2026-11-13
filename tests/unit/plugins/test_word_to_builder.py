@@ -1,7 +1,9 @@
 """For each kind the word of the decorator is the word of the builder (task 16.3).
 
-Requirements 56.11 and 62.9 of steering. One table, ``ROWS``, has a row for each kind of the registrar: a factory of a fake, and the builder of the
-kind when it has one. The same tests run over every row, so a new kind needs one row. A kind with no builder (``tokenizer`` and ``template_filter``,
+Requirements 56.11 and 62.9 of steering. One table, ``ROWS``, has a row for each kind of the
+registrar: a factory of a fake, and the builder of the
+kind when it has one. The same tests run over every row, so a new kind needs one row. A kind with no
+builder (``tokenizer`` and ``template_filter``,
 which are used by name in a profile and in a template) is checked with ``plugins.get``.
 """
 
@@ -25,7 +27,8 @@ def plugins():
         yield skye.Plugins()
 
 
-# -- the fakes: each factory gives a new object, so a test can register two ----------------------------------------------------------
+# -- the fakes: each factory gives a new object, so a test can register two
+# ----------------------------------------------------------
 
 
 def _model_provider() -> Any:
@@ -114,12 +117,14 @@ def _toolkit() -> Any:
     return FakeToolkit
 
 
-# -- the table ---------------------------------------------------------------------------------------------------------------------
+# -- the table
+# --------------------------------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
 class Row:
-    """What a kind needs for the tests: ``make`` gives a fake; ``build`` builds it by name (``None``: the kind has no builder)."""
+    """What a kind needs for the tests: ``make`` gives a fake; ``build`` builds it by name
+    (``None``: the kind has no builder)."""
 
     word: str  # the word of the decorator (a method of ``skye.Plugins``)
     make: Callable[[], Any]
@@ -161,7 +166,8 @@ def _check_built(row: Row, built: Any, fake: Any) -> None:
         assert isinstance(built, fake)
 
 
-# -- the table is complete ---------------------------------------------------------------------------------------------------------
+# -- the table is complete
+# --------------------------------------------------------------------------------------------------
 
 
 def test_the_table_has_a_row_for_every_kind_of_the_registrar():
@@ -174,7 +180,8 @@ def test_the_word_of_each_row_is_a_method_of_the_handle():
         assert callable(getattr(skye.Plugins, row.word))
 
 
-# -- the word of the decorator is the word of the builder ----------------------------------------------------------------------------
+# -- the word of the decorator is the word of the builder
+# ----------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize("kind", WITH_BUILDER)
@@ -186,7 +193,8 @@ def test_the_builder_has_the_word_of_the_decorator(kind):
     assert row.word in skye.__all__
 
 
-# -- what a decorator or a direct call registers is found by the builder and by `names` -----------------------------------------------
+# -- what a decorator or a direct call registers is found by the builder and by `names`
+# -----------------------------------------------
 
 
 @pytest.mark.parametrize("kind", WITH_BUILDER)
@@ -212,7 +220,8 @@ def test_a_direct_call_registers_what_the_builder_builds_and_names_lists_it(plug
     _check_built(row, row.build(name), fake)
 
 
-# -- a kind with no builder: the registered object comes back by `plugins.get` -----------------------------------------------------------
+# -- a kind with no builder: the registered object comes back by `plugins.get`
+# -----------------------------------------------------------
 
 
 @pytest.mark.parametrize("kind", BY_NAME_ONLY)
@@ -235,7 +244,8 @@ def test_a_direct_call_registers_what_get_returns_and_names_lists_it(plugins, ki
     assert plugins.get(kind, name) is fake
 
 
-# -- every kind: the two forms give the same result, and the default registrar is put back ------------------------------------------------
+# -- every kind: the two forms give the same result, and the default registrar is put back
+# ------------------------------------------------
 
 
 @pytest.mark.parametrize("kind", list(ROWS))

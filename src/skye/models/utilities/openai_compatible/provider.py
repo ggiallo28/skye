@@ -1,4 +1,5 @@
-"""The OpenAI wire format, for any endpoint that speaks it: the provider class (structure task 4.3, D110).
+# task 4.3, D110
+"""The OpenAI wire format, for any endpoint that speaks it: the provider class (structure).
 
 One parametrized adapter, ``OpenAICompatibleProvider``, serves every OpenAI wire-compatible
 endpoint (vLLM, Ollama, LM Studio, Together, ...), keyed by ``api_base`` + ``api_key``. What belongs to
@@ -32,18 +33,18 @@ Example:
 """
 
 import asyncio
-from collections.abc import Iterator
+from collections.abc import AsyncGenerator
 from typing import Any
 
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.exceptions import ConfigurationError
 from skye.base.interfaces.authentication import AuthenticationInterface
-from skye.base.prompt_parts import PromptParts
 from skye.models.base import BaseModelProvider
 from skye.models.utilities.openai_compatible import capabilities as _capabilities
 from skye.models.utilities.openai_compatible import request as _request
 from skye.models.utilities.openai_compatible import response as _response
 from skye.models.utilities import rest
+from skye.models.utilities.blocking import aiterate_blocking
 from skye.base.api_keys import api_key_variables
 from skye.models.utilities.credentials import resolve_api_key
 
@@ -142,9 +143,10 @@ class OpenAICompatibleProvider(BaseModelProvider):
         """Transform OpenAI stream chunk to StreamChunk (see ``response.transform_stream_chunk``)."""
         return _response.transform_stream_chunk(chunk)
 
-    def _call_provider(self, request: dict[str, Any]) -> Any:
-        """POST to the chat-completions endpoint and return the decoded JSON view."""
-        return rest.post_json(
+    async def _acall_provider(self, request: dict[str, Any]) -> Any:
+        """POST to the chat-completions endpoint and return the decoded JSON view (the blocking call runs in a worker thread)."""
+        return await asyncio.to_thread(
+            rest.post_json,
             self._endpoint_url(),
             request,
             headers=self._auth_headers(),
@@ -152,35 +154,19 @@ class OpenAICompatibleProvider(BaseModelProvider):
             provider=self.provider_name,
         )
 
-    def _call_provider_stream(self, request: dict[str, Any]) -> Iterator[Any]:
+    def _acall_provider_stream(self, request: dict[str, Any]) -> AsyncGenerator[Any, None]:
         """Stream the chat-completions endpoint (SSE), yielding decoded chunks."""
         payload = {**request, "stream": True}
         if self.streams_usage:
             payload.setdefault("stream_options", {"include_usage": True})
-        return rest.stream_sse_json(
-            self._endpoint_url(),
-            payload,
-            headers=self._auth_headers(),
-            authenticator=self._authenticator(),
-            provider=self.provider_name,
-        )
-
-    async def acomplete(
-        self,
-        messages: list[Any] | str | CompleteRequest | PromptParts | None = None,
-        model: str | None = None,
-        router: Any | None = None,
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-        **kwargs: Any,
-    ) -> CompleteResponse:
-        """Run :meth:`complete` in an executor so the event loop is not blocked.
-
-        Takes the same arguments as :meth:`complete`: ``messages=..., model=...`` or a ``CompleteRequest``.
-        """
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None, lambda: self.complete(messages, model, router, temperature, max_tokens, **kwargs)
+        return aiterate_blocking(
+            lambda: rest.stream_sse_json(
+                self._endpoint_url(),
+                payload,
+                headers=self._auth_headers(),
+                authenticator=self._authenticator(),
+                provider=self.provider_name,
+            )
         )
 
     def format_capability_results(self, results: list[Any]) -> list[dict[str, Any]]:
@@ -199,6 +185,7 @@ class OpenAICompatibleProvider(BaseModelProvider):
             "supports_function_calling": True,
             "supports_structured_output": True,
             "supports_multimodal": True,
+            **self._profile_info(self.provider_name),
         }
 
 

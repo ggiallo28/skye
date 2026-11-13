@@ -1,7 +1,8 @@
-"""The registrar Port: how a third party adds an integration to Skye without changing it (Requirement 56 of steering).
+# Requirement 56, decision D111
+"""The registrar Port: how a third party adds an integration to Skye without changing it (of steering).
 
 ``RegistrarInterface`` has one method per kind of integration. A plugin is not an object of its own: it is code that calls these methods,
-as decorators or as direct calls, from any part of the program (decision D111). The built-in providers, backends and strategies register
+as decorators or as direct calls, from any part of the program. The built-in providers, backends and strategies register
 through the same methods. The Port is a ``Protocol``, so a registrar needs no base class and imports nothing from Skye.
 
 Every registrar method takes ``(name, target, *, replace=False)``. ``target`` is the object, a factory, or a ``"module:attribute"``
@@ -20,11 +21,12 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Literal, Protocol, runtime_checkable
 
 
+# Requirement 56.2, plugins:3.1
 @runtime_checkable
 class RegistrarInterface(Protocol):
-    """What a plugin receives: one method per kind of integration (Requirement 56.2).
+    """What a plugin receives: one method per kind of integration.
 
-    ``profile`` is a ``ProviderProfile`` (plugins:3.1); it is typed ``Any`` here until that class exists in ``base``.
+    ``profile`` is a ``ProviderProfile``; it is typed ``Any`` here until that class exists in ``base``.
     """
 
     def provider(

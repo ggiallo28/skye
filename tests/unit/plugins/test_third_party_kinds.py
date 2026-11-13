@@ -1,8 +1,12 @@
-"""A third party adds a routing strategy, an MCP client and a decision provider, and the product paths find them (task 9.4).
+"""A third party adds a routing strategy, an MCP client and a decision provider, and the product
+paths find them (task 9.4).
 
-Requirements 58.1, 58.2 and 58.3 of steering. Each kind is added with the ``skye.Plugins()`` handle, by a decorator or by a direct call, and then
-used where a built-in is used: the router, a route, ``from_config_dict`` and a ``.skye`` router block for a strategy; ``skye.mcp_client`` and
-``create_mcp_client`` for an MCP client; ``skye.provider(..., provider_type="decision")`` and ``create_decision_model`` for a decision provider.
+Requirements 58.1, 58.2 and 58.3 of steering. Each kind is added with the ``skye.Plugins()`` handle,
+by a decorator or by a direct call, and then
+used where a built-in is used: the router, a route, ``from_config_dict`` and a ``.skye`` router
+block for a strategy; ``skye.mcp_client`` and
+``create_mcp_client`` for an MCP client; ``skye.provider(..., provider_type="decision")`` and
+``create_decision_model`` for a decision provider.
 Each test puts the default registrar back as it was. Fake models only, no network.
 """
 
@@ -33,7 +37,8 @@ def plugins():
         yield skye.Plugins()
 
 
-# -- a routing strategy (58.1) -----------------------------------------------------------------------------------------------------
+# -- a routing strategy (58.1)
+# --------------------------------------------------------------------------------------------------
 
 TARGETS = [
     ModelTarget(model="gpt-4o-mini", provider="openai", api_key="k"),
@@ -62,7 +67,8 @@ def _router(strategy: str) -> ModelRouter:
 
 
 def _is_valid_everywhere(name: str) -> None:
-    """The name of a registered strategy is valid in the router, in a route, in ``from_config_dict`` and in a ``.skye`` router block."""
+    """The name of a registered strategy is valid in the router, in a route, in ``from_config_dict``
+    and in a ``.skye`` router block."""
     assert ModelRouter(strategy=name).strategy == name
     assert RouteConfig(alias="r", targets=list(TARGETS), strategy=name).strategy == name
     built = ModelRouter.from_config_dict(
@@ -137,11 +143,13 @@ def test_a_direct_call_registers_a_strategy_as_well(plugins):
     assert reply.content
 
 
-# -- an MCP client (58.2) ----------------------------------------------------------------------------------------------------------
+# -- an MCP client (58.2)
+# --------------------------------------------------------------------------------------------------
 
 
 class FakeMCP:
-    """What a third party writes: the target and the options in the constructor, and the tools in ``list_tools``."""
+    """What a third party writes: the target and the options in the constructor, and the tools in
+    ``list_tools``."""
 
     def __init__(
         self, target: Any, *, headers: dict[str, str] | None = None, timeout: float = 30.0
@@ -179,11 +187,13 @@ def test_a_third_party_mcp_client_added_by_a_decorator_is_found_next_to_the_buil
     assert type(skye.mcp_client("http://x/mcp", impl="tp-mcp-decorated")) is Decorated
 
 
-# -- a decision provider (58.3) ----------------------------------------------------------------------------------------------------
+# -- a decision provider (58.3)
+# --------------------------------------------------------------------------------------------------
 
 
 class Decider:
-    """A decision provider of a third party: the first option gets ``bias``, the others share the rest."""
+    """A decision provider of a third party: the first option gets ``bias``, the others share the
+    rest."""
 
     def __init__(self, bias: float = 1.0) -> None:
         self.bias = bias

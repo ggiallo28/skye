@@ -1,6 +1,8 @@
-"""The ReAct agent type (plugin of ``agents``, D110): the placeholder agent, registered as ``"react"``.
+# D110
+"""The ReAct agent type (plugin of ``agents``): the placeholder agent, registered as ``"react"``.
 
-This ``__init__.py`` is the only module that code outside the folder imports. Its public name resolves lazily from ``agent.py``; ``register`` adds
+This ``__init__.py`` is the only module that code outside the folder imports. Its public name
+resolves lazily from ``agent.py``; ``register`` adds
 the type to a registrar by ``"module:attribute"`` text.
 
 Raises: ``ConfigurationError`` from ``register`` when ``react`` is already registered.

@@ -42,7 +42,8 @@ class AzureOpenAIProvider(OpenAICompatibleProvider):
             (``resolve_azure_auth``)
         api_version: Azure OpenAI API version (e.g. 2024-10-21)
         deployment_name: Name of the deployment (e.g. gpt-4o)
-        credentials: An authenticator of ``skye.auth.plugins.azure`` (Entra ID: ``AzureClientSecretAuth``,
+        credentials: An authenticator of ``skye.auth.plugins.azure`` (Entra ID:
+            ``AzureClientSecretAuth``,
             ``AzureCertificateAuth``, ``AzureFederatedTokenAuth``, ``AzureManagedIdentityAuth``,
             ``AzureCliCacheAuth``), any ``AuthenticationInterface``, or an API key string
 

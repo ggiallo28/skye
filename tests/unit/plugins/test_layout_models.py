@@ -1,4 +1,5 @@
-"""The layout of ``models/plugins`` (D110, Requirements 56.9 and 56.10): one folder per provider, one door, the same file names."""
+"""The layout of ``models/plugins`` (D110, Requirements 56.9 and 56.10): one folder per provider,
+one door, the same file names."""
 
 from __future__ import annotations
 
@@ -54,7 +55,8 @@ def test_every_lazy_name_resolves(folder):
 
 @pytest.mark.parametrize("folder", FOLDERS)
 def test_every_inner_file_is_offered_by_the_door(folder):
-    """Every file a door names exists, and the folder has no other code file than the uniform names (the helpers are not offered by the door)."""
+    """Every file a door names exists, and the folder has no other code file than the uniform names
+    (the helpers are not offered by the door)."""
     package = importlib.import_module(f"skye.models.plugins.{folder}")
     inner = {p.stem for p in (ROOT / folder).glob("*.py") if p.name != "__init__.py"}
     assert set(package._LAZY.values()) <= inner
@@ -69,7 +71,10 @@ def test_every_registered_text_resolves():
         for name in registrar.names("provider", function)
     }
     resolved.update(
-        {("tokenizer", name, None): registrar.get("tokenizer", name) for name in registrar.names("tokenizer")}
+        {
+            ("tokenizer", name, None): registrar.get("tokenizer", name)
+            for name in registrar.names("tokenizer")
+        }
     )
     assert (
         len(resolved) == 12
@@ -95,7 +100,8 @@ def test_a_text_points_at_the_door_and_never_at_an_inner_file():
 def test_importing_a_folder_imports_no_inner_file(folder):
     """The door alone imports nothing of its folder and no vendor library.
 
-    ``skye.models`` itself imports the public classes when it is imported, so the subprocess stands an empty package in its place: that isolates the door.
+    ``skye.models`` itself imports the public classes when it is imported, so the subprocess stands
+    an empty package in its place: that isolates the door.
     """
     models_dir = ROOT.parent
     code = (
@@ -107,7 +113,8 @@ def test_importing_a_folder_imports_no_inner_file(folder):
         f"import skye.models.plugins.{folder}\n"
         f"inner = [m for m in sys.modules if m.startswith('skye.models.plugins.{folder}.')]\n"
         "assert not inner, inner\n"
-        "assert not {'openai', 'anthropic', 'boto3', 'tiktoken'} & set(sys.modules), 'a vendor library was imported'\n"
+        "assert not {'openai', 'anthropic', 'boto3', 'tiktoken'} & set(sys.modules), "
+        "'a vendor library was imported'\n"
     )
     done = subprocess.run(
         [sys.executable, "-I", "-c", code],
@@ -119,7 +126,8 @@ def test_importing_a_folder_imports_no_inner_file(folder):
 
 
 def test_a_missing_inner_file_breaks_only_its_own_name(tmp_path, monkeypatch):
-    """The door resolves a name from its inner file only when asked: a missing file is an ImportError on that name alone."""
+    """The door resolves a name from its inner file only when asked: a missing file is an
+    ImportError on that name alone."""
     from skye.base.lazy_import import lazy_names
 
     package = tmp_path / "demo_door"
@@ -136,24 +144,27 @@ def test_a_missing_inner_file_breaks_only_its_own_name(tmp_path, monkeypatch):
 
 def test_a_missing_profile_file_is_a_configuration_error_naming_the_file():
     from skye.base.exceptions import ConfigurationError
-    from skye.models.plugins._vendor import read_profile
+    from skye.models.utilities.vendor import read_profile
 
     with pytest.raises(ConfigurationError) as caught:
         read_profile("skye.models.plugins.openai", "no_such_profile.toml")
     assert "no_such_profile.toml" in str(caught.value)
 
 
-# -- models/utilities: what a plugin is written with (D110) -----------------------------------------------------------
+# -- models/utilities: what a plugin is written with (D110)
+# -----------------------------------------------------------
 
 UTILITIES = ROOT.parent / "utilities"
 
 
 def test_the_utilities_are_plain_files_and_the_two_wire_format_providers():
-    """``plugins`` does not list them, because they are not providers; the classes of the component itself are in its root."""
+    """``plugins`` does not list them, because they are not providers; the classes of the component
+    itself are in its root."""
     names = sorted(p.name for p in UTILITIES.iterdir() if p.name not in {"__pycache__"})
     assert names == [
         "__init__.py",
         "anthropic_compatible",
+        "blocking.py",
         "capability_choice.py",
         "credentials.py",
         "error_mapping.py",
@@ -166,6 +177,7 @@ def test_the_utilities_are_plain_files_and_the_two_wire_format_providers():
         "schema_check.py",
         "streaming.py",
         "structured.py",
+        "vendor.py",
     ]
     assert not set(names) & set(plugins.IMPLEMENTATIONS)
     root = {p.name for p in UTILITIES.parent.iterdir() if p.is_file()}

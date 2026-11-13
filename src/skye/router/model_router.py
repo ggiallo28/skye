@@ -19,9 +19,9 @@ import difflib
 import inspect
 import logging
 import time
-from collections.abc import Awaitable, Callable, Coroutine
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, TypeVar, cast
+from typing import Any, cast
 
 from skye.base.api_keys import api_key_from_environment
 from skye.base.completion import CompleteRequest, CompleteResponse
@@ -31,6 +31,7 @@ from skye.base.interfaces.model import ModelInterface
 from skye.base.interfaces.router import ModelRouterInterface, RoutingStrategy
 from skye.base.plugins import get_registrar
 from skye.base.profile import apply_client_settings
+from skye.base.sync import run_sync
 from skye.store import backend, namespaced
 
 from .config_models import (
@@ -49,28 +50,8 @@ from .routing_strategies import RoutingStrategySelector, normalize_strategy, reg
 logger = logging.getLogger(__name__)
 
 
-_T = TypeVar("_T")
-
 #: The namespace of the router in the store it is given (Requirement 60.10): its keys read ``router:health:<id>``.
 ROUTER_NAMESPACE = "router"
-
-
-def _run_sync(coro: Coroutine[Any, Any, _T]) -> _T:
-    """Run a coroutine to completion from synchronous code.
-
-    With no running loop, ``asyncio.run`` is used. Inside a running loop the coroutine runs in a
-    worker thread with its own loop. Errors raised by the coroutine propagate unchanged: they are
-    not mistaken for the "no running loop" case.
-    """
-    import asyncio
-    import concurrent.futures
-
-    try:
-        asyncio.get_running_loop()
-    except RuntimeError:
-        return asyncio.run(coro)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        return executor.submit(asyncio.run, coro).result()
 
 
 @dataclass
@@ -122,8 +103,9 @@ def _matching_policy(error: BaseException, policy: dict[str, Any]) -> str | None
     return None
 
 
+# decision D104
 def _disable_client_retries(model: Any, *, always: bool) -> None:
-    """Turn the provider client's own retries off: the router's policy decides retries (decision D104).
+    """Turn the provider client's own retries off: the router's policy decides retries.
 
     A client exposes them as ``max_retries``. A client the router built is always given
     ``max_retries = 0``; a model registered by the caller only when it already has the attribute.
@@ -403,11 +385,12 @@ class ModelRouter(ModelRouterInterface):
         self._storage_connected = True
         self._storage_connecting = None
 
+    # decisions D59, D62
     @classmethod
     def from_file(cls, path: str | Any, name: str | None = None, **kwargs: Any) -> "ModelRouter":
         """Create a ModelRouter from a ``.skye`` or JSON configuration file.
 
-        A ``.skye`` file holds a ``router`` block (decisions D59, D62); a JSON file holds the
+        A ``.skye`` file holds a ``router`` block; a JSON file holds the
         configuration object. The library reads no YAML: a ``.yaml`` or ``.yml`` file raises a
         ``ConfigurationError`` that names the supported formats. ``env.NAME`` (in ``.skye``) and
         ``${NAME}`` (in JSON) are replaced by the environment variable.
@@ -761,6 +744,7 @@ class ModelRouter(ModelRouterInterface):
                 "Router target registered", extra={"model_id": model_id, "alias": route.alias}
             )
 
+    # decision D104
     def register_model(
         self,
         model_id: str,
@@ -772,7 +756,7 @@ class ModelRouter(ModelRouterInterface):
         """Register a model directly with the router.
 
         A model that has its own retries (a ``max_retries`` attribute, as the provider clients of
-        Skye) gets them turned off: the router's retry policy decides (decision D104).
+        Skye) gets them turned off: the router's retry policy decides.
 
         Args:
             model_id: Unique identifier for the model.
@@ -986,7 +970,7 @@ class ModelRouter(ModelRouterInterface):
 
     def _route_request_internal(self, request: CompleteRequest) -> CompleteResponse:
         """Route a request to an appropriate model (internal method)."""
-        return _run_sync(self._aroute_request_internal(request))
+        return run_sync(self._aroute_request_internal(request))
 
     async def _aroute_request_internal(self, request: CompleteRequest) -> CompleteResponse:
         """Route a request asynchronously (internal method).
@@ -1366,7 +1350,7 @@ class ModelRouter(ModelRouterInterface):
         :meth:`amark_model_failed`.
         """
         if model_id in self.health:
-            _run_sync(self.amark_model_failed(model_id))
+            run_sync(self.amark_model_failed(model_id))
 
     async def aget_model_health(self, model_id: str) -> ModelHealthMetrics:
         """Get health status of a model asynchronously.
@@ -1421,7 +1405,7 @@ class ModelRouter(ModelRouterInterface):
         if model_id not in self.health:
             return ModelHealthMetrics(model_id=model_id)
 
-        return _run_sync(self.aget_model_health(model_id))
+        return run_sync(self.aget_model_health(model_id))
 
     def set_routing_strategy(self, strategy: RoutingStrategy | str) -> None:
         """Set the routing strategy: a ``RoutingStrategy`` or the name of one that a plugin registered.
@@ -1557,7 +1541,7 @@ class ModelRouter(ModelRouterInterface):
             >>> stats = router.get_usage_stats("gpt-4")
             >>> print(f"TPM used: {stats.tpm_used}/{stats.tpm_limit}")
         """
-        return _run_sync(self.aget_usage_stats(model_id))
+        return run_sync(self.aget_usage_stats(model_id))
 
     async def aget_cooldown_models(self) -> list[CooldownInfo]:
         """Get the models currently in cooldown (async)."""
@@ -1589,7 +1573,7 @@ class ModelRouter(ModelRouterInterface):
             >>> for info in cooled_down:
             ...     print(f"{info.model_id} cooled down until {info.cooldown_until}")
         """
-        return _run_sync(self.aget_cooldown_models())
+        return run_sync(self.aget_cooldown_models())
 
     def set_model_tags(self, model_id: str, tags: list[str]) -> None:
         """Set tags for a model deployment."""

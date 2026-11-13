@@ -1,4 +1,5 @@
-"""Decision models by name through the registrar; Jev is the built-in (plugins:9.3, Requirements 58.3, 9.8)."""
+"""Decision models by name through the registrar; Jev is the built-in (plugins:9.3, Requirements
+58.3, 9.8)."""
 
 from __future__ import annotations
 
@@ -71,7 +72,10 @@ async def test_a_third_party_model_decides(registrar):
 def test_a_factory_function_and_a_text_target_also_work(registrar):
     registrar.provider("factory", lambda **config: FirstOption(**config), function="decision")
     registrar.provider(
-        "text", "skye.models.plugins.typesafe.decision:JevDecisionModel", replace=False, function="decision"
+        "text",
+        "skye.models.plugins.typesafe.decision:JevDecisionModel",
+        replace=False,
+        function="decision",
     )
     assert isinstance(create_decision_model("factory", registrar=registrar, bias=0.5), FirstOption)
     assert isinstance(

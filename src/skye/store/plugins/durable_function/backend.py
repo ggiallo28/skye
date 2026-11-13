@@ -77,7 +77,8 @@ class DurableFunctionBackend(StorageBackend, ExpiryStore):
         return None if entry is None else entry[0]
 
     def _read_entry(self, name: str) -> tuple[dict[str, Any], float | None] | None:
-        """The live value kept under ``name`` and its absolute expiry, or ``None``; an expired entry is cleared."""
+        """The live value kept under ``name`` and its absolute expiry, or ``None``; an expired entry
+        is cleared."""
         stored = self.context.get_state(name)
         if not isinstance(stored, dict) or not isinstance(stored.get(_VALUE), dict):
             return None
@@ -121,7 +122,8 @@ class DurableFunctionBackend(StorageBackend, ExpiryStore):
                 return value
 
     async def count(self, key: str) -> int:
-        """The count of ``key``; 0 when it is absent or expired. It does not create the key or move its expiry."""
+        """The count of ``key``; 0 when it is absent or expired. It does not create the key or move
+        its expiry."""
         name = self._name(key)
         with provider_errors("durable_function", "count"):
             return count_of(self._read(name))
@@ -133,7 +135,8 @@ class DurableFunctionBackend(StorageBackend, ExpiryStore):
             return self._read_entry(name) is not None
 
     async def remaining(self, key: str) -> int | None:
-        """The seconds ``key`` has left (rounded up), or ``None`` when absent, expired or without expiry."""
+        """The seconds ``key`` has left (rounded up), or ``None`` when absent, expired or without
+        expiry."""
         name = self._name(key)
         with provider_errors("durable_function", "remaining"):
             entry = self._read_entry(name)

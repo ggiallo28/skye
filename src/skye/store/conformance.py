@@ -1,6 +1,8 @@
-"""The public conformance suite of the storage Ports (Requirement 12.6, decision D98).
+# Requirement 12.6, decision D98
+"""The public conformance suite of the storage Ports.
 
-Every promise of ``KeyValueStore``, ``CounterStore``, ``ExpiryStore`` and ``ScanStore`` written once, as code anyone
+Every promise of ``KeyValueStore``, ``CounterStore``, ``ExpiryStore`` and ``ScanStore`` written
+once, as code anyone
 can run against a backend, Skye's
 or their own. ``check_backend`` takes a function that builds a fresh, empty backend from a clock and
 runs every check that the backend's
@@ -68,8 +70,9 @@ async def _rejects(call: Callable[[], Awaitable[Any]], what: str) -> None:
     raise AssertionError(f"{what} must raise ValidationError")
 
 
+# D95
 async def check_key_value(make: Make) -> None:
-    """``get``, ``set``, ``delete``, ``get_multiple``, ``set_multiple`` and expiry (D95)."""
+    """``get``, ``set``, ``delete``, ``get_multiple``, ``set_multiple`` and expiry."""
     clock = FakeClock()
     store: Any = make(clock)
     _require(store, KeyValueStore, "the backend must implement KeyValueStore")
@@ -125,7 +128,8 @@ async def check_key_value(make: Make) -> None:
 
 
 async def check_counter(make: Make) -> None:
-    """``increment`` and ``count``: start at 0, add, read, expire, and no lost update under concurrent tasks."""
+    """``increment`` and ``count``: start at 0, add, read, expire, and no lost update under
+    concurrent tasks."""
     clock = FakeClock()
     store: Any = make(clock)
     _require(store, CounterStore, "the backend must implement CounterStore")
@@ -146,7 +150,8 @@ async def check_counter(make: Make) -> None:
 
 
 async def check_count(store: Any, clock: FakeClock) -> None:
-    """``count``: 0 when absent, the value after increments, 0 when expired, a pure read, and a key is validated."""
+    """``count``: 0 when absent, the value after increments, 0 when expired, a pure read, and a key
+    is validated."""
     assert await store.count("never") == 0, "count of an absent key is 0"
     assert await store.get("never") is None, "count does not create the key"
     assert isinstance(await store.count("never"), int), "count is an int"
@@ -163,7 +168,9 @@ async def check_count(store: Any, clock: FakeClock) -> None:
     clock.advance(9)
     assert await store.count("k_ttl") == 1, "a counter is live before its ttl"
     clock.advance(2)
-    assert await store.count("k_ttl") == 0, "count does not move the expiry: the counter has expired"
+    assert (
+        await store.count("k_ttl") == 0
+    ), "count does not move the expiry: the counter has expired"
     assert await store.get("k_ttl") is None, "an expired counter reads as None"
     assert await store.count("k_ttl") == 0, "count of an expired key is 0, as many times as asked"
     assert await store.increment("k_ttl") == 1, "an expired counter starts again after count"
@@ -171,7 +178,8 @@ async def check_count(store: Any, clock: FakeClock) -> None:
 
 
 async def check_expiry(make: Make) -> None:
-    """``is_alive`` and ``remaining``: absent, no expiry, the time left (rounded up), expired, pure reads, a key is validated."""
+    """``is_alive`` and ``remaining``: absent, no expiry, the time left (rounded up), expired, pure
+    reads, a key is validated."""
     clock = FakeClock()
     store: Any = make(clock)
     _require(store, ExpiryStore, "the backend must implement ExpiryStore")
@@ -188,7 +196,9 @@ async def check_expiry(make: Make) -> None:
     await store.set("short", {"v": 1}, ttl=10)
     assert await store.is_alive("short") is True, "a key is alive before its ttl"
     remaining = await store.remaining("short")
-    assert remaining == 10 and isinstance(remaining, int), "remaining is the ttl just written, as an int"
+    assert remaining == 10 and isinstance(
+        remaining, int
+    ), "remaining is the ttl just written, as an int"
     clock.advance(3)
     assert await store.remaining("short") == 7, "remaining goes down with the time"
     clock.advance(6.5)
@@ -205,7 +215,9 @@ async def check_expiry(make: Make) -> None:
         assert await store.is_alive("steady") is True
         assert await store.remaining("steady") == 5, "remaining does not move the expiry"
     clock.advance(6)
-    assert await store.is_alive("steady") is False, "is_alive does not move the expiry: the key has expired"
+    assert (
+        await store.is_alive("steady") is False
+    ), "is_alive does not move the expiry: the key has expired"
 
     await store.set("replaced", {"v": 1}, ttl=10)
     await store.set("replaced", {"v": 2})
@@ -256,7 +268,9 @@ async def check_backend(make: Make) -> list[str]:
     if (hasattr(probe, "is_alive") or hasattr(probe, "remaining")) and not isinstance(
         probe, ExpiryStore
     ):
-        raise AssertionError("a backend with is_alive or remaining must implement ExpiryStore: add both")
+        raise AssertionError(
+            "a backend with is_alive or remaining must implement ExpiryStore: add both"
+        )
     ran = []
     checks: list[tuple[str, type, Callable[[Make], Awaitable[None]]]] = [
         ("key_value", KeyValueStore, check_key_value),
@@ -273,4 +287,12 @@ async def check_backend(make: Make) -> list[str]:
     return ran
 
 
-__all__ = ["FakeClock", "check_backend", "check_count", "check_counter", "check_expiry", "check_key_value", "check_scan"]
+__all__ = [
+    "FakeClock",
+    "check_backend",
+    "check_count",
+    "check_counter",
+    "check_expiry",
+    "check_key_value",
+    "check_scan",
+]

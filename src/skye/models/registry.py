@@ -1,9 +1,10 @@
+# Requirement 56.7
 """Provider registry for model and embedding providers.
 
 This module provides a central registry for discovering and instantiating
 model and embedding providers. Providers can be registered by name and
 retrieved with configuration. It keeps no table of its own: it is a view of the
-default registrar (``skye.base.plugins``, Requirement 56.7), where the built-in
+default registrar (``skye.base.plugins``), where the built-in
 providers are registered by ``skye.models.plugins`` and a third-party plugin
 registers its own with ``registrar.provider`` (``function="model"`` or ``"embedding"``).
 
@@ -38,13 +39,19 @@ _EMBEDDING: ProviderFunction = "embedding"
 _DECISION: ProviderFunction = "decision"
 
 
+# Requirement 56.7
 def _registrar() -> Registrar:
-    """The default registrar, with the built-in providers in it: this module keeps no table of its own (Requirement 56.7)."""
+    """The default registrar, with the built-in providers in it: this module keeps no table of its own."""
     return get_registrar()
 
 
+#: The ``provider_name`` of the two wire-format classes: a plugin registered on one of them is named by its registered name.
+_GENERIC_NAMES = frozenset({"openai_compatible", "anthropic_compatible"})
+
+
+# task 6.3
 def _with_profile_key(name: str, provider_class: Any, config: dict[str, Any]) -> dict[str, Any]:
-    """The key of a provider of the OpenAI or Anthropic format that is registered under its own name (task 6.3).
+    """The key of a provider of the OpenAI or Anthropic format that is registered under its own name.
 
     A plugin registers ``OpenAICompatibleProvider`` or ``AnthropicCompatibleProvider`` under ``name`` with a profile that names the variables
     of its key. The class does not know that name, so the registry reads the first variable that is set and gives the key to the class. A class
@@ -74,6 +81,25 @@ def _with_profile_key(name: str, provider_class: Any, config: dict[str, Any]) ->
             f"No API key: pass api_key or set {' or '.join(variables)}", details={"variable": variables[0]}
         )
     return {**config, "api_key": key}
+
+
+def _with_profile_endpoint(name: str, provider_class: Any, config: dict[str, Any]) -> dict[str, Any]:
+    """The ``default_api_base`` of the profile of ``name`` for a class of the OpenAI or Anthropic format that has no endpoint of its own.
+
+    An endpoint that is passed, or one the class sets itself (``openai``, ``anthropic``), is never replaced.
+    """
+    from skye.models.utilities.anthropic_compatible.provider import AnthropicCompatibleProvider
+    from skye.models.utilities.openai_compatible.provider import OpenAICompatibleProvider
+
+    if config.get("api_base") or not (
+        isinstance(provider_class, type)
+        and issubclass(provider_class, (OpenAICompatibleProvider, AnthropicCompatibleProvider))
+        and not provider_class.default_api_base
+    ):
+        return config
+    profile = _registrar().get_profile(name)
+    base = getattr(profile, "default_api_base", None)
+    return {**config, "api_base": base} if base else config
 
 
 class ProviderRegistry(ProviderRegistryInterface):
@@ -167,9 +193,12 @@ class ProviderRegistry(ProviderRegistryInterface):
             )
 
         provider_class: Type[ModelInterface] = registrar.get(_KIND, name, _MODEL)
-        config = _with_profile_key(name, provider_class, config)
+        config = _with_profile_endpoint(name, provider_class, _with_profile_key(name, provider_class, config))
         try:
-            return provider_class(**config)
+            provider = provider_class(**config)
+            if getattr(provider, "provider_name", None) in _GENERIC_NAMES and _registrar().get_profile(name) is not None:
+                setattr(provider, "provider_name", name)  # so its profile (``info``, prices, tokenizer) is found by name
+            return provider
         except ConfigurationError:
             raise  # it already says what is missing (a key, a region) and names the variable
         except Exception as e:

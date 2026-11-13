@@ -1,7 +1,10 @@
-"""Google (Gemini): how the request is built (D110).
+# D110
+"""Google (Gemini): how the request is built.
 
-Skye messages become Gemini ``contents`` (parts), and a ``CompleteRequest`` becomes the Vertex AI REST body: system instruction, generation config,
-native ``responseSchema`` or JSON mode, tools and tool config, safety settings, grounding and the ``google_<field>`` passthrough. Plain functions, so the
+Skye messages become Gemini ``contents`` (parts), and a ``CompleteRequest`` becomes the Vertex AI
+REST body: system instruction, generation config,
+native ``responseSchema`` or JSON mode, tools and tool config, safety settings, grounding and the
+``google_<field>`` passthrough. Plain functions, so the
 provider class stays thin; ``GoogleProvider`` keeps the same methods and calls these.
 """
 
@@ -11,6 +14,8 @@ from typing import Any
 from skye.base.completion import CompleteRequest
 from skye.models.plugins.google.capabilities import (
     as_args,
+)
+from skye.models.plugins.google.capabilities import (
     transform_capabilities as default_transform_capabilities,
 )
 from skye.models.plugins.google.schema import gemini_schema
@@ -86,7 +91,8 @@ def transform_request(
 
     The returned dict carries ``model`` (consumed by the provider's call, not sent) plus
     ``contents``, ``systemInstruction``, ``generationConfig``, ``tools``, ``toolConfig``
-    and ``safetySettings``. The two transformers are the provider's own methods, so a subclass that overrides one is still used.
+    and ``safetySettings``. The two transformers are the provider's own methods, so a subclass that
+    overrides one is still used.
     """
     if not request.messages:
         raise ValueError("messages must be provided for Google provider")
@@ -102,7 +108,8 @@ def transform_request(
         "generationConfig": generation_config,
     }
     if request.response_schema:
-        # Native responseSchema when the schema fits Gemini's OpenAPI subset; else JSON mode plus the schema in the instructions
+        # Native responseSchema when the schema fits Gemini's OpenAPI subset; else JSON mode plus
+        # the schema in the instructions
         generation_config["responseMimeType"] = "application/json"
         native = gemini_schema(schema_of(request.response_schema))
         if native is not None:

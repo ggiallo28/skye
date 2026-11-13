@@ -1,5 +1,5 @@
-"""What every backend of ``store`` shares: the clock, the expiry rule and the error wrapping
-(decisions D95, D98).
+# decisions D95, D98
+"""What every backend of ``store`` shares: the clock, the expiry rule and the error wrapping.
 
 Standard library only. Never logs or puts in an error message a stored value, a URL with a password
 or a credential.
@@ -20,8 +20,9 @@ from skye.base.interfaces.storage import check_key, check_ttl
 Clock = Callable[[], float]
 
 
+# D95
 def expiry_of(ttl: int | None, clock: Clock) -> float | None:
-    """The absolute expiry of a value written now with ``ttl`` (validated, D95), or ``None``."""
+    """The absolute expiry of a value written now with ``ttl`` (validated), or ``None``."""
     checked = check_ttl(ttl)
     return None if checked is None else clock() + checked
 

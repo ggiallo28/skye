@@ -1,12 +1,18 @@
-"""A namespace over a store: ``namespaced(store, "router")`` puts a prefix on every key (Requirement 60.10, O63).
+# Requirement 60.10, O63
+"""A namespace over a store: ``namespaced(store, "router")`` puts a prefix on every key.
 
-Several components keep state in one store (the router, and later the memory and the agents). Each one takes a namespace, so
-that its keys never meet the keys of another and no component writes the prefix of its keys by hand. ``namespaced(store,
+Several components keep state in one store (the router, and later the memory and the agents). Each
+one takes a namespace, so
+that its keys never meet the keys of another and no component writes the prefix of its keys by hand.
+``namespaced(store,
 prefix)`` returns a store whose key ``"health:m"`` is ``"<prefix>:health:m"`` in ``store``.
 
-The returned store has the ports that ``store`` has: key-value and counter always, ``ExpiryStore`` when ``store`` has
-``is_alive`` and ``remaining``, ``ScanStore`` when it has ``keys``. ``keys(prefix, limit)`` lists only the keys of the namespace
-and gives them back without the prefix. Namespaces nest: ``namespaced(namespaced(store, "a"), "b")`` writes ``"a:b:key"``.
+The returned store has the ports that ``store`` has: key-value and counter always, ``ExpiryStore``
+when ``store`` has
+``is_alive`` and ``remaining``, ``ScanStore`` when it has ``keys``. ``keys(prefix, limit)`` lists
+only the keys of the namespace
+and gives them back without the prefix. Namespaces nest: ``namespaced(namespaced(store, "a"), "b")``
+writes ``"a:b:key"``.
 
 Example:
     >>> import asyncio
@@ -19,10 +25,12 @@ Example:
     >>> asyncio.run(demo())
     (['router:health:m'], ['health:m'])
 
-Raises: ``ValidationError`` for a prefix that is empty, not a string or has a ``:``, and for an invalid key or value (the same
+Raises: ``ValidationError`` for a prefix that is empty, not a string or has a ``:``, and for an
+invalid key or value (the same
     rules as the store).
 Missing: an absent key reads as in the store (``None``, 0, ``False``).
-Concurrency: the wrapper holds no state; it is as safe as the store it wraps. ``close()`` closes the store itself, so call it
+Concurrency: the wrapper holds no state; it is as safe as the store it wraps. ``close()`` closes the
+store itself, so call it
     once, from the code that owns the store, and not from each component that has a namespace.
 """
 
@@ -42,7 +50,8 @@ SEPARATOR = ":"
 
 
 def check_namespace(prefix: object) -> str:
-    """Return ``prefix`` when it is a non-empty ``str`` without ``:``; raise ``ValidationError`` otherwise."""
+    """Return ``prefix`` when it is a non-empty ``str`` without ``:``; raise ``ValidationError``
+    otherwise."""
     if not isinstance(prefix, str) or not prefix or SEPARATOR in prefix:
         raise ValidationError(
             f"a namespace must be a non-empty string without {SEPARATOR!r}, got {prefix!r}",
@@ -152,7 +161,8 @@ def namespaced(store: Any, prefix: str) -> StorageBackend:
         prefix: The namespace, a non-empty string without ``:``.
 
     Returns:
-        A ``StorageBackend`` that also has ``ExpiryStore`` and ``ScanStore`` when ``store`` has them.
+        A ``StorageBackend`` that also has ``ExpiryStore`` and ``ScanStore`` when ``store`` has
+        them.
 
     Raises:
         ValidationError: ``prefix`` is empty, not a string or holds a ``:``.

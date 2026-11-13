@@ -1,7 +1,10 @@
-"""Bedrock request: how a Skye request becomes a Converse API request (plugin ``bedrock``, D110).
+# D110
+"""Bedrock request: how a Skye request becomes a Converse API request (plugin ``bedrock``).
 
-Messages (roles, images, tool use and results, merged so that roles alternate), the inference parameters, the capabilities and the choice among them,
-the structured output (native JSON output on Claude, a forced answer tool elsewhere) and the ``bedrock_*`` metadata. Module functions called by the thin
+Messages (roles, images, tool use and results, merged so that roles alternate), the inference
+parameters, the capabilities and the choice among them,
+the structured output (native JSON output on Claude, a forced answer tool elsewhere) and the
+``bedrock_*`` metadata. Module functions called by the thin
 methods of ``BedrockProvider``; they import nothing of another provider.
 """
 
@@ -104,8 +107,10 @@ def transform_request(
 
     Args:
         request: The skye CompleteRequest
-        native: Whether the model takes the schema natively (``outputConfig.textFormat``), decided by the provider
-        messages_fn: What turns the messages into Converse messages (the provider's method, so an override still applies)
+        native: Whether the model takes the schema natively (``outputConfig.textFormat``), decided
+            by the provider
+        messages_fn: What turns the messages into Converse messages (the provider's method, so an
+            override still applies)
         capabilities_fn: What turns the capabilities into ``toolSpec`` entries (likewise)
 
     Returns:
@@ -124,7 +129,8 @@ def transform_request(
         "inferenceConfig": {"temperature": request.temperature},
     }
 
-    # Claude models take the schema natively (``outputConfig.textFormat``, below). Other Converse models
+    # Claude models take the schema natively (``outputConfig.textFormat``, below). Other Converse
+    # models
     # cannot force the answer tool and offer the others in one turn, so with capabilities the schema
     # travels as instructions and the final text answer is checked against it.
     if request.response_schema and request.capabilities and not native:
@@ -192,7 +198,8 @@ def transform_request(
                 {
                     "toolSpec": {
                         "name": STRUCTURED_TOOL,
-                        "description": f"Return the answer as a {schema_name(request.response_schema)}.",
+                        "description": "Return the answer as a "
+                        f"{schema_name(request.response_schema)}.",
                         "inputSchema": {"json": schema_of(request.response_schema)},
                     }
                 }

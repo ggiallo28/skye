@@ -1,9 +1,10 @@
+# Requirement 3.2, decision D91, decision D92, decision D62
 """Read the configuration file of the library: the one place that opens it.
 
 ``skye.base.config.ConfigLoader`` takes text and opens no file, because ``base`` does no file I/O
-(Requirement 3.2, decision D91). This module opens the file, the same way ``skye_files`` opens the
+. This module opens the file, the same way ``skye_files`` opens the
 ``.skye`` files for ``skye.base.dsl``, and is public as ``skye.load_config``. The file is JSON in
-version 1 (decision D92); YAML is refused (decision D62).
+version 1; YAML is refused.
 """
 
 from __future__ import annotations
@@ -49,14 +50,14 @@ def configured_plugins(path: str | Path | None = None) -> list[str] | None:
     return _read_config(path, None).plugins
 
 
+# decision D106
 def load_config(
     path: str | Path | None = None, *, overrides: dict[str, Any] | None = None
 ) -> SkyeConfig:
     """Load the configuration: the JSON file, then the ``SKYE_`` environment, then ``overrides``.
 
     The log levels read are applied (``SkyeConfig.apply_log_levels``): the ``skye`` logger takes
-    ``log_level`` and each ``skye.<component>`` logger its entry of ``component_log_levels``
-    (decision D106).
+    ``log_level`` and each ``skye.<component>`` logger its entry of ``component_log_levels``.
 
     Args:
         path: The JSON configuration file. When ``None``, the file that ``SKYE_CONFIG`` names is

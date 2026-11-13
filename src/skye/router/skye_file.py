@@ -1,10 +1,10 @@
-"""Read a router from a file: a ``router`` block of a ``.skye`` file, or a JSON object (decisions
-D59, D62).
+# decisions D59, D62, Requirement 54.12
+"""Read a router from a file: a ``router`` block of a ``.skye`` file, or a JSON object.
 
 ``base`` parses the text and builds a :class:`~skye.base.dsl.RouterSpec`; this module turns that
 spec into the dictionary that :meth:`ModelRouter.from_config_dict` already accepts, so a router has
 one path from configuration to object whatever the format. The library reads no YAML: a ``.yaml`` or
-``.yml`` file is rejected with a message that names the supported formats (Requirement 54.12).
+``.yml`` file is rejected with a message that names the supported formats.
 """
 
 from __future__ import annotations

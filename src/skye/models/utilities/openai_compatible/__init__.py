@@ -1,4 +1,5 @@
-"""The OpenAI wire format, for any endpoint that speaks it (D110): the shared base of the ``openai`` and ``azure`` providers and of any plugin.
+# D110
+"""The OpenAI wire format, for any endpoint that speaks it: the shared base of the ``openai`` and ``azure`` providers and of any plugin.
 
 ``OpenAICompatibleProvider`` serves every OpenAI wire-compatible endpoint (vLLM, Ollama, LM Studio, Together, ...), keyed by ``api_base`` and
 ``api_key``. The code is separated by responsibility, with the same file names as every provider folder: ``provider.py`` (the class),

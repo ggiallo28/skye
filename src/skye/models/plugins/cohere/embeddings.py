@@ -14,11 +14,12 @@ Example:
     >>> vectors = embedder.encode_batch(["text1", "text2"])
 """
 
+import asyncio
 from typing import Any
 
+from skye.base.api_keys import api_key_variables
 from skye.models.base import BaseEmbeddingProvider
 from skye.models.utilities import rest
-from skye.base.api_keys import api_key_variables
 from skye.models.utilities.credentials import resolve_api_key
 
 _EMBED_PATH = "/v2/embed"  # how to call it; the host is ``default_api_base`` in profile.toml
@@ -52,7 +53,9 @@ class CohereEmbeddingProvider(BaseEmbeddingProvider):
         Raises:
             ConfigurationError: No key is given and the variable of the profile is not set.
         """
-        api_key = resolve_api_key(api_key, api_key_variables("cohere"))  # the variable of the profile (D18)
+        api_key = resolve_api_key(
+            api_key, api_key_variables("cohere")
+        )  # the variable of the profile (D18)
         super().__init__(model=model, api_key=api_key, **config)
         self.api_key = api_key
 
@@ -64,8 +67,9 @@ class CohereEmbeddingProvider(BaseEmbeddingProvider):
         """
         return None
 
-    def _encode_batch_impl(self, texts: list[str]) -> list[list[float]]:
-        """Encode multiple texts to vectors using the Cohere v2 REST API.
+    async def _aencode_batch_impl(self, texts: list[str]) -> list[list[float]]:
+        """Encode multiple texts to vectors using the Cohere v2 REST API (the blocking call runs in
+        a worker thread).
 
         Args:
             texts: List of texts to encode
@@ -73,7 +77,8 @@ class CohereEmbeddingProvider(BaseEmbeddingProvider):
         Returns:
             List of vector representations
         """
-        response = rest.post_json(
+        response = await asyncio.to_thread(
+            rest.post_json,
             self._profile_api_base("cohere").rstrip("/") + _EMBED_PATH,
             {
                 "model": self.model,

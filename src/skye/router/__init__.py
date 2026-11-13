@@ -81,6 +81,7 @@ Example (Direct Registration):
 Codename: jet.
 """
 
+from skye.base.lazy_import import lazy_names as _lazy_names
 from skye.base.interfaces.router import RoutingStrategy
 from skye.router.config_models import (
     AllowedFailsPolicyConfig,
@@ -96,7 +97,12 @@ from skye.router.model_router import ModelRouter
 from skye.router.routing_strategies import StrategyContext, with_context
 from skye.router.skye_file import load_router_config
 
+# The offline check is read at first use, so importing the package does not import it.
+_LAZY = {"check_routing_strategy": "conformance"}
+__getattr__ = _lazy_names(__name__, _LAZY)
+
 __all__ = [
+    *_LAZY,
     "RoutingStrategy",
     # Router
     "ModelRouter",

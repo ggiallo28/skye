@@ -1,11 +1,12 @@
+# Requirement 58.1, D113
 """How the router selects a model: the selector, the base class of a built-in strategy and the lookup of a strategy by name.
 
-A strategy is chosen by name through the registrar (kind ``routing_strategy``, Requirement 58.1). The eight built-ins are registered by the built-in
+A strategy is chosen by name through the registrar (kind ``routing_strategy``). The eight built-ins are registered by the built-in
 plugin of the router (``skye.router.plugins``) under the values of ``RoutingStrategy``, so every member of that enumeration still names its strategy.
 A plugin adds a name with ``plugins.routing_strategy("name")`` and the name is valid wherever a built-in one is: ``ModelRouter(strategy=...)``,
 ``RouteConfig.strategy``, ``ModelRouter.from_config_dict`` and the ``strategy`` of a ``.skye`` file.
 
-The call shape of a strategy (D113) is one of three, told apart by what the registered object is and never by its parameters:
+The call shape of a strategy is one of three, told apart by what the registered object is and never by its parameters:
 
 * a function ``(available_models) -> model id``: it gets the list of the ids of the models that can answer and returns the one to use;
 * a function marked with :func:`with_context`: it gets one read-only :class:`StrategyContext` (the models, the alias, the token estimate, the
@@ -42,9 +43,10 @@ _WITH_CONTEXT = "__skye_strategy_context__"
 _F = TypeVar("_F", bound=Callable[..., Any])
 
 
+# D113, Requirement 58.7
 @dataclass(frozen=True)
 class StrategyContext:
-    """What a strategy is given to choose with: one read-only object for each call (D113, Requirement 58.7).
+    """What a strategy is given to choose with: one read-only object for each call.
 
     Nothing in it can be changed by the strategy: ``models`` is a tuple and the mappings are read-only views.
 

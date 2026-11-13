@@ -14,6 +14,7 @@ Example:
     >>> vectors = embedder.encode_batch(["text1", "text2"])
 """
 
+import asyncio
 from typing import Any
 
 from skye.models.base import BaseEmbeddingProvider
@@ -72,8 +73,9 @@ class BedrockEmbeddingProvider(BaseEmbeddingProvider):
             )
         return self._auth
 
-    def _encode_batch_impl(self, texts: list[str]) -> list[list[float]]:
-        """Encode texts via ``/model/{id}/invoke`` (one request per text, as Titan requires)."""
+    async def _aencode_batch_impl(self, texts: list[str]) -> list[list[float]]:
+        """Encode texts via ``/model/{id}/invoke`` (one request per text, as Titan requires; each
+        blocking call runs in a worker thread)."""
         import urllib.parse
 
         host = (
@@ -83,8 +85,12 @@ class BedrockEmbeddingProvider(BaseEmbeddingProvider):
         url = f"{host}/model/{urllib.parse.quote(self.model, safe='')}/invoke"
         embeddings = []
         for text in texts:
-            response = rest.post_json(
-                url, {"inputText": text}, authenticator=self._authenticator(), provider="bedrock"
+            response = await asyncio.to_thread(
+                rest.post_json,
+                url,
+                {"inputText": text},
+                authenticator=self._authenticator(),
+                provider="bedrock",
             )
             embeddings.append(list(response["embedding"]))
         return embeddings

@@ -26,26 +26,28 @@ Example:
 
 import asyncio
 import urllib.parse
-from collections.abc import Iterator
+from collections.abc import AsyncGenerator
 from typing import Any
 
-from skye.base.prompt_parts import PromptParts
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.interfaces.authentication import AuthenticationInterface
 from skye.models.base import BaseModelProvider
 from skye.models.plugins.bedrock import capabilities as _capabilities
 from skye.models.plugins.bedrock import request as _request
 from skye.models.plugins.bedrock import response as _response
-from skye.models.utilities.credentials import resolve_aws_region
 from skye.models.utilities import rest
+from skye.models.utilities.blocking import aiterate_blocking
+from skye.models.utilities.credentials import resolve_aws_region
 from skye.models.utilities.eventstream import post_eventstream_json
 
 
 def _base_model_id(model: str | None) -> str:
     """A Bedrock model id without the geography of a cross-Region inference profile.
 
-    ``us.anthropic.claude-sonnet-5-5-v1:0`` and ``eu.anthropic...`` are the same model as ``anthropic.claude-sonnet-5-5-v1:0``: the first segment
-    names a geography when a vendor segment (a token with no hyphen, such as ``anthropic``) follows it and then the model.
+    ``us.anthropic.claude-sonnet-5-5-v1:0`` and ``eu.anthropic...`` are the same model as
+    ``anthropic.claude-sonnet-5-5-v1:0``: the first segment
+    names a geography when a vendor segment (a token with no hyphen, such as ``anthropic``) follows
+    it and then the model.
     """
     name = model or ""
     parts = name.split(".", 2)
@@ -66,7 +68,8 @@ class BedrockProvider(BaseModelProvider):
         region_name: AWS region name; when omitted, the region of ``authenticator``, then
             ``AWS_REGION``, then ``AWS_DEFAULT_REGION`` (there is no silent default)
         profile_name: Optional AWS profile name
-        authenticator: An authenticator already built (``skye.auth.plugins.aws.bedrock_authenticator``);
+        authenticator: An authenticator already built
+            (``skye.auth.plugins.aws.bedrock_authenticator``);
             its ``region`` is used when ``region_name`` is not given
         **kwargs: Additional configuration parameters (``api_key``, ``aws_access_key_id``,
             ``aws_secret_access_key``, ``aws_session_token``, ``endpoint_url``, ``timeout``)
@@ -129,31 +132,18 @@ class BedrockProvider(BaseModelProvider):
         )
         return f"{host}/model/{model}/{operation}", body
 
-    async def acomplete(
-        self,
-        messages: list[Any] | str | CompleteRequest | PromptParts | None = None,
-        model: str | None = None,
-        router: Any | None = None,
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-        **kwargs: Any,
-    ) -> CompleteResponse:
-        """Run :meth:`complete` in an executor so the event loop is not blocked."""
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None, lambda: self.complete(messages, model, router, temperature, max_tokens, **kwargs)
-        )
-
     def _transform_messages(self, messages: list[Any]) -> list[dict[str, Any]]:
         """Skye messages to Converse messages (see ``request.transform_messages``)."""
         return _request.transform_messages(messages)
 
     def _transform_capabilities(self, capabilities: list[Any]) -> list[dict[str, Any]]:
-        """Skye capabilities to Converse ``toolSpec`` entries (see ``capabilities.transform_capabilities``)."""
+        """Skye capabilities to Converse ``toolSpec`` entries (see
+        ``capabilities.transform_capabilities``)."""
         return _capabilities.transform_capabilities(capabilities)
 
     def _extract_capability_calls(self, response: Any) -> list[Any] | None:
-        """The capability calls of a Converse response (see ``capabilities.extract_capability_calls``)."""
+        """The capability calls of a Converse response (see
+        ``capabilities.extract_capability_calls``)."""
         return _capabilities.extract_capability_calls(response)
 
     def _transform_request(self, request: CompleteRequest) -> dict[str, Any]:
@@ -173,13 +163,16 @@ class BedrockProvider(BaseModelProvider):
         return _response.transform_response(response, extract_calls=self._extract_capability_calls)
 
     def _transform_stream_chunk(self, chunk: Any) -> StreamChunk:
-        """A Converse stream event as a ``StreamChunk`` (see ``response.transform_stream_chunk``)."""
+        """A Converse stream event as a ``StreamChunk`` (see
+        ``response.transform_stream_chunk``)."""
         return _response.transform_stream_chunk(chunk)
 
-    def _call_provider(self, request: dict[str, Any]) -> Any:
-        """POST the Converse API; returns a JsonObject."""
+    async def _acall_provider(self, request: dict[str, Any]) -> Any:
+        """POST the Converse API; returns a JsonObject (the blocking call runs in a worker
+        thread)."""
         url, body = self._url(request, "converse")
-        return rest.post_json(
+        return await asyncio.to_thread(
+            rest.post_json,
             url,
             body,
             authenticator=self._authenticator(),
@@ -187,31 +180,39 @@ class BedrockProvider(BaseModelProvider):
             timeout=float(self.config.get("timeout", 60.0)),
         )
 
-    def _call_provider_stream(self, request: dict[str, Any]) -> Iterator[Any]:
+    def _acall_provider_stream(self, request: dict[str, Any]) -> AsyncGenerator[Any, None]:
         """POST ConverseStream and yield decoded eventstream events."""
         url, body = self._url(request, "converse-stream")
-        yield from post_eventstream_json(
-            url,
-            body,
-            authenticator=self._authenticator(),
-            provider="bedrock",
-            timeout=float(self.config.get("timeout", 60.0)),
+        return aiterate_blocking(
+            lambda: post_eventstream_json(
+                url,
+                body,
+                authenticator=self._authenticator(),
+                provider="bedrock",
+                timeout=float(self.config.get("timeout", 60.0)),
+            )
         )
 
     def format_capability_results(self, results: list[Any]) -> list[dict[str, Any]]:
-        """Capability results in the Converse ``toolResult`` format (see ``capabilities.format_capability_results``)."""
+        """Capability results in the Converse ``toolResult`` format (see
+        ``capabilities.format_capability_results``)."""
         return _capabilities.format_capability_results(results)
 
+    # D109
     def refuses_forced_choice(self, model: str) -> bool:
-        """The Claude models that refuse a forced ``tool_choice`` refuse ``toolChoice`` ``any`` and ``tool`` on Bedrock as well (D109):
+        """The Claude models that refuse a forced ``tool_choice`` refuse ``toolChoice`` ``any`` and
+        ``tool`` on Bedrock as well:
+
         their profile entry says ``supports_forced_capability_choice`` is false."""
         return self.get_model_info(model).get("supports_forced_capability_choice") is False
 
     def get_model_info(self, model: str | None = None) -> dict[str, Any]:
-        """Return model metadata and capabilities, with the ``info`` of the model's entry in the Bedrock profile merged in.
+        """Return model metadata and capabilities, with the ``info`` of the model's entry in the
+        Bedrock profile merged in.
 
         Args:
-            model: The model to describe; the default model of the client when omitted. A cross-Region prefix (``us.``) is ignored.
+            model: The model to describe; the default model of the client when omitted. A
+                cross-Region prefix (``us.``) is ignored.
 
         Returns:
             Dictionary with provider information and capabilities
@@ -220,7 +221,9 @@ class BedrockProvider(BaseModelProvider):
             "provider": self.provider_name,
             "supports_streaming": True,
             "supports_function_calling": True,
-            "supports_structured_output": False,  # False: a forced answer tool; a model that takes a native schema says True in its profile
+            # False: a forced answer tool; a model that takes a native schema says True in its
+            # profile
+            "supports_structured_output": False,
             "supports_multimodal": True,
             **self._profile_info(
                 self.provider_name, _base_model_id(model if model is not None else self.model)

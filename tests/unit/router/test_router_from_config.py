@@ -7,7 +7,8 @@ import os
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterator
+from collections.abc import AsyncGenerator
+from typing import Any
 
 import pytest
 
@@ -43,10 +44,10 @@ class MockProvider(BaseModelProvider):
     def _transform_stream_chunk(self, chunk: Any) -> StreamChunk:
         return StreamChunk(id="test", delta="", index=0)
     
-    def _call_provider(self, request: dict[str, Any]) -> Any:
+    async def _acall_provider(self, request: dict[str, Any]) -> Any:
         return {"content": "Mock response"}
     
-    def _call_provider_stream(self, request: dict[str, Any]) -> Iterator[Any]:
+    async def _acall_provider_stream(self, request: dict[str, Any]) -> AsyncGenerator[Any, None]:
         yield {"delta": "Mock response"}
     
     def _transform_messages(self, messages: list[Any]) -> list[dict[str, Any]]:

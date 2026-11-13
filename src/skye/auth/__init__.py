@@ -1,10 +1,11 @@
+# D110
 """Authentication and credentials.
 
 Component: auth. Layer: 0 (next to base). Imports only base.
 
 Every outbound request is authenticated through one Port (``AuthenticationInterface``); this
 component implements it for each provider's documented non-interactive modes and never launches a
-login. The credential sources are in ``plugins/``, one folder per family, each with one ``__init__.py`` as its only door (D110):
+login. The credential sources are in ``plugins/``, one folder per family, each with one ``__init__.py`` as its only door:
 
 - ``plugins/aws`` (``source``, ``aws_profile``, ``sts``, ``sigv4``): AWS (SigV4, Bedrock API key, environment, profile,
   container and instance credentials, assume-role, web identity, IAM Identity Center cache).
@@ -38,6 +39,7 @@ _LAZY = {
     "BedrockApiKeyAuthenticator": "skye.auth.plugins.aws",
     "aws_authenticator": "skye.auth.plugins.aws",
     "bedrock_authenticator": "skye.auth.plugins.aws",
+    "check_credential_source": "skye.auth.conformance",
     "register_credential_source": "skye.auth.registry",
     "resolve_credential_source": "skye.auth.registry",
 }

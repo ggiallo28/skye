@@ -1,8 +1,9 @@
+# D27
 """A lazy token cache with an expiry margin, and the bearer authenticator built on it.
 
 The cache holds a token per credential identity and returns it until it is within ``margin`` seconds
 of its deadline; it then fetches a new one on the calling thread. There is no timer and no
-background thread (decisions D1, D27). A secret never appears in a ``repr``.
+background thread (decisions D1). A secret never appears in a ``repr``.
 """
 
 from __future__ import annotations

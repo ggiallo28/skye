@@ -28,12 +28,13 @@ class ConfigLoaderInterface(ABC):
         ...         return SkyeConfig()
     """
 
+    # Requirement 3.2, decision D91
     @abstractmethod
     def load(self, text: str | None = None, overrides: dict[str, Any] | None = None) -> SkyeConfig:
         """Build the configuration from the text of a file, the environment and code overrides.
 
         Precedence: code > environment > file. The loader takes the text of the file and opens
-        nothing (Requirement 3.2, decision D91); ``skye.load_config(path)`` reads a file.
+        nothing; ``skye.load_config(path)`` reads a file.
 
         Args:
             text: The text of a JSON configuration file, or ``None`` for no file.

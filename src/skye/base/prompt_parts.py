@@ -1,7 +1,8 @@
+# Requirement 33.9, decisions D81, D101
 """Prompt parts: a rendered prompt with no provider in it, between ``prompts`` and ``models``.
 
 ``prompts`` produces :class:`PromptParts`; the ``models`` adapters read it and choose native fields
-or text from the model capabilities (Requirement 33.9, decisions D81, D101). The type lives in
+or text from the model capabilities. The type lives in
 ``base`` so neither component imports the other; ``skye.base.interfaces`` re-exports it next to
 the prompt Ports. Standard library only.
 
@@ -20,9 +21,10 @@ from typing import Any
 from skye.base.messages import SkyeMessage
 
 
+# decisions D81, D101
 @dataclass(frozen=True)
 class OutputSchema:
-    """The shape a rendered prompt asks the model to answer in (decisions D81, D101).
+    """The shape a rendered prompt asks the model to answer in.
 
     Pass it as ``response_schema`` of a completion request, like a dataclass: the adapter uses the
     provider's native mode (OpenAI ``response_format``, Gemini ``responseSchema``) or forces one
@@ -45,9 +47,10 @@ class OutputSchema:
     strict: bool = True
 
 
+# Requirement 33.9, decisions D81, D101
 @dataclass(frozen=True)
 class PromptParts:
-    """A rendered prompt as provider-agnostic parts (Requirement 33.9, decisions D81, D101).
+    """A rendered prompt as provider-agnostic parts.
 
     The renderer of ``prompts`` returns it; ``models`` turns it into a native request (the system
     prompt and the output schema in the provider's own fields) or, when the model lacks a native

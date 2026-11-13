@@ -1,4 +1,5 @@
-"""Provider errors to the ``ProviderError`` subclass the failure calls for (decision D104).
+# decision D104
+"""Provider errors to the ``ProviderError`` subclass the failure calls for.
 
 An error that is not already a ``ProviderError`` (one from a vendor SDK, a socket, a custom
 adapter) is read for its HTTP status, its class name and its message, and becomes the same
@@ -136,8 +137,9 @@ class _HandlerByName(type):
         raise AttributeError(f"type object 'ErrorHandler' has no attribute {name!r}")
 
 
+# D104
 class ErrorHandler(metaclass=_HandlerByName):
-    """Turn provider errors into the ``ProviderError`` subclass of D104."""
+    """Turn provider errors into the ``ProviderError`` subclass each provider calls for."""
 
     @staticmethod
     def wrap_provider_error(

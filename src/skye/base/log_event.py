@@ -1,6 +1,7 @@
+# Requirement 18.3
 """The structured log event of a model invocation, and the correlation id of its parts.
 
-``base`` owns the shape (Requirement 18.3); the code that emits it lives in ``models`` and
+``base`` owns the shape; the code that emits it lives in ``models`` and
 ``observe``.
 An event goes to the standard ``logging`` module as ``extra={...}`` (never an f-string), and to a
 telemetry plugin through ``ObserverInterface.log_event`` / ``EventHandlerInterface``.

@@ -1,4 +1,5 @@
-"""The credential-source registry: the one extension point of ``auth`` (Requirement 11.5).
+# Requirement 11.5
+"""The credential-source registry: the one extension point of ``auth``.
 
 A credential source is a factory: ``factory(**config)`` returns an authenticator (an
 ``AuthenticationInterface``) or, for a secret manager, an object with ``get(name)``. User code
@@ -24,8 +25,9 @@ _KIND = "credential_source"
 _lock = threading.Lock()
 
 
+# Requirement 56.7
 def _registrar() -> Registrar:
-    """The default registrar with the built-in sources in it: this module keeps no table of its own (Requirement 56.7)."""
+    """The default registrar with the built-in sources in it: this module keeps no table of its own."""
     registrar = get_registrar()
     _plugin.register(
         registrar

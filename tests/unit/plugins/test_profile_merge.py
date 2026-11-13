@@ -1,6 +1,8 @@
-"""``plugins.profile``: a change merged into the profile of an existing provider (task 17.1, Requirement 59.11, D111).
+"""``plugins.profile``: a change merged into the profile of an existing provider (task 17.1,
+Requirement 59.11, D111).
 
-Only what is given changes. The profile is frozen, so a new one is built and published under the write lock, and a call that raises changes
+Only what is given changes. The profile is frozen, so a new one is built and published under the
+write lock, and a call that raises changes
 nothing. The tokenizer example is the one of ``examples/plugins/tokenizer.py``.
 """
 
@@ -40,7 +42,8 @@ def registrar() -> Registrar:
     return fresh
 
 
-# -- the tokenizer example -----------------------------------------------------------------------------------------
+# -- the tokenizer example
+# -----------------------------------------------------------------------------------------
 
 
 def test_the_tokenizer_of_one_model_of_an_existing_provider_changes_and_nothing_else():
@@ -86,7 +89,8 @@ def test_a_price_changed_by_a_merge_is_read_at_once_by_the_cost_calculator():
         assert CostCalculator.get_pricing("zz-1") == {"prompt": 3.0, "completion": 1.0}
 
 
-# -- what merges ---------------------------------------------------------------------------------------------------
+# -- what merges
+# --------------------------------------------------------------------------------------------------
 
 
 def test_a_model_profile_keeps_the_price_and_the_overhead_it_does_not_give(registrar):
@@ -157,7 +161,8 @@ def test_a_string_is_read_as_one_variable_as_the_constructor_reads_it(registrar)
     assert registrar.get_profile("acme").api_key_variables == ("OTHER_KEY",)
 
 
-# -- what it refuses -----------------------------------------------------------------------------------------------
+# -- what it refuses
+# -----------------------------------------------------------------------------------------------
 
 
 def test_a_name_that_is_not_a_field_is_a_type_error_and_nothing_changes(registrar):
@@ -193,7 +198,8 @@ def test_an_invalid_value_is_refused_and_nothing_changes(registrar):
     assert registrar.profiles_token() is token
 
 
-# -- the profile is frozen -----------------------------------------------------------------------------------------
+# -- the profile is frozen
+# -----------------------------------------------------------------------------------------
 
 
 def test_the_old_profile_is_not_mutated_and_a_new_one_is_published(registrar):
@@ -225,7 +231,8 @@ def test_a_write_changes_the_profiles_token(registrar):
     assert registrar.profiles_token() is not token
 
 
-# -- the handle and the Port ---------------------------------------------------------------------------------------
+# -- the handle and the Port
+# ---------------------------------------------------------------------------------------
 
 
 def test_the_handle_forwards_to_its_registrar(registrar):
@@ -240,7 +247,8 @@ def test_the_registrar_has_the_call_of_the_port():
     assert "profile" in dir(RegistrarInterface)
 
 
-# -- threads -------------------------------------------------------------------------------------------------------
+# -- threads
+# --------------------------------------------------------------------------------------------------
 
 
 def test_threads_that_merge_different_models_of_one_provider_all_win(registrar):

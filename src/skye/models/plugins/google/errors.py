@@ -1,4 +1,6 @@
-"""Google: a failed call turned into the ``ProviderError`` it calls for (D104); the profile names ``map_error`` by text."""
+# D104
+"""Google: a failed call turned into the ``ProviderError`` it calls for; the profile names
+``map_error`` by text."""
 
 from skye.base.exceptions import ProviderError
 from skye.models.utilities.error_mapping import build_error

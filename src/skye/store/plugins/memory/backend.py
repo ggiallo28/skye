@@ -1,4 +1,5 @@
-"""In-memory backend: the default of the library (decision D97), standard library only.
+# decision D97, D95
+"""In-memory backend: the default of the library, standard library only.
 
 Right for a test, a container or a Lambda that serves web requests and keeps its process warm; wrong
 for pure serverless, where every
@@ -17,7 +18,7 @@ Example:
     >>> asyncio.run(demo())
     ({'name': 'Ada'}, {'count': 2}, ['user:1'])
 
-Raises: ``ValidationError`` for an invalid key, value or time to live (D95).
+Raises: ``ValidationError`` for an invalid key, value or time to live.
 Missing: an absent or expired key reads as ``None``.
 Concurrency: one event loop; ``increment`` holds a lock, so concurrent tasks never lose an update.
     Not shared across processes.
@@ -100,7 +101,8 @@ class InMemoryBackend(StorageBackend, ScanStore, ExpiryStore):
             return value
 
     async def count(self, key: str) -> int:
-        """The count of ``key``; 0 when it is absent or expired. It does not create the key or move its expiry."""
+        """The count of ``key``; 0 when it is absent or expired. It does not create the key or move
+        its expiry."""
         return count_of(self._live(check_key(key)))
 
     async def is_alive(self, key: str) -> bool:
@@ -108,7 +110,8 @@ class InMemoryBackend(StorageBackend, ScanStore, ExpiryStore):
         return self._live(check_key(key)) is not None
 
     async def remaining(self, key: str) -> int | None:
-        """The seconds ``key`` has left (rounded up), or ``None`` when absent, expired or without expiry."""
+        """The seconds ``key`` has left (rounded up), or ``None`` when absent, expired or without
+        expiry."""
         if self._live(check_key(key)) is None:
             return None
         return remaining_of(self._data[key][1], self._clock)

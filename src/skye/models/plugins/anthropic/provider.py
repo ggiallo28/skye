@@ -1,6 +1,7 @@
 """Anthropic itself: the Anthropic endpoint and its provider label.
 
-The wire format is shared with every compatible endpoint (the package ``anthropic_compatible``); this
+The wire format is shared with every compatible endpoint (the package ``anthropic_compatible``);
+this
 module holds only what is specific to Anthropic.
 
 Example:

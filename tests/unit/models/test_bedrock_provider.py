@@ -8,6 +8,7 @@ These tests verify the Bedrock provider implementation including:
 - Streaming support
 """
 
+import asyncio
 import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -401,7 +402,7 @@ class TestBedrockProviderCalls:
         mock_post.return_value = rest.JsonObject({"output": {"message": {"content": [{"text": "Response"}]}}})
         provider = BedrockProvider(region_name="eu-west-1", **KEYS)
 
-        response = provider._call_provider({"modelId": "anthropic.claude-3:0", "messages": []})
+        response = asyncio.run(provider._acall_provider({"modelId": "anthropic.claude-3:0", "messages": []}))
 
         args, kwargs = mock_post.call_args
         assert args[0] == "https://bedrock-runtime.eu-west-1.amazonaws.com/model/anthropic.claude-3%3A0/converse"
@@ -447,7 +448,10 @@ class TestBedrockProviderCalls:
         mock_stream.return_value = iter(events)
         provider = BedrockProvider(**KEYS)
 
-        chunks = list(provider._call_provider_stream({"modelId": "test-model", "messages": []}))
+        async def collect():
+            return [e async for e in provider._acall_provider_stream({"modelId": "test-model", "messages": []})]
+
+        chunks = asyncio.run(collect())
 
         args, _ = mock_stream.call_args
         assert args[0].endswith("/model/test-model/converse-stream")

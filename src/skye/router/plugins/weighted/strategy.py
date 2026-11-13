@@ -1,10 +1,13 @@
-"""The ``weighted`` routing strategy: a random target, weighted by its configured weight or its success rate.
+"""The ``weighted`` routing strategy: a random target, weighted by its configured weight or its
+success rate.
 
-A strategy of the router: it reads the state of the router through the selector it is built with (``RouterStrategy``).
+A strategy of the router: it reads the state of the router through the selector it is built with
+(``RouterStrategy``).
 
 Raises: nothing of its own; the selector rejects an empty list of models before it calls a strategy.
 Missing: a model with no metric counts as the default of the metric.
-Concurrency: the selector builds a strategy for each call and the strategies keep no state (the round-robin index lives in the router).
+Concurrency: the selector builds a strategy for each call and the strategies keep no state (the
+round-robin index lives in the router).
 """
 
 from __future__ import annotations

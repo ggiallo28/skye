@@ -1,4 +1,5 @@
-"""``AnthropicCompatibleProvider``: the class of the Anthropic Messages format (D110).
+# D110
+"""``AnthropicCompatibleProvider``: the class of the Anthropic Messages format.
 
 The constructor, the URL and headers, the two calls (``POST /v1/messages``, plain and streamed), the async wrapper and the model info are here.
 How a request is built is in ``request.py``, how a response and a stream event are read in ``response.py``, and the capabilities (tool definitions
@@ -11,12 +12,11 @@ Concurrency: a provider holds no mutable state after construction; one instance 
 """
 
 import asyncio
-from collections.abc import Iterator
+from collections.abc import AsyncGenerator
 from typing import Any
 
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.exceptions import ConfigurationError
-from skye.base.prompt_parts import PromptParts
 from skye.models.utilities.anthropic_compatible.capabilities import (
     extract_capability_calls,
     format_capability_results,
@@ -27,6 +27,7 @@ from skye.models.utilities.anthropic_compatible import request as wire_request
 from skye.models.utilities.anthropic_compatible import response as wire_response
 from skye.models.base import BaseModelProvider
 from skye.models.utilities import rest
+from skye.models.utilities.blocking import aiterate_blocking
 from skye.base.api_keys import api_key_variables
 from skye.models.utilities.credentials import resolve_api_key
 
@@ -114,9 +115,10 @@ class AnthropicCompatibleProvider(BaseModelProvider):
         """An Anthropic stream event as a ``StreamChunk`` (see ``response.transform_stream_chunk``)."""
         return wire_response.transform_stream_chunk(chunk)
 
-    def _call_provider(self, request: dict[str, Any]) -> Any:
-        """POST the request to ``/v1/messages``; return the JSON as a JsonObject."""
-        return rest.post_json(
+    async def _acall_provider(self, request: dict[str, Any]) -> Any:
+        """POST the request to ``/v1/messages``; return the JSON as a JsonObject (the blocking call runs in a worker thread)."""
+        return await asyncio.to_thread(
+            rest.post_json,
             self._url,
             request,
             headers=self._headers(),
@@ -124,40 +126,25 @@ class AnthropicCompatibleProvider(BaseModelProvider):
             provider=self.provider_name,
         )
 
-    def _call_provider_stream(self, request: dict[str, Any]) -> Iterator[Any]:
+    def _acall_provider_stream(self, request: dict[str, Any]) -> AsyncGenerator[Any, None]:
         """Stream SSE events from ``/v1/messages`` (``stream: true``)."""
-        yield from rest.stream_sse_json(
-            self._url,
-            {**request, "stream": True},
-            headers=self._headers(),
-            timeout=self.timeout,
-            provider=self.provider_name,
-        )
-
-    async def acomplete(
-        self,
-        messages: list[Any] | str | CompleteRequest | PromptParts | None = None,
-        model: str | None = None,
-        router: Any | None = None,
-        temperature: float | None = None,
-        max_tokens: int | None = None,
-        **kwargs: Any,
-    ) -> CompleteResponse:
-        """Run :meth:`complete` in an executor so the event loop is not blocked.
-
-        Takes the same arguments as :meth:`complete`: ``messages=..., model=...`` or a ``CompleteRequest``.
-        """
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None, lambda: self.complete(messages, model, router, temperature, max_tokens, **kwargs)
+        return aiterate_blocking(
+            lambda: rest.stream_sse_json(
+                self._url,
+                {**request, "stream": True},
+                headers=self._headers(),
+                timeout=self.timeout,
+                provider=self.provider_name,
+            )
         )
 
     def format_capability_results(self, results: list[Any]) -> list[dict[str, Any]]:
         """Format capability results as Anthropic ``tool_result`` blocks (see ``capabilities.format_capability_results``)."""
         return format_capability_results(results)
 
+    # D109
     def refuses_forced_choice(self, model: str) -> bool:
-        """Whether ``model`` refuses a forced ``tool_choice``: its profile says ``supports_forced_capability_choice`` is false (D109)."""
+        """Whether ``model`` refuses a forced ``tool_choice``: its profile says ``supports_forced_capability_choice`` is false."""
         return self.get_model_info(model).get("supports_forced_capability_choice") is False
 
     def get_model_info(self, model: str | None = None) -> dict[str, Any]:

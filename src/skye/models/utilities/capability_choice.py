@@ -1,4 +1,5 @@
-"""A forced capability choice, emulated for the models that refuse one (decision D109).
+# decision D109
+"""A forced capability choice, emulated for the models that refuse one.
 
 ``capability_choice="required"`` or a capability name forces the model to call a capability. Some
 models refuse the forced form with a 400 (Claude Opus 5.5, Sonnet 5.5, Fable 5.1, Mythos 5.1: the
@@ -22,7 +23,7 @@ Streaming sends the emulated request once, with no check and no retry.
 from __future__ import annotations
 
 import dataclasses
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from skye.base.completion import CompleteRequest, CompleteResponse
@@ -110,16 +111,16 @@ def satisfied(choice: str, response: CompleteResponse) -> bool:
     return any(call.name == choice for call in calls)
 
 
-def complete_emulated(
+async def acomplete_emulated(
     request: CompleteRequest,
-    send: Callable[[CompleteRequest], CompleteResponse],
+    send: Callable[[CompleteRequest], Awaitable[CompleteResponse]],
     provider: str,
 ) -> CompleteResponse:
     """Send the emulated request, check the answer, retry once, then raise.
 
     Args:
         request: The request as the caller wrote it (with the forced choice).
-        send: One completion with the transport's own retries (``_complete_with_retry``).
+        send: One completion with the transport's own retries (``_acomplete_with_retry``).
         provider: The provider label, for the error.
 
     Raises:
@@ -130,7 +131,7 @@ def complete_emulated(
     changed, added = emulated_request(request)
     response: CompleteResponse | None = None
     for _ in range(ATTEMPTS):
-        response = send(changed)
+        response = await send(changed)
         if satisfied(choice, response):
             response.added_messages = list(added)
             response.metadata = {**response.metadata, "capability_choice_emulated": True}

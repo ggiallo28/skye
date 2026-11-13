@@ -1,4 +1,5 @@
-"""The builders as lazy names of `skye` (task 16.1, Requirements 56.11 and 62.9): the word that adds a kind is the word that builds it."""
+"""The builders as lazy names of `skye` (task 16.1, Requirements 56.11 and 62.9): the word that adds
+a kind is the word that builds it."""
 
 from __future__ import annotations
 
@@ -26,7 +27,8 @@ def _lists_names(error: ConfigurationError, known: str) -> bool:
     return known in str(error) or known in str(error.details)
 
 
-# -- what a decorator registers is built by the builder of the same word -----------------------------------------------------------
+# -- what a decorator registers is built by the builder of the same word
+# -----------------------------------------------------------
 
 
 def test_agent_builds_what_the_decorator_registered(plugins):
@@ -96,7 +98,8 @@ def test_routing_strategy_returns_the_class_of_a_built_in():
     assert skye.routing_strategy("lazy_complex") is not strategy
 
 
-# -- the registered names are found by the builder and by `names` ------------------------------------------------------------------
+# -- the registered names are found by the builder and by `names`
+# ------------------------------------------------------------------
 
 
 @pytest.mark.parametrize("word", BUILDERS)
@@ -114,7 +117,8 @@ def test_a_registered_name_is_listed_by_names_and_found_by_the_builder(plugins, 
         assert getattr(skye, word)(name)[0] == "built"
 
 
-# -- an unknown name raises ConfigurationError that lists the registered names -----------------------------------------------------
+# -- an unknown name raises ConfigurationError that lists the registered names
+# -----------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -134,7 +138,8 @@ def test_an_unknown_name_lists_the_registered_names(call, known):
     assert _lists_names(caught.value, known)
 
 
-# -- the old function names still work and give the same type ---------------------------------------------------------------------
+# -- the old function names still work and give the same type
+# ---------------------------------------------------------------------
 
 
 def test_the_old_function_names_give_the_same_objects(plugins):
@@ -175,7 +180,8 @@ def test_the_default_mcp_implementation_is_skyemcp():
     assert type(skye.mcp_client("http://localhost:1/mcp")) is SkyeMCPClient
 
 
-# -- `import skye` stays light ------------------------------------------------------------------------------------------------------
+# -- `import skye` stays light
+# --------------------------------------------------------------------------------------------------
 
 
 def test_the_builders_are_in_all_and_import_skye_loads_no_component():
@@ -192,3 +198,14 @@ def test_the_builders_are_in_all_and_import_skye_loads_no_component():
     before, after = done.stdout.splitlines()
     assert before == "[]"
     assert after == "True"
+
+
+def test_there_is_no_agent_class_and_no_use_function():
+    """D111: an agent type is a class registered under a name and built with ``skye.agent``.
+
+    There is no base ``Agent`` class and no ``skye.use``.
+    """
+    import skye.agents
+
+    assert not hasattr(skye, "Agent") and not hasattr(skye, "use")
+    assert not hasattr(skye.agents, "Agent")

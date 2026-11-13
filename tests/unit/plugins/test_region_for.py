@@ -1,4 +1,5 @@
-"""The AWS region comes through the rule of the profile (task 6.6, Requirements 60.6, 59.5, 59.6, O63 part 2 option A)."""
+"""The AWS region comes through the rule of the profile (task 6.6, Requirements 60.6, 59.5, 59.6,
+O63 part 2 option A)."""
 
 from __future__ import annotations
 

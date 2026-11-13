@@ -64,7 +64,8 @@ def test_the_price_of_jev_is_the_one_typesafe_published():
     )  # USD per million tokens; output is free
 
 
-# -- the mapping reader -------------------------------------------------------------------------------------------
+# -- the mapping reader
+# -------------------------------------------------------------------------------------------
 
 
 def test_a_minimal_profile_needs_only_a_name():

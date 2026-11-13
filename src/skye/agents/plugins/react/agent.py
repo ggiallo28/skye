@@ -1,6 +1,7 @@
 """The ReAct agent type (stub, no agent loop): the placeholder that ships today.
 
-Satisfies the ``Runnable`` Port so the boundary is in place. The real implementation is deferred to the future ``agents`` spec.
+Satisfies the ``Runnable`` Port so the boundary is in place. The real implementation is deferred to
+the future ``agents`` spec.
 
 Raises: ``NotImplementedError`` from ``invoke``: the loop is not written yet.
 Missing: not applicable.
@@ -15,6 +16,15 @@ class ReActAgent:
 
     def __init__(self, **options: Any) -> None:
         self.options = options
+        skills = options.get("skills")
+        # The seam of Requirement 62.8: a SKILL.md adds the toolkit `files` for its folder. Resolved
+        # only when a skill is given.
+        if skills:
+            from skye.agents.skills import skill_toolkits
+
+            self.skill_toolkits = skill_toolkits(skills)
+        else:
+            self.skill_toolkits = []
 
     async def invoke(self, input: Any) -> Any:
         """Not implemented: the ReAct loop belongs to the future agents spec."""

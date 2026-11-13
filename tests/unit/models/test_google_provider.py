@@ -274,3 +274,20 @@ class TestMisc:
             results[i].name = n
         out = make().format_capability_results(results)
         assert [o["functionResponse"]["response"] for o in out] == [{"a": 1}, {"error": "bad"}, {"b": 2}, {"result": "plain"}]
+
+
+def test_get_model_info_carries_the_info_of_the_profile(monkeypatch):
+    import skye.base.plugins as plugins_module
+    from skye.base.plugins import Registrar
+    from skye.base.profile import ModelProfile, ProviderProfile
+
+    profile = ProviderProfile(
+        "google", ("GOOGLE_API_KEY",), models={"gemini-x": ModelProfile(info={"supports_audio": True})}
+    )
+    fresh = Registrar()
+    fresh.provider("google", prov_mod.GoogleProvider, profile=profile, function="model")
+    monkeypatch.setattr(plugins_module, "_default", fresh)
+    info = prov_mod.GoogleProvider(project_id="p", credentials=Mock(), model="gemini-x").get_model_info()
+    assert info["supports_audio"] is True and info["supports_streaming"] is True
+    other = prov_mod.GoogleProvider(project_id="p", credentials=Mock(), model="gemini-y")
+    assert "supports_audio" not in other.get_model_info()

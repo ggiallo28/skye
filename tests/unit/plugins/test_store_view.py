@@ -1,6 +1,8 @@
-"""``register_backend`` and ``backend`` are a view of the ``backend`` table of the registrar (plugins:7.1, Requirement 56.6, 56.7).
+"""``register_backend`` and ``backend`` are a view of the ``backend`` table of the registrar
+(plugins:7.1, Requirement 56.6, 56.7).
 
-Every call to the registry of today works as before, on a private registrar so the default one is not touched.
+Every call to the registry of today works as before, on a private registrar so the default one is
+not touched.
 """
 
 from __future__ import annotations
@@ -12,9 +14,8 @@ import pytest
 
 from skye.base.exceptions import ConfigurationError
 from skye.base.plugins import Registrar, get_registrar
-from skye.store import InMemoryBackend, available_backends, backend, register_backend
+from skye.store import InMemoryBackend, available_backends, backend, factory, register_backend
 from skye.store import plugins as store_plugin
-from skye.store import factory
 
 BUILTIN = ["durable_function", "dynamodb", "file", "memory", "postgres", "redis", "valkey"]
 

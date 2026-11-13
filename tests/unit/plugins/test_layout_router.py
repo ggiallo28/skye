@@ -1,4 +1,5 @@
-"""The layout of ``router/plugins`` (D110, Requirements 56.9, 56.10 and 58.1): one folder per routing strategy, one door, the same file names."""
+"""The layout of ``router/plugins`` (D110, Requirements 56.9, 56.10 and 58.1): one folder per
+routing strategy, one door, the same file names."""
 
 from __future__ import annotations
 
@@ -77,7 +78,8 @@ def test_a_text_points_at_the_door_and_never_at_an_inner_file():
 
 @pytest.mark.parametrize("folder", FOLDERS)
 def test_importing_a_folder_imports_no_inner_file(folder):
-    """The door alone imports nothing of its folder (``skye.router`` imports the router itself, so an empty package stands in for it)."""
+    """The door alone imports nothing of its folder (``skye.router`` imports the router itself, so
+    an empty package stands in for it)."""
     router_dir = ROOT.parent
     code = (
         "import sys, types\n"

@@ -1,4 +1,5 @@
-"""Capabilities for the Anthropic Messages format: the tool definitions sent, the tool calls read back, the results formatted (D110).
+# D110
+"""Capabilities for the Anthropic Messages format: the tool definitions sent, the tool calls read back, the results formatted.
 
 Raises: nothing of its own; ``extract_capability_calls`` reads blocks the endpoint returned and does not validate them.
 Missing: ``extract_capability_calls`` returns ``None`` when the response has no tool call (or when the capability calls are unavailable).
