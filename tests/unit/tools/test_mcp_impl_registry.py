@@ -1,4 +1,5 @@
-"""MCP client implementations are chosen by name through the registrar (plugins:9.2 and 7.7, Requirements 58.2 and 10.7)."""
+"""MCP client implementations are chosen by name through the registrar (plugins:9.2 and 7.7,
+Requirements 58.2 and 10.7)."""
 
 from __future__ import annotations
 
@@ -10,14 +11,14 @@ import pytest
 from skye.base.exceptions import ConfigurationError
 from skye.base.plugins import Registrar, get_registrar
 from skye.tools import create_mcp_client
-from skye.tools import plugins as tools_plugin
+from skye.tools import engines as tools_engines
+from skye.tools.engines.skyemcp import SkyeMCPClient
 from skye.tools.mcp_client import MCPClientInterface
-from skye.tools.plugins.skyemcp import SkyeMCPClient
 
 
 def test_the_built_in_plugin_registers_both_names_by_text():
     registrar = Registrar()
-    tools_plugin.register(registrar)
+    tools_engines.register(registrar)
     assert registrar.names("mcp_client") == ["fastmcp", "skyemcp"]
     assert registrar.get("mcp_client", "skyemcp") is SkyeMCPClient
 
@@ -26,11 +27,13 @@ def test_registering_imports_neither_the_fastmcp_adapter_nor_fastmcp():
     code = (
         "import sys\n"
         "from skye.base.plugins import Registrar\n"
-        "from skye.tools import plugins as _plugin\n"
+        "from skye.tools import engines as _plugin\n"
         "r = Registrar(); _plugin.register(r)\n"
-        "assert 'skye.tools.plugins.fastmcp.client' not in sys.modules and 'fastmcp' not in sys.modules\n"
+        "assert 'skye.tools.engines.fastmcp.client' not in sys.modules "
+        "and 'fastmcp' not in sys.modules\n"
         "r.get('mcp_client', 'skyemcp')\n"
-        "assert 'skye.tools.plugins.fastmcp.client' not in sys.modules and 'fastmcp' not in sys.modules\n"
+        "assert 'skye.tools.engines.fastmcp.client' not in sys.modules "
+        "and 'fastmcp' not in sys.modules\n"
     )
     subprocess.run([sys.executable, "-c", code], check=True)
 
@@ -48,7 +51,8 @@ def test_an_unknown_impl_lists_the_registered_names():
 
 
 class ThirdPartyClient(SkyeMCPClient):
-    """A client a plugin adds: it keeps what it was built with so the test can see the factory contract."""
+    """A client a plugin adds: it keeps what it was built with so the test can see the factory
+    contract."""
 
     def __init__(self, target, *, headers=None, timeout=30.0):
         super().__init__(target, headers=headers, timeout=timeout)
@@ -70,7 +74,7 @@ def test_a_third_party_client_is_chosen_by_name(third_party_name):
 
 
 def test_a_third_party_client_given_as_a_function_and_as_text(third_party_name):
-    get_registrar().mcp_client(third_party_name, "skye.tools.plugins.skyemcp:SkyeMCPClient")
+    get_registrar().mcp_client(third_party_name, "skye.tools.engines.skyemcp:SkyeMCPClient")
     assert isinstance(create_mcp_client("http://x", impl=third_party_name), SkyeMCPClient)
 
 

@@ -1,4 +1,5 @@
-"""The builder ``skye.toolkit(name, **options)`` (task 18.4; Requirements 62.6 and 56.11 of steering)."""
+"""The builder ``skye.toolkit(name, **options)`` (task 18.4; Requirements 62.6 and 56.11 of
+steering)."""
 
 from __future__ import annotations
 

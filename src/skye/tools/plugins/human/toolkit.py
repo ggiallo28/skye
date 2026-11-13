@@ -1,16 +1,21 @@
-"""``HumanToolkit``: the built-in toolkit ``human``, questions and escalations to a person (Requirement 62.7, D111).
+# Requirement 62.7, D111
+"""``HumanToolkit``: the built-in toolkit ``human``, questions and escalations to a person.
 
-A channel is an object with ``send(message) -> ticket`` and ``poll(ticket) -> reply or None``. ``file`` (needs
-``directory``) writes ``<ticket>.json``; the person creates ``<ticket>.reply.txt``. ``console`` uses stderr and a terminal.
+A channel is an object with ``send(message) -> ticket`` and ``poll(ticket) -> reply or None``.
+``file`` (needs
+``directory``) writes ``<ticket>.json``; the person creates ``<ticket>.reply.txt``. ``console`` uses
+stderr and a terminal.
 It does not authenticate the person, send e-mail or chat, or suspend a run.
 
 Example:
     >>> import tempfile
     >>> toolkit = HumanToolkit(channel="file", directory=tempfile.mkdtemp())
-    >>> toolkit.escalate.execute(reason="refund over the limit", summary="order 42").startswith("escalation sent, ticket ")
+    >>> sent = toolkit.escalate.execute(reason="refund over the limit", summary="order 42")
+    >>> sent.startswith("escalation sent, ticket ")
     True
 
-Raises: ``ConfigurationError`` for an unknown channel; ``ValidationError`` for a bad option; ``CapabilityError`` from a tool
+Raises: ``ConfigurationError`` for an unknown channel; ``ValidationError`` for a bad option;
+``CapabilityError`` from a tool
     for a bad text, severity or ticket, or an unanswered question (the error holds the ticket).
 Missing: a text past 4000 characters is cut and says so.
 Concurrency: no state outside the channel; the file channel writes atomically with ``os.replace``.
@@ -158,7 +163,8 @@ class HumanToolkit(Toolkit):
             channel = built
         elif channel_options or not isinstance(channel, HumanChannel):
             raise ConfigurationError(
-                "channel must be a name or an object with send and poll, and an object takes no options"
+                "channel must be a name or an object with send and poll, and an object takes no "
+                "options"
             )
         self._channel: HumanChannel = channel
         self._timeout = float(timeout)

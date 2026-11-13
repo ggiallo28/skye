@@ -1,9 +1,9 @@
-"""``tools=[...]`` of a toolkit, the toolkit with no class and the function that returns a registry (task 18.3)."""
+"""``tools=[...]`` of a toolkit, the toolkit with no class and the function that returns a registry
+(task 18.3)."""
 
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Iterator
 
 import pytest
 
@@ -52,7 +52,8 @@ def run(toolkit: Toolkit, name: str, **arguments: object):
     return asyncio.run(toolkit.run(CapabilityCall(id="1", name=name, arguments=arguments)))
 
 
-# -- the toolkit with no class -----------------------------------------------------------------------------
+# -- the toolkit with no class
+# -----------------------------------------------------------------------------
 
 
 def test_a_toolkit_with_no_class_is_the_list_of_its_tools(plugins: Plugins, private: Registrar):
@@ -77,7 +78,8 @@ def test_the_tools_stay_the_functions_they_were(plugins: Plugins):
     )  # the toolkit prefixes a copy of the schema, not the capability
 
 
-# -- the decorator form on a class --------------------------------------------------------------------------
+# -- the decorator form on a class
+# --------------------------------------------------------------------------
 
 
 def make_jira(plugins: Plugins):
@@ -146,7 +148,8 @@ def test_a_call_with_a_class_and_tools_does_the_same(plugins: Plugins, private: 
     assert names(build_toolkit("notes", private)) == ["notes.note", "notes.slugify"]
 
 
-# -- the clash of two names ---------------------------------------------------------------------------------
+# -- the clash of two names
+# ---------------------------------------------------------------------------------
 
 
 def test_a_method_and_a_listed_function_with_one_name_raise_and_name_both(
@@ -194,7 +197,8 @@ def test_a_listed_function_and_a_tool_of_the_registry_with_one_name_raise_and_na
     assert "registry" in text and "slugify" in text
 
 
-# -- the function that returns a registry -------------------------------------------------------------------
+# -- the function that returns a registry
+# -------------------------------------------------------------------
 
 
 def make_registry_function(plugins: Plugins):

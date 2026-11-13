@@ -61,6 +61,7 @@ class LocalFunctionCapability(CapabilityInterface):
         >>> result = await async_capability.aexecute(location="New York")
     """
 
+    # Requirement 62.3
     def __init__(
         self,
         func: Callable[..., Any],
@@ -79,7 +80,7 @@ class LocalFunctionCapability(CapabilityInterface):
             schema_override: Optional complete schema override. If provided,
                 this schema will be used instead of extracting from the function.
             return_direct: ``True`` when the result of this capability is the answer of the agent and the
-                model is not asked again (Requirement 62.3). The default is ``False``. It is only stored
+                model is not asked again. The default is ``False``. It is only stored
                 and put on the schema: the loop that uses it is the agents spec. With a
                 ``schema_override`` the flag is ``True`` when either the argument or the override says so.
 

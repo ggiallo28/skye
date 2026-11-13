@@ -23,6 +23,7 @@ def capability(
 ) -> Callable[[F], F]: ...
 
 
+# Requirement 62.3
 def capability(
     func: F | None = None,
     *,
@@ -53,7 +54,7 @@ def capability(
         name: Optional override for capability name
         description: Optional override for capability description
         return_direct: When ``True`` the result of the tool is the answer of the agent and the model is not
-            asked again (Requirement 62.3). The default is ``False``. Here it is only stored on the
+            asked again. The default is ``False``. Here it is only stored on the
             capability and put on its schema; the agent loop that uses it is the agents spec.
 
     Returns:

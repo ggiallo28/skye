@@ -1,16 +1,23 @@
-"""``ShellToolkit``: the built-in toolkit ``shell``, one tool that runs a program from a list of allowed names (D111).
+# D111
+"""``ShellToolkit``: the built-in toolkit ``shell``, one tool that runs a program from a list of
+allowed names.
 
-It is opt-in and safe by default: ``allow`` is required. The command is split with ``shlex`` and run WITHOUT a shell, so ``|``, ``>``, ``;`` and
-``$(...)`` are plain arguments. The first word must be one of ``allow`` exactly. The environment is minimal (``PATH``, ``LANG``, ``LC_ALL``,
-``HOME`` and what ``env`` adds). A time limit kills the process, and its group on POSIX. This toolkit is NOT a sandbox: an allowed program such
-as ``git`` or ``python`` can do anything its user can do. Allow only programs that you would run yourself.
+It is opt-in and safe by default: ``allow`` is required. The command is split with ``shlex`` and run
+WITHOUT a shell, so ``|``, ``>``, ``;`` and
+``$(...)`` are plain arguments. The first word must be one of ``allow`` exactly. The environment is
+minimal (``PATH``, ``LANG``, ``LC_ALL``,
+``HOME`` and what ``env`` adds). A time limit kills the process, and its group on POSIX. This
+toolkit is NOT a sandbox: an allowed program such
+as ``git`` or ``python`` can do anything its user can do. Allow only programs that you would run
+yourself.
 
 Example:
     >>> toolkit = ShellToolkit(allow=["echo"])
     >>> toolkit.run_command.execute(command="echo hello")
     'exit code 0\\nhello\\n'
 
-Raises: ``ValidationError`` at construction for a bad option; the tool raises ``CapabilityError`` for an empty command, a program that is not
+Raises: ``ValidationError`` at construction for a bad option; the tool raises ``CapabilityError``
+for an empty command, a program that is not
     allowed or not found, a timeout and a command that cannot be split.
 Missing: output past ``max_bytes`` is not returned, and the result says so.
 Concurrency: the toolkit holds only its settings; each call starts its own process.
@@ -37,7 +44,8 @@ class ShellToolkit(Toolkit):
     """Run one allowed program: ``shell.run_command``.
 
     Args:
-        allow: The names of the programs the tool may run, such as ``["git", "ls"]``. A name has no path. Required.
+        allow: The names of the programs the tool may run, such as ``["git", "ls"]``. A name has no
+            path. Required.
         cwd: The folder the program runs in. The default is the current folder.
         timeout: Seconds before the process is killed.
         max_bytes: The most bytes of output returned.
@@ -91,10 +99,12 @@ class ShellToolkit(Toolkit):
 
     @capability
     def run_command(self, command: str) -> str:
-        """Run a program with arguments, for example ``git status``. Returns the exit code and the output.
+        """Run a program with arguments, for example ``git status``. Returns the exit code and the
+        output.
 
         Args:
-            command: The program and its arguments. There is no shell: a pipe or a redirect is not understood.
+            command: The program and its arguments. There is no shell: a pipe or a redirect is not
+                understood.
         """
         try:
             args = shlex.split(command)

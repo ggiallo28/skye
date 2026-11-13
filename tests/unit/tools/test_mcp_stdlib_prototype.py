@@ -36,7 +36,7 @@ from skye.base import http
 from skye.base.exceptions import ProviderError, ValidationError
 from skye.base.messages import AssistantMessage, UserMessage
 from skye.base.interfaces.capability import CapabilityInterface
-from skye.tools.plugins.skyemcp import SkyeMCPClient
+from skye.tools.engines.skyemcp import SkyeMCPClient
 from skye.tools.mcp_resource import Resource
 
 # The MCP protocol/transport libraries the future target drives to zero for the built-in path.
@@ -45,7 +45,7 @@ MCP_THIRD_PARTY = ("fastmcp", "mcp", "httpx", "requests")
 # The modules that make up the standard-library built-in MCP client path.
 BUILTIN_PATH_MODULES = (
     "src/skye/tools/mcp_client.py",
-    "src/skye/tools/plugins/skyemcp/client.py",
+    "src/skye/tools/engines/skyemcp/client.py",
     "src/skye/tools/mcp_boundary.py",
     "src/skye/tools/mcp_resource.py",
 )
@@ -84,15 +84,15 @@ def test_skyemcp_client_importable_with_mcp_third_party_absent() -> None:
     blocked = {name: None for name in MCP_THIRD_PARTY}
     skyemcp_modules = [
         "skye.tools.mcp_client",
-        "skye.tools.plugins.skyemcp",
-        "skye.tools.plugins.skyemcp.client",
+        "skye.tools.engines.skyemcp",
+        "skye.tools.engines.skyemcp.client",
         "skye.tools.mcp_boundary",
         "skye.tools.mcp_resource",
     ]
     saved = {name: sys.modules.pop(name, None) for name in skyemcp_modules}
     try:
         with patch.dict(sys.modules, blocked):
-            module = importlib.import_module("skye.tools.plugins.skyemcp")
+            module = importlib.import_module("skye.tools.engines.skyemcp")
             assert module.SkyeMCPClient is not None
             # Each name stays blocked (value None): importing the built-in path never pulled in
             # a real fastmcp/mcp/httpx/requests module.
@@ -169,7 +169,7 @@ def fake_transport() -> _FakeTransport:
     # While the client runs, fastmcp/mcp/httpx/requests are blocked (value None in sys.modules):
     # any attempt to import one of them would raise, proving the stdlib path needs none of them.
     with patch.dict(sys.modules, {name: None for name in MCP_THIRD_PARTY}):
-        with patch("skye.tools.plugins.skyemcp.client.http.request", transport):
+        with patch("skye.tools.engines.skyemcp.client.http.request", transport):
             yield transport
 
 
@@ -245,6 +245,6 @@ async def test_stdlib_client_rejects_malformed_result(fake_transport: _FakeTrans
             text=json.dumps({"jsonrpc": "2.0", "id": json_body["id"]}),
         )
 
-    with patch("skye.tools.plugins.skyemcp.client.http.request", _bare):
+    with patch("skye.tools.engines.skyemcp.client.http.request", _bare):
         with pytest.raises(ValidationError, match="result"):
             await asyncio.to_thread(client._rpc, "tools/list")

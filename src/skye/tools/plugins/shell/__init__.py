@@ -1,9 +1,13 @@
-"""The built-in toolkit ``shell`` (plugin of ``tools``, D110): one tool that runs a program from a list of allowed names.
+# D110
+"""The built-in toolkit ``shell`` (plugin of ``tools``): one tool that runs a program from a list of
+allowed names.
 
-This ``__init__.py`` is the only module that code outside the folder imports; its name resolves lazily, and ``register`` adds the toolkit to a
+This ``__init__.py`` is the only module that code outside the folder imports; its name resolves
+lazily, and ``register`` adds the toolkit to a
 registrar by ``"module:attribute"`` text.
 
-Raises: ``ConfigurationError`` from ``register`` when the name is already registered (replacing one is the caller's ``replace=True``).
+Raises: ``ConfigurationError`` from ``register`` when the name is already registered (replacing one
+is the caller's ``replace=True``).
 Missing: a missing inner file breaks only the name that lives in it.
 Concurrency: ``register`` is called once at start-up from one thread.
 """

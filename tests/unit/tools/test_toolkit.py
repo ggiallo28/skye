@@ -1,9 +1,14 @@
-"""A toolkit from end to end, as the documentation shows it (task 18.6; Requirements 62.5 and 62.6 of steering).
+"""A toolkit from end to end, as the documentation shows it (task 18.6; Requirements 62.5 and 62.6
+of steering).
 
-The toolkit is the `jira` one of ``examples/plugins/custom_toolkit.py``, written here as a fake: methods with
-``@capability``, a name of its own, ``return_direct``, a function written outside the class and added with ``tools=[...]``.
-The details of each rule are in ``test_toolkit_base.py`` (the class), ``test_toolkit_tools.py`` (``tools=`` and the registry
-function) and ``test_skye_toolkit_builder.py`` (the builder); this file reads them in the order a user meets them.
+The toolkit is the `jira` one of ``examples/plugins/custom_toolkit.py``, written here as a fake:
+methods with
+``@capability``, a name of its own, ``return_direct``, a function written outside the class and
+added with ``tools=[...]``.
+The details of each rule are in ``test_toolkit_base.py`` (the class), ``test_toolkit_tools.py``
+(``tools=`` and the registry
+function) and ``test_skye_toolkit_builder.py`` (the builder); this file reads them in the order a
+user meets them.
 """
 
 from __future__ import annotations
@@ -24,7 +29,8 @@ def slugify(title: str) -> str:
 
 @pytest.fixture
 def plugins():
-    """The default handle; what a test registered is taken away, and the default registrar is put back."""
+    """The default handle; what a test registered is taken away, and the default registrar is put
+    back."""
     with restored_default_registrar() as registrar:
         before = set(registrar.names("toolkit"))
         try:

@@ -23,7 +23,7 @@ from skye.tools import mcp_boundary as b
 from skye.tools.exceptions import CapabilityExecutionError
 from skye.base.interfaces.capability import CapabilityInterface
 from skye.tools.mcp_client import create_mcp_client
-from skye.tools.plugins.skyemcp import SkyeMCPClient
+from skye.tools.engines.skyemcp import SkyeMCPClient
 from skye.tools.mcp_resource import Resource
 
 TOOLS = [

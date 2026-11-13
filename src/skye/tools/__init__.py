@@ -39,13 +39,19 @@ from skye.tools.mcp_client import (
     MCPToolCapability,
     create_mcp_client,
 )
-from skye.tools.plugins.skyemcp import SkyeMCPClient
+from skye.tools.engines.skyemcp import SkyeMCPClient
 from skye.tools.mcp_resource import Resource, ResourceProviderInterface
 from skye.tools.registry import CapabilityRegistry
 from skye.tools.remote_api import RemoteAPICapability
+from skye.base.lazy_import import lazy_names
 from skye.tools.toolkit import Toolkit
 
+# The offline checks are read at first use, so importing ``skye.tools`` does not import them.
+_LAZY = {"check_mcp_client": "conformance", "check_toolkit": "conformance"}
+__getattr__ = lazy_names(__name__, _LAZY)
+
 __all__ = [
+    *_LAZY,
     "CapabilityInterface",
     "CapabilitySchema",
     "LocalFunctionCapability",

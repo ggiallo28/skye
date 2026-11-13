@@ -1,6 +1,8 @@
-"""The built-in toolkit ``human`` (plugin of ``tools``, D110): ask a person or escalate to one.
+# D110
+"""The built-in toolkit ``human`` (plugin of ``tools``): ask a person or escalate to one.
 
-Only this ``__init__.py`` is imported from outside; its names resolve lazily; ``register`` adds the toolkit by text.
+Only this ``__init__.py`` is imported from outside; its names resolve lazily; ``register`` adds the
+toolkit by text.
 
 Raises: ``ConfigurationError`` from ``register`` when the name is already registered.
 Missing: a missing inner file breaks only the name that lives in it.

@@ -12,8 +12,8 @@ pytest.importorskip("fastmcp", reason="fastmcp not installed (dev/test dependenc
 
 from skye.base.exceptions import ProviderError  # noqa: E402
 from skye.tools.exceptions import CapabilityExecutionError  # noqa: E402
-from skye.tools.plugins.skyemcp import SkyeMCPClient  # noqa: E402
-from skye.tools.plugins.fastmcp import FastMCPClient  # noqa: E402
+from skye.tools.engines.skyemcp import SkyeMCPClient  # noqa: E402
+from skye.tools.engines.fastmcp import FastMCPClient  # noqa: E402
 
 EPS = 1e-9
 

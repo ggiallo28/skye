@@ -1,7 +1,9 @@
-"""The built-in toolkit ``files`` (task 19.1, Requirement 62.7): registered by text, read-only, and kept inside its root."""
+"""The built-in toolkit ``files`` (task 19.1, Requirement 62.7): registered by text, read-only, and
+kept inside its root."""
 
 from __future__ import annotations
 
+import asyncio
 import os
 import subprocess
 import sys
@@ -10,7 +12,7 @@ from pathlib import Path
 import pytest
 
 import skye
-from skye.base.exceptions import ValidationError
+from skye.base.exceptions import CapabilityError, ValidationError
 from skye.base.messages import CapabilityStatus
 from skye.completion import CapabilityCall
 from skye.tools.plugins.files import FilesToolkit
@@ -38,7 +40,8 @@ def snapshot(folder: Path) -> list[tuple[str, int, int]]:
     )
 
 
-# -- registration -------------------------------------------------------------------------------------------------------
+# -- registration
+# --------------------------------------------------------------------------------------------------
 
 
 def test_the_toolkit_is_registered_as_files_and_built_by_name(tree: Path):
@@ -58,7 +61,8 @@ def test_a_registrar_with_the_tools_door_gets_the_text_target():
     assert registrar._tables["toolkit"]["files"].target == "skye.tools.plugins.files:FilesToolkit"
 
 
-# -- the options --------------------------------------------------------------------------------------------------------
+# -- the options
+# --------------------------------------------------------------------------------------------------
 
 
 def test_the_option_root_is_required():
@@ -89,7 +93,8 @@ def test_root_accepts_text_and_a_path(tree: Path):
     )
 
 
-# -- list_files and read_file -------------------------------------------------------------------------------------------
+# -- list_files and read_file
+# -------------------------------------------------------------------------------------------
 
 
 async def test_list_files_returns_sorted_names_and_marks_folders(tree: Path):
@@ -179,7 +184,8 @@ async def test_a_folder_given_to_read_file_and_a_file_given_to_list_files_are_cl
     assert missing.status is CapabilityStatus.ERROR and "does not exist" in missing.content
 
 
-# -- containment --------------------------------------------------------------------------------------------------------
+# -- containment
+# --------------------------------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -255,7 +261,8 @@ async def test_a_root_that_is_a_link_is_resolved_once(tmp_path: Path):
     assert FilesToolkit(root=tmp_path / "link").read_file.execute(path="x.txt") == "ok"
 
 
-# -- read only, schemas, errors -----------------------------------------------------------------------------------------
+# -- read only, schemas, errors
+# -----------------------------------------------------------------------------------------
 
 
 async def test_nothing_is_written_by_any_call(tree: Path):
@@ -316,7 +323,8 @@ async def test_two_toolkits_keep_their_own_root(
     assert "only-here.txt" not in first.list_files.execute()
 
 
-# -- loading ------------------------------------------------------------------------------------------------------------
+# -- loading
+# --------------------------------------------------------------------------------------------------
 
 
 def test_importing_skye_tools_does_not_import_the_file_system_code():
@@ -333,3 +341,73 @@ def test_importing_skye_tools_does_not_import_the_file_system_code():
     )
     done = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True)
     assert done.returncode == 0, done.stderr[-800:]
+
+
+# --- several roots: one toolkit for many folders (the skills seam)
+# ---------------------------------------------------------------
+
+
+def _two_roots(tmp_path):
+    first, second = tmp_path / "a" / "refund", tmp_path / "b" / "refund"
+    for index, folder in enumerate((first, second)):
+        (folder / "references").mkdir(parents=True)
+        (folder / "references" / "n.md").write_text(f"text {index}")
+        (folder / ".secret").write_text("hidden")
+    (tmp_path / "outside.txt").write_text("outside")
+    return FilesToolkit(roots=[first, second]), first, second
+
+
+def test_roots_list_the_names_and_a_repeated_name_gets_a_number(tmp_path):
+    toolkit, _, _ = _two_roots(tmp_path)
+    assert toolkit.list_files.execute() == ["refund/", "refund-2/"]
+    assert toolkit.list_files.execute(path=".") == ["refund/", "refund-2/"]
+    assert toolkit.list_files.execute(path="refund-2") == ["references/"]
+
+
+def test_roots_read_each_folder_by_its_name_and_keep_two_tools(tmp_path):
+    toolkit, _, _ = _two_roots(tmp_path)
+    assert toolkit.read_file.execute(path="refund/references/n.md") == "text 0"
+    assert toolkit.read_file.execute(path="refund-2/references/n.md") == "text 1"
+    assert [s.name for s in asyncio.run(toolkit.list_schemas())] == [
+        "files.list_files",
+        "files.read_file",
+    ]
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "references/n.md",
+        "other/x",
+        "refund/../../outside.txt",
+        "refund/../refund-2/x",
+        "/etc/passwd",
+        "refund/.secret",
+    ],
+)
+def test_roots_keep_the_limits_of_each_folder(tmp_path, path):
+    toolkit, _, _ = _two_roots(tmp_path)
+    with pytest.raises(CapabilityError) as error:
+        toolkit.read_file.execute(path=path)
+    assert str(tmp_path) not in str(error.value)  # the real path is never named
+
+
+def test_roots_refuse_a_link_that_leaves_its_folder(tmp_path):
+    toolkit, first, _ = _two_roots(tmp_path)
+    (first / "link.txt").symlink_to(tmp_path / "outside.txt")
+    with pytest.raises(CapabilityError):
+        toolkit.read_file.execute(path="refund/link.txt")
+
+
+def test_roots_options_are_checked(tmp_path):
+    folder = tmp_path / "f"
+    folder.mkdir()
+    with pytest.raises(ValidationError):
+        FilesToolkit(root=folder, roots=[folder])
+    with pytest.raises(ValidationError):
+        FilesToolkit(roots=[])
+    with pytest.raises(ValidationError):
+        FilesToolkit(roots=[folder, tmp_path / "missing"])
+    assert FilesToolkit(roots=[folder, folder]).list_files.execute() == [
+        "f/"
+    ]  # the same folder twice is one

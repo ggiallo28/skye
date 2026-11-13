@@ -1,4 +1,5 @@
-"""The built-in toolkit ``human`` (task 19.7, Requirement 62.7): questions and escalations to a person through a channel."""
+"""The built-in toolkit ``human`` (task 19.7, Requirement 62.7): questions and escalations to a
+person through a channel."""
 
 from __future__ import annotations
 
@@ -38,7 +39,8 @@ async def call(toolkit: HumanToolkit, name: str, **arguments: object):
     return await toolkit.run(CapabilityCall(id="1", name=f"human.{name}", arguments=arguments))
 
 
-# -- registration and options -------------------------------------------------------------------------------------------
+# -- registration and options
+# -------------------------------------------------------------------------------------------
 
 
 def test_the_door_registers_the_name_by_text_in_a_private_registrar():
@@ -93,7 +95,8 @@ def test_the_schemas_have_the_prefix_and_no_self(toolkit: HumanToolkit):
     assert schemas["human.escalate"].parameters["required"] == ["reason", "summary"]
 
 
-# -- escalate and check_escalation --------------------------------------------------------------------------------------
+# -- escalate and check_escalation
+# --------------------------------------------------------------------------------------
 
 
 def test_escalate_writes_the_message_and_returns_the_ticket(toolkit: HumanToolkit, inbox: Path):
@@ -176,7 +179,8 @@ def test_the_write_is_atomic_and_leaves_only_the_final_file(toolkit: HumanToolki
     assert sorted(p.name for p in inbox.iterdir()) == sorted(f"{t}.json" for t in tickets)
 
 
-# -- ask_human ----------------------------------------------------------------------------------------------------------
+# -- ask_human
+# --------------------------------------------------------------------------------------------------
 
 
 async def test_ask_human_returns_a_reply_written_after_a_short_delay(
@@ -244,7 +248,8 @@ async def test_ask_human_polls_at_the_interval(inbox: Path, monkeypatch):
     assert seen and set(seen) == {2.5}
 
 
-# -- a channel of the user's own, and the console -----------------------------------------------------------------------
+# -- a channel of the user's own, and the console
+# -----------------------------------------------------------------------
 
 
 async def test_a_custom_channel_object_works(monkeypatch):
@@ -308,7 +313,8 @@ def test_the_console_channel_reads_one_line_from_a_terminal(monkeypatch):
     assert toolkit.check_escalation.execute(ticket=ticket) == "go ahead"
 
 
-# -- lazy ---------------------------------------------------------------------------------------------------------------
+# -- lazy
+# --------------------------------------------------------------------------------------------------
 
 
 def test_import_skye_tools_does_not_import_the_module():

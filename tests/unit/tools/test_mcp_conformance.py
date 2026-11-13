@@ -3,7 +3,7 @@
 * 1.3: the capability data types are validated dataclasses, not pydantic, and invalid data raises ``ValidationError`` with the field.
 * 6.1: ``Resource`` and its Port live in ``base``; every MCP client implements the resource Port.
 * 6.2: the MCP prompt facet returns ``base`` messages; ``tools`` imports no ``prompts`` module and implements no prompt Port.
-* 6.3: ``fastmcp`` is imported only by ``tools/plugins/fastmcp/client.py``; the legacy probes are gone.
+* 6.3: ``fastmcp`` is imported only by ``tools/engines/fastmcp/client.py``; the legacy probes are gone.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ from skye.base.messages import AssistantMessage, SkyeMessage, UserMessage
 from skye.base.validated import Validated
 from skye.tools import CapabilityCall, CapabilityResult, CapabilitySchema, Resource
 from skye.tools.mcp_client import MCPClientInterface
-from skye.tools.plugins.skyemcp import SkyeMCPClient
+from skye.tools.engines.skyemcp import SkyeMCPClient
 from skye.utils.validation import port_signature_mismatches
 
 TOOLS_DIR = Path(skye.tools.__file__).resolve().parent
@@ -96,7 +96,7 @@ def test_every_mcp_client_implements_the_resource_port():
     client = SkyeMCPClient("http://localhost:1/mcp")
     assert isinstance(client, ResourceProviderInterface)
     assert port_signature_mismatches(SkyeMCPClient, ResourceProviderInterface) == []
-    from skye.tools.plugins.fastmcp import FastMCPClient  # importing it never imports fastmcp
+    from skye.tools.engines.fastmcp import FastMCPClient  # importing it never imports fastmcp
 
     assert port_signature_mismatches(FastMCPClient, ResourceProviderInterface) == []
 

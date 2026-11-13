@@ -70,6 +70,7 @@ class CapabilityRegistry:
     _instance: "CapabilityRegistry | None" = None
     _lock = threading.Lock()
 
+    # Requirement 62.1
     def __init__(
         self,
         capabilities: list[CapabilityInterface] | None = None,
@@ -77,7 +78,7 @@ class CapabilityRegistry:
     ) -> None:
         """Initialize the capability registry.
 
-        A new registry starts empty, or with the ``capabilities`` passed. It is no view of the registrar (Requirement 62.1): what is registered
+        A new registry starts empty, or with the ``capabilities`` passed. It is no view of the registrar: what is registered
         on it, with ``register``, stays local to it and never reaches another registry. A set of tools that several agents share is a toolkit.
 
         Args:

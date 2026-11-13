@@ -1,7 +1,9 @@
 """``@capability`` on a method of a class (task 18.1 of plugins, Requirements 62.2 and 62.5).
 
-A capability is a descriptor: read through an instance it is bound to that instance, read through the class it is
-the capability itself, and ``self`` is never part of the schema or of the validation of the arguments.
+A capability is a descriptor: read through an instance it is bound to that instance, read through
+the class it is
+the capability itself, and ``self`` is never part of the schema or of the validation of the
+arguments.
 """
 
 import asyncio

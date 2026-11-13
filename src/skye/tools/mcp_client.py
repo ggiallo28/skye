@@ -1,18 +1,19 @@
+# D26, Requirement 21
 """Tri-faceted MCP client in ``tools``: tools, prompts and resources behind one Port (Req. 15).
 
 * :class:`MCPClientInterface` is the one Port. ``SkyeMCPClient`` (stdlib JSON-RPC over
-  stateless HTTP, built on ``skye.base.http``; ``skye.tools.plugins.skyemcp``) and ``FastMCPClient``
-  (``skye.tools.plugins.fastmcp``, lazily imported) both implement it and return the same
+  stateless HTTP, built on ``skye.base.http``; ``skye.tools.engines.skyemcp``) and ``FastMCPClient``
+  (``skye.tools.engines.fastmcp``, lazily imported) both implement it and return the same
   Skye types: ``CapabilityInterface``
-  objects for tools, ``base`` messages for prompts (never ``prompts`` objects, D26),
+  objects for tools, ``base`` messages for prompts (never ``prompts`` objects),
   :class:`Resource` for resources.
-* The resources facet is the resource Port of ``base`` (``ResourceProviderInterface``, D26):
+* The resources facet is the resource Port of ``base`` (``ResourceProviderInterface``):
   every MCP client implements it.
 * Protocol shapes are converted in exactly one place, ``skye.tools.mcp_boundary``.
 * Choice: :func:`create_mcp_client` takes an explicit ``impl`` argument, the name of a registered implementation
-  (``"skyemcp"`` by default, ``"fastmcp"`` opt-in, or one a plugin registers). No environment variable, no config entry, no fallback (Requirement 21).
+  (``"skyemcp"`` by default, ``"fastmcp"`` opt-in, or one a plugin registers). No environment variable, no config entry, no fallback.
 * The built-in client only consumes MCP servers over HTTP: no stdio transport, no subprocess,
-  it never starts a server (Requirement 21).
+  it never starts a server.
 """
 
 from __future__ import annotations
@@ -33,10 +34,11 @@ from skye.tools.mcp_boundary import MCPPrompt
 PROTOCOL_VERSION = "2025-06-18"
 
 
+# D26
 class MCPClientInterface(ResourceProviderInterface, ABC):
     """The MCP client Port: three facets, identical Skye return types in every implementation.
 
-    The resources facet is the ``base`` resource Port (``ResourceProviderInterface``, D26), so an
+    The resources facet is the ``base`` resource Port (``ResourceProviderInterface``), so an
     MCP client can be passed wherever a resource provider is expected.
     """
 

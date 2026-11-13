@@ -1,11 +1,16 @@
-"""The built-in MCP client of ``tools``: standard-library JSON-RPC over stateless HTTP (Requirement 15, 21; D16; plugins:7.7).
+# Requirement 15, 21, D16, plugins:7.7
+"""The built-in MCP client of ``tools``: standard-library JSON-RPC over stateless HTTP.
 
-It implements :class:`~skye.tools.mcp_client.MCPClientInterface` on ``skye.base.http`` and consumes MCP servers over HTTP only: no stdio transport, no
-subprocess, it never starts a server, and it needs no extra. It is the default ``impl`` of ``create_mcp_client``, registered as ``"skyemcp"``.
+It implements :class:`~skye.tools.mcp_client.MCPClientInterface` on ``skye.base.http`` and consumes
+MCP servers over HTTP only: no stdio transport, no
+subprocess, it never starts a server, and it needs no extra. It is the default ``impl`` of
+``create_mcp_client``, registered as ``"skyemcp"``.
 
-Raises: ``ConfigurationError`` for an empty URL; ``ProviderError`` for a JSON-RPC error or a malformed reply; ``ValidationError`` for a reply that lacks a field.
+Raises: ``ConfigurationError`` for an empty URL; ``ProviderError`` for a JSON-RPC error or a
+malformed reply; ``ValidationError`` for a reply that lacks a field.
 Missing: not applicable.
-Concurrency: a client keeps a request counter and is meant for one task at a time; build one per task, as ``create_mcp_client`` does.
+Concurrency: a client keeps a request counter and is meant for one task at a time; build one per
+task, as ``create_mcp_client`` does.
 """
 
 from __future__ import annotations

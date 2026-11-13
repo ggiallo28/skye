@@ -1,7 +1,9 @@
 """``return_direct`` on ``@capability`` (task 18.5 of plugins, Requirements 62.2 and 62.3).
 
-The flag is stored on the capability, validated as a bool and put on the schema, so that an agent reads it through the
-``ToolProvider`` Port. No adapter sends it to a model: the rules of the flag are the agents spec (O70).
+The flag is stored on the capability, validated as a bool and put on the schema, so that an agent
+reads it through the
+``ToolProvider`` Port. No adapter sends it to a model: the rules of the flag are the agents spec
+(O70).
 """
 
 import asyncio

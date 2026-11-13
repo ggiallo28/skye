@@ -1,4 +1,5 @@
-"""fastmcp-backed MCP client behind :class:`MCPClientInterface` (Requirement 15).
+# Requirement 15
+"""fastmcp-backed MCP client behind :class:`MCPClientInterface`.
 
 fastmcp is imported lazily when a client is constructed, never at ``import skye`` or
 ``import skye.tools``. Everything fastmcp returns goes straight into

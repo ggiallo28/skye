@@ -1,4 +1,5 @@
-"""The single conversion point from MCP protocol shapes to Skye types (Requirement 15).
+# Requirement 15
+"""The single conversion point from MCP protocol shapes to Skye types.
 
 Both MCP clients (built-in JSON-RPC and fastmcp) hand their raw payload to the ``to_*``
 functions here: a plain ``dict`` (JSON-RPC) or an ``mcp.types``/``fastmcp`` object. Nothing

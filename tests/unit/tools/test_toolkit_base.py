@@ -1,4 +1,5 @@
-"""``skye.tools.Toolkit``: the methods of a class marked with ``@capability`` as one provider of tools (task 18.2)."""
+"""``skye.tools.Toolkit``: the methods of a class marked with ``@capability`` as one provider of
+tools (task 18.2)."""
 
 import pytest
 
