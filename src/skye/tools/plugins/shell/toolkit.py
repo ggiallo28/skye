@@ -41,7 +41,7 @@ _KEPT = ("PATH", "LANG", "LC_ALL", "HOME")
 
 
 class ShellToolkit(Toolkit):
-    """Run one allowed program: ``shell.run_command``.
+    """Run one allowed program: ``shell_run_command``.
 
     Args:
         allow: The names of the programs the tool may run, such as ``["git", "ls"]``. A name has no

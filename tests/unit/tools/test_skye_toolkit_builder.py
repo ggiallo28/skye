@@ -62,8 +62,8 @@ def test_the_options_reach_the_constructor(plugins):
 async def test_the_tools_run_through_run_with_the_prefixed_name(plugins):
     _jira(plugins)
     toolkit = skye.toolkit("jira")
-    assert [schema.name for schema in await toolkit.list_schemas()] == ["jira.create_issue"]
-    message = await _run(toolkit, "jira.create_issue", title="Broken login")
+    assert [schema.name for schema in await toolkit.list_schemas()] == ["jira_create_issue"]
+    message = await _run(toolkit, "jira_create_issue", title="Broken login")
     assert "PROJ-1" in message.content
 
 
@@ -72,13 +72,13 @@ async def test_the_alias_is_the_prefix_and_two_builds_do_not_share_state(plugins
     _jira(plugins)
     one = skye.toolkit("jira", alias="jira-eu", base_url="https://eu.example")
     two = skye.toolkit("jira", alias="jira-us", base_url="https://us.example")
-    assert [s.name for s in await one.list_schemas()] == ["jira-eu.create_issue"]
-    assert [s.name for s in await two.list_schemas()] == ["jira-us.create_issue"]
-    await _run(one, "jira-eu.create_issue", title="a")
-    await _run(one, "jira-eu.create_issue", title="b")
+    assert [s.name for s in await one.list_schemas()] == ["jira-eu_create_issue"]
+    assert [s.name for s in await two.list_schemas()] == ["jira-us_create_issue"]
+    await _run(one, "jira-eu_create_issue", title="a")
+    await _run(one, "jira-eu_create_issue", title="b")
     assert one.created == ["a", "b"]
     assert two.created == []
-    assert (await _run(two, "jira-us.create_issue", title="c")).content.startswith("PROJ-1 ")
+    assert (await _run(two, "jira-us_create_issue", title="c")).content.startswith("PROJ-1 ")
 
 
 def test_without_an_alias_the_prefix_is_the_registered_name(plugins):
@@ -153,9 +153,9 @@ async def test_the_tools_of_the_registration_are_applied(plugins):
 
     plugins.toolkit("text", tools=[slugify])  # no class: a toolkit made of the listed functions
     toolkit = skye.toolkit("text")
-    assert [s.name for s in await toolkit.list_schemas()] == ["text.slugify"]
+    assert [s.name for s in await toolkit.list_schemas()] == ["text_slugify"]
     assert (
-        await _run(toolkit, "text.slugify", title="Hello Big World")
+        await _run(toolkit, "text_slugify", title="Hello Big World")
     ).content == "hello-big-world"
 
 
@@ -174,7 +174,7 @@ async def test_the_tools_of_the_registration_join_the_methods_of_the_class(plugi
             return "KEY"
 
     names = [s.name for s in await skye.toolkit("jira").list_schemas()]
-    assert names == ["jira.create_issue", "jira.slugify"]
+    assert names == ["jira_create_issue", "jira_slugify"]
 
 
 @pytest.mark.asyncio
@@ -192,8 +192,8 @@ async def test_a_function_that_returns_a_registry_is_a_toolkit(plugins):
         return registry
 
     toolkit = skye.toolkit("notes", prefix="memo", alias="notes-2")
-    assert [s.name for s in await toolkit.list_schemas()] == ["notes-2.add"]
-    assert (await _run(toolkit, "notes-2.add", text="x")).content == "memo: x"
+    assert [s.name for s in await toolkit.list_schemas()] == ["notes-2_add"]
+    assert (await _run(toolkit, "notes-2_add", text="x")).content == "memo: x"
 
 
 def test_a_target_that_builds_something_else_is_an_error(plugins):

@@ -133,7 +133,7 @@ class HumanToolkit(Toolkit):
 
     Args:
         channel: ``"file"`` (default), ``"console"`` or an object with ``send`` and ``poll``.
-        timeout: Seconds ``ask_human`` waits.
+        timeout: Seconds ``ask`` waits.
         poll_interval: Seconds between two looks for an answer.
         **channel_options: Options of the channel, such as ``directory``.
     """
@@ -175,7 +175,7 @@ class HumanToolkit(Toolkit):
         return _ticket_ok(self._channel.send(message))
 
     @capability
-    async def ask_human(self, question: str, context: str = "") -> str:
+    async def ask(self, question: str, context: str = "") -> str:
         """Ask a person and wait for the answer. Use it only when you cannot go on.
 
         Args:

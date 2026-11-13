@@ -6,15 +6,15 @@ The folder is the option ``root``, and it is required. Several folders are the o
 instead (one toolkit for all of them, as
 when an agent is given many skills): every path then starts with the name of its folder, such as
 ``refund-policy/notes.txt``, a name that
-repeats gets a number, and ``list_files`` without a path lists the folders. Each folder keeps its
-own limits. The tools are ``files.list_files`` and ``files.read_file``. They only read:
+repeats gets a number, and ``list`` without a path lists the folders. Each folder keeps its
+own limits. The tools are ``files_list`` and ``files_read``. They only read:
 there is no write, no delete, no execute and no network. Every path the model gives is joined to
 ``root`` and resolved, and it must stay
 inside ``root`` after the links are resolved. An absolute path, a drive path, a NUL character, a
 ``..`` that leaves ``root`` and a link
 that points outside are refused with a plain error that does not name the real path. Hidden entries
 (a name that starts with a dot) are
-left out of a listing and refused by ``read_file``, unless ``include_hidden`` is set.
+left out of a listing and refused by ``read``, unless ``include_hidden`` is set.
 
 Example:
     >>> import asyncio, tempfile, pathlib
@@ -22,16 +22,16 @@ Example:
     >>> _ = (folder / "notes.txt").write_text("hello")
     >>> toolkit = FilesToolkit(root=folder)
     >>> [schema.name for schema in asyncio.run(toolkit.list_schemas())]
-    ['files.list_files', 'files.read_file']
-    >>> toolkit.list_files.execute()
+    ['files_list', 'files_read']
+    >>> toolkit.list_entries.execute()
     ['notes.txt']
-    >>> toolkit.read_file.execute(path="notes.txt")
+    >>> toolkit.read.execute(path="notes.txt")
     'hello'
 
 Raises: ``ValidationError`` at construction when ``root`` is missing or is not a folder, or
 ``max_bytes`` is not a positive number; a tool
-    raises ``CapabilityError`` for a refused path, a missing file, a folder given to ``read_file``,
-    a file given to ``list_files`` and a file
+    raises ``CapabilityError`` for a refused path, a missing file, a folder given to ``read``,
+    a file given to ``list`` and a file
     that is not UTF-8 text, and ``run`` turns it into a message whose status is ``error``.
 Missing: a hidden entry, an entry of a long listing past the limit and the bytes of a long file past
 ``max_bytes`` are not returned, and
@@ -57,14 +57,14 @@ _SNIFF_BYTES = 8192
 
 
 class FilesToolkit(Toolkit):
-    """Read the files under one folder: ``files.list_files`` and ``files.read_file``.
+    """Read the files under one folder: ``files_list`` and ``files_read``.
 
     Args:
         root: The folder the tools may read. Nothing outside it can be read. Required unless
             ``roots`` is given.
         roots: Several folders instead of ``root``; each path starts with the name of its folder.
             Not together with ``root``.
-        max_bytes: The most bytes ``read_file`` returns for one file.
+        max_bytes: The most bytes ``read`` returns for one file.
         include_hidden: Whether a name that starts with a dot is listed and read.
     """
 
@@ -165,8 +165,8 @@ class FilesToolkit(Toolkit):
             )
         return resolved
 
-    @capability
-    def list_files(self, path: str = ".") -> list[str]:
+    @capability(name="list")
+    def list_entries(self, path: str = ".") -> list[str]:
         """List the files and folders in a folder. A folder name ends with a slash.
 
         Args:
@@ -181,7 +181,7 @@ class FilesToolkit(Toolkit):
         if not folder.exists():
             raise CapabilityError(f"'{path}' does not exist")
         if not folder.is_dir():
-            raise CapabilityError(f"'{path}' is a file, not a folder; use read_file")
+            raise CapabilityError(f"'{path}' is a file, not a folder; use read")
         names = []
         for entry in folder.iterdir():
             if not self._include_hidden and entry.name.startswith("."):
@@ -194,7 +194,7 @@ class FilesToolkit(Toolkit):
         return names
 
     @capability
-    def read_file(self, path: str) -> str:
+    def read(self, path: str) -> str:
         """Read a text file (UTF-8). A long file is cut and the result says so.
 
         Args:
@@ -204,7 +204,7 @@ class FilesToolkit(Toolkit):
         if not target.exists():
             raise CapabilityError(f"'{path}' does not exist")
         if target.is_dir():
-            raise CapabilityError(f"'{path}' is a folder, not a file; use list_files")
+            raise CapabilityError(f"'{path}' is a folder, not a file; use list")
         if not target.is_file():
             raise CapabilityError(f"'{path}' is not a regular file")
         size = target.stat().st_size

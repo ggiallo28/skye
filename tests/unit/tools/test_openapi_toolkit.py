@@ -94,7 +94,7 @@ def recorder(monkeypatch: pytest.MonkeyPatch) -> Recorder:
 
 
 async def call(toolkit: OpenApiToolkit, name: str, **arguments: object):
-    return await toolkit.run(CapabilityCall(id="1", name=f"openapi.{name}", arguments=arguments))
+    return await toolkit.run(CapabilityCall(id="1", name=f"openapi_{name}", arguments=arguments))
 
 
 async def names(toolkit: OpenApiToolkit) -> list[str]:
@@ -130,12 +130,12 @@ def test_a_registrar_with_the_tools_door_gets_the_text_target():
 
 
 async def test_only_the_get_operations_with_an_operation_id_are_tools_by_default():
-    assert await names(OpenApiToolkit(spec=DOC)) == ["openapi.getPet"]
+    assert await names(OpenApiToolkit(spec=DOC)) == ["openapi_getPet"]
 
 
 async def test_allow_lists_the_tools_whatever_their_method():
     toolkit = OpenApiToolkit(spec=DOC, allow=["addPet", "deletePet"])
-    assert await names(toolkit) == ["openapi.addPet", "openapi.deletePet"]
+    assert await names(toolkit) == ["openapi_addPet", "openapi_deletePet"]
 
 
 async def test_the_schema_has_the_path_and_query_parameters_and_the_summary():
@@ -327,7 +327,7 @@ async def test_a_transport_failure_is_an_error_message(recorder: Recorder):
 
 async def test_the_alias_is_the_prefix():
     toolkit = skye.toolkit("openapi", spec=DOC, alias="pets")
-    assert await names(toolkit) == ["pets.getPet"]
+    assert await names(toolkit) == ["pets_getPet"]
 
 
 def test_importing_skye_tools_does_not_import_the_openapi_module():

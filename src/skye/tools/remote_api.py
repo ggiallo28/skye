@@ -38,12 +38,12 @@ class RemoteAPICapability(CapabilityInterface):
 
     Example:
         >>> capability = RemoteAPICapability(
-        ...     name="weather.get_current",
+        ...     name="weather_get_current",
         ...     description="Get current weather",
         ...     url="https://api.weather.com/current",
         ...     method="GET",
         ...     schema=CapabilitySchema(
-        ...         name="weather.get_current",
+        ...         name="weather_get_current",
         ...         description="Get current weather",
         ...         parameters={
         ...             "type": "object",

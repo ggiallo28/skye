@@ -61,9 +61,9 @@ def test_a_toolkit_with_no_class_is_the_list_of_its_tools(plugins: Plugins, priv
     toolkit = build_toolkit("text", private)
     assert isinstance(toolkit, ToolSet)
     assert isinstance(toolkit, ToolProvider)
-    assert names(toolkit) == ["text.slugify", "text.word_count"]
-    assert run(toolkit, "text.slugify", title="Hello World").content == "hello-world"
-    assert run(toolkit, "text.word_count", text="a b c").content == "3"
+    assert names(toolkit) == ["text_slugify", "text_word_count"]
+    assert run(toolkit, "text_slugify", title="Hello World").content == "hello-world"
+    assert run(toolkit, "text_word_count", text="a b c").content == "3"
 
 
 def test_the_class_of_a_toolkit_with_no_class_is_found_by_get(plugins: Plugins, private: Registrar):
@@ -101,9 +101,9 @@ def test_the_methods_and_the_listed_functions_are_all_tools_with_the_prefix(
 ):
     make_jira(plugins)
     toolkit = build_toolkit("jira", private, base_url="https://x.example")
-    assert names(toolkit) == ["jira.create_issue", "jira.slugify"]
-    assert run(toolkit, "jira.create_issue", title="T").content == "PROJ-1 at https://x.example: T"
-    assert run(toolkit, "jira.slugify", title="A B").content == "a-b"
+    assert names(toolkit) == ["jira_create_issue", "jira_slugify"]
+    assert run(toolkit, "jira_create_issue", title="T").content == "PROJ-1 at https://x.example: T"
+    assert run(toolkit, "jira_slugify", title="A B").content == "a-b"
 
 
 def test_the_toolkit_name_is_the_registered_name(plugins: Plugins, private: Registrar):
@@ -117,23 +117,23 @@ def test_an_alias_takes_the_place_of_the_name_in_the_prefix(plugins: Plugins, pr
     make_jira(plugins)
     toolkit = build_toolkit("jira", private)
     toolkit.alias = "jira-eu"
-    assert names(toolkit) == ["jira-eu.create_issue", "jira-eu.slugify"]
-    assert run(toolkit, "jira-eu.slugify", title="A B").content == "a-b"
-    assert run(toolkit, "jira.slugify", title="A B").status == CapabilityStatus.ERROR
+    assert names(toolkit) == ["jira-eu_create_issue", "jira-eu_slugify"]
+    assert run(toolkit, "jira-eu_slugify", title="A B").content == "a-b"
+    assert run(toolkit, "jira_slugify", title="A B").status == CapabilityStatus.ERROR
 
 
 def test_two_builds_of_one_toolkit_do_not_share_the_tools(plugins: Plugins, private: Registrar):
     make_jira(plugins)
     first = build_toolkit("jira", private, base_url="https://one.example")
     second = build_toolkit("jira", private, base_url="https://two.example")
-    assert "one.example" in run(first, "jira.create_issue", title="T").content
-    assert "two.example" in run(second, "jira.create_issue", title="T").content
+    assert "one.example" in run(first, "jira_create_issue", title="T").content
+    assert "two.example" in run(second, "jira_create_issue", title="T").content
 
 
 def test_a_toolkit_made_by_hand_does_not_have_the_registered_tools(plugins: Plugins):
     cls = make_jira(plugins)
     assert names(cls()) == [
-        "jira.create_issue"
+        "jira_create_issue"
     ]  # only build_toolkit adds the tools= of the registration
 
 
@@ -145,7 +145,7 @@ def test_a_call_with_a_class_and_tools_does_the_same(plugins: Plugins, private: 
             return text
 
     plugins.toolkit("notes", NotesToolkit, tools=[slugify])
-    assert names(build_toolkit("notes", private)) == ["notes.note", "notes.slugify"]
+    assert names(build_toolkit("notes", private)) == ["notes_note", "notes_slugify"]
 
 
 # -- the clash of two names
@@ -223,10 +223,10 @@ def test_a_function_that_returns_a_registry_is_a_toolkit_with_the_prefix(
     make_registry_function(plugins)
     toolkit = build_toolkit("jira", private, base_url="https://x.example")
     assert isinstance(toolkit, ToolProvider)
-    assert names(toolkit) == ["jira.create_issue"]
-    message = run(toolkit, "jira.create_issue", title="T")
+    assert names(toolkit) == ["jira_create_issue"]
+    message = run(toolkit, "jira_create_issue", title="T")
     assert message.content == "PROJ-1 at https://x.example: T"
-    assert message.capability_name == "jira.create_issue"  # the answer carries the prefixed name
+    assert message.capability_name == "jira_create_issue"  # the answer carries the prefixed name
 
 
 def test_a_registry_toolkit_takes_an_alias_and_the_listed_functions(
@@ -236,7 +236,7 @@ def test_a_registry_toolkit_takes_an_alias_and_the_listed_functions(
     plugins.toolkit("jira", lambda: CapabilityRegistry(), tools=[slugify], replace=True)
     toolkit = build_toolkit("jira", private)
     toolkit.alias = "jira-eu"
-    assert names(toolkit) == ["jira-eu.slugify"]
+    assert names(toolkit) == ["jira-eu_slugify"]
 
 
 def test_a_registry_toolkit_runs_the_tools_of_the_registry_and_the_listed_ones(
@@ -249,10 +249,10 @@ def test_a_registry_toolkit_runs_the_tools_of_the_registry_and_the_listed_ones(
         return registry
 
     toolkit = build_toolkit("both", private)
-    assert names(toolkit) == ["both.slugify", "both.word_count"]
-    assert run(toolkit, "both.slugify", title="A B").content == "a-b"
-    assert run(toolkit, "both.word_count", text="a b").content == "2"
-    assert run(toolkit, "both.nope").status == CapabilityStatus.ERROR
+    assert names(toolkit) == ["both_slugify", "both_word_count"]
+    assert run(toolkit, "both_slugify", title="A B").content == "a-b"
+    assert run(toolkit, "both_word_count", text="a b").content == "2"
+    assert run(toolkit, "both_nope").status == CapabilityStatus.ERROR
 
 
 def test_close_goes_to_the_registry(plugins: Plugins, private: Registrar):
@@ -286,4 +286,4 @@ def test_the_default_registrar_is_the_one_that_is_read_when_none_is_given():
     with restored_default_registrar():
         plugins = Plugins()
         plugins.toolkit("on_default", tools=[slugify])
-        assert names(build_toolkit("on_default")) == ["on_default.slugify"]
+        assert names(build_toolkit("on_default")) == ["on_default_slugify"]

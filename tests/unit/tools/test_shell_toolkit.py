@@ -38,7 +38,7 @@ def test_the_options_and_their_errors(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_the_schema_has_the_prefix_and_no_self():
     schemas = await ShellToolkit(allow=["echo"]).list_schemas()
-    assert [s.name for s in schemas] == ["shell.run_command"]
+    assert [s.name for s in schemas] == ["shell_run_command"]
     assert "self" not in schemas[0].parameters["properties"]
     assert schemas[0].parameters["required"] == ["command"]
 
@@ -127,11 +127,11 @@ def test_the_program_runs_in_cwd(tmp_path: Path):
 async def test_a_refused_command_is_an_error_message_and_not_an_exception():
     toolkit = ShellToolkit(allow=["echo"])
     message = await toolkit.run(
-        CapabilityCall(id="1", name="shell.run_command", arguments={"command": "rm x"})
+        CapabilityCall(id="1", name="shell_run_command", arguments={"command": "rm x"})
     )
     assert message.status == CapabilityStatus.ERROR
     ok = await toolkit.run(
-        CapabilityCall(id="2", name="shell.run_command", arguments={"command": "echo hi"})
+        CapabilityCall(id="2", name="shell_run_command", arguments={"command": "echo hi"})
     )
     assert ok.status == CapabilityStatus.OK and "hi" in ok.content
 

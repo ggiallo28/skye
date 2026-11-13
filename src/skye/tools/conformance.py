@@ -94,8 +94,8 @@ async def check_toolkit(toolkit: Any, **config: Any) -> list[str]:
         )
         prefix = built[0]._prefix() if hasattr(built[0], "_prefix") else None
         require(
-            prefix is None or all(name.startswith(f"{prefix}.") for name in names),
-            f"the names of the tools must start with '{prefix}.'",
+            prefix is None or all(name.startswith(f"{prefix}_") for name in names),
+            f"the names of the tools must start with '{prefix}_'",
         )
 
     async def closes() -> None:

@@ -46,7 +46,9 @@ def loud(text: str) -> str:
 def test_the_default_is_false() -> None:
     assert plain.get_schema().return_direct is False
     assert CapabilitySchema(name="n", description="d").return_direct is False
-    assert LocalFunctionCapability(lambda text: text).get_schema().return_direct is False
+    assert (
+        LocalFunctionCapability(lambda text: text, name="echo").get_schema().return_direct is False
+    )
 
 
 def test_the_flag_is_on_the_schema() -> None:

@@ -296,13 +296,13 @@ async def test_a_toolkit_with_a_badly_named_tool_fails_schemas():
         return Odd
 
     await failing(
-        check_toolkit(schemas_of(("other.now", "d"))), "schemas"
+        check_toolkit(schemas_of(("other_now", "d"))), "schemas"
     )  # not the prefix of the toolkit
     await failing(
-        check_toolkit(schemas_of(("odd.a", "d"), ("odd.a", "d"))), "schemas"
+        check_toolkit(schemas_of(("odd_a", "d"), ("odd_a", "d"))), "schemas"
     )  # one name twice
-    await failing(check_toolkit(schemas_of(("odd.a", " "))), "schemas")  # no description
-    assert "schemas" in await check_toolkit(schemas_of(("odd.a", "d")))
+    await failing(check_toolkit(schemas_of(("odd_a", " "))), "schemas")  # no description
+    assert "schemas" in await check_toolkit(schemas_of(("odd_a", "d")))
 
 
 # template filter

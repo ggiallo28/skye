@@ -56,7 +56,7 @@ class CapabilityCall(Validated):
     Example:
         >>> capability_call = CapabilityCall(
         ...     id="call_123",
-        ...     name="weather.get_current",
+        ...     name="weather_get_current",
         ...     arguments={"location": "San Francisco"}
         ... )
         >>> capability_call.execute().is_error  # no capability is attached to this call
@@ -284,7 +284,7 @@ class CompleteResponse(Validated):
         ...     capability_calls=[
         ...         CapabilityCall(
         ...             id="call_123",
-        ...             name="weather.get_current",
+        ...             name="weather_get_current",
         ...             arguments={"location": "San Francisco"}
         ...         )
         ...     ]

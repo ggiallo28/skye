@@ -47,7 +47,7 @@ Read in this order, from the simplest (a function) to the longest (a provider):
 | embedding provider | `@plugins.provider("name")` | a class with `aencode` | `embedding_provider.py` |
 | model provider | `@plugins.provider("name", profile=...)` | a class with `generate`, or `plugins.provider("name", cls, profile=...)` | `model_provider.py` |
 | MCP client | `@plugins.mcp_client("name")` | a class | `mcp_client.py` |
-| toolkit | `@plugins.toolkit("name")` | a class that is a `ToolProvider` | `custom_toolkit.py` |
+| toolkit | `@plugins.toolkit("name")` | a class that extends `skye.Toolkit`, or `tools=[...]` | `custom_toolkit.py` |
 
 Run: `python examples/plugins/template_filter.py`
 

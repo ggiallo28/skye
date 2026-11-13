@@ -21,7 +21,7 @@ Example:
     >>> paths = {"/pets/{id}": {"get": get}}
     >>> doc = {"openapi": "3.0.0", "servers": [{"url": "https://api.example.com"}], "paths": paths}
     >>> [schema.name for schema in asyncio.run(OpenApiToolkit(spec=doc).list_schemas())]
-    ['openapi.getPet']
+    ['openapi_getPet']
 
 Raises: ``ValidationError`` at construction when ``spec`` is missing, cannot be read, is YAML or is
 not an OpenAPI document, when no ``base_url`` is

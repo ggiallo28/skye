@@ -120,13 +120,13 @@ def test_every_old_public_call_of_the_capability_registry_still_works(registrar)
 
 
 def test_namespaces_still_work(registrar):
-    @capability(name="text.words")
+    @capability(name="text_words")
     def words(text: str) -> int:
         """Count the words of a text."""
         return len(text.split())
 
     registry = CapabilityRegistry(capabilities=[words, char_count])
-    assert [c.get_schema().name for c in registry.get_by_namespace("text")] == ["text.words"]
+    assert [c.get_schema().name for c in registry.get_by_namespace("text")] == ["text_words"]
 
 
 # -- prompt filters

@@ -30,7 +30,7 @@ def tree(tmp_path: Path) -> Path:
 
 
 async def call(toolkit: FilesToolkit, name: str, **arguments: object):
-    return await toolkit.run(CapabilityCall(id="1", name=f"files.{name}", arguments=arguments))
+    return await toolkit.run(CapabilityCall(id="1", name=f"files_{name}", arguments=arguments))
 
 
 def snapshot(folder: Path) -> list[tuple[str, int, int]]:
@@ -88,56 +88,56 @@ def test_max_bytes_must_be_a_positive_number(tree: Path, value):
 
 def test_root_accepts_text_and_a_path(tree: Path):
     assert (
-        FilesToolkit(root=str(tree)).list_files.execute()
-        == FilesToolkit(root=tree).list_files.execute()
+        FilesToolkit(root=str(tree)).list_entries.execute()
+        == FilesToolkit(root=tree).list_entries.execute()
     )
 
 
-# -- list_files and read_file
+# -- list and read
 # -------------------------------------------------------------------------------------------
 
 
-async def test_list_files_returns_sorted_names_and_marks_folders(tree: Path):
+async def test_list_returns_sorted_names_and_marks_folders(tree: Path):
     toolkit = FilesToolkit(root=tree)
-    assert toolkit.list_files.execute() == ["docs/", "notes.txt", "src/"]
-    assert toolkit.list_files.execute(path="src") == ["app.py"]
-    assert toolkit.list_files.execute(path=".") == toolkit.list_files.execute()
+    assert toolkit.list_entries.execute() == ["docs/", "notes.txt", "src/"]
+    assert toolkit.list_entries.execute(path="src") == ["app.py"]
+    assert toolkit.list_entries.execute(path=".") == toolkit.list_entries.execute()
 
 
-async def test_read_file_returns_the_text(tree: Path):
+async def test_read_returns_the_text(tree: Path):
     toolkit = FilesToolkit(root=tree)
-    assert toolkit.read_file.execute(path="notes.txt") == "hello\nworld\n"
-    assert toolkit.read_file.execute(path="src/app.py") == "print('hi')\n"
+    assert toolkit.read.execute(path="notes.txt") == "hello\nworld\n"
+    assert toolkit.read.execute(path="src/app.py") == "print('hi')\n"
     assert (
-        toolkit.read_file.execute(path="src/../notes.txt") == "hello\nworld\n"
+        toolkit.read.execute(path="src/../notes.txt") == "hello\nworld\n"
     )  # a ".." that stays inside
 
 
 async def test_a_run_by_the_prefixed_name_gives_an_ok_message(tree: Path):
     toolkit = FilesToolkit(root=tree)
-    message = await call(toolkit, "read_file", path="notes.txt")
+    message = await call(toolkit, "read", path="notes.txt")
     assert message.status is CapabilityStatus.OK
     assert message.content == "hello\nworld\n"
-    listing = await call(toolkit, "list_files")
+    listing = await call(toolkit, "list")
     assert listing.status is CapabilityStatus.OK
     assert "notes.txt" in listing.content
 
 
 async def test_hidden_entries_are_left_out_and_refused_unless_asked_for(tree: Path):
     toolkit = FilesToolkit(root=tree)
-    assert ".secret" not in toolkit.list_files.execute()
-    refused = await call(toolkit, "read_file", path=".secret")
+    assert ".secret" not in toolkit.list_entries.execute()
+    refused = await call(toolkit, "read", path=".secret")
     assert refused.status is CapabilityStatus.ERROR
     assert "hidden" in refused.content
     shown = FilesToolkit(root=tree, include_hidden=True)
-    assert ".secret" in shown.list_files.execute()
-    assert shown.read_file.execute(path=".secret") == "token"
+    assert ".secret" in shown.list_entries.execute()
+    assert shown.read.execute(path=".secret") == "token"
 
 
 async def test_a_long_listing_is_cut_and_says_so(tmp_path: Path):
     for number in range(520):
         (tmp_path / f"f{number:04d}.txt").write_text("x")
-    names = FilesToolkit(root=tmp_path).list_files.execute()
+    names = FilesToolkit(root=tmp_path).list_entries.execute()
     assert len(names) == 501
     assert names[0] == "f0000.txt" and names[499] == "f0499.txt"
     assert names[-1] == "[20 more entries not shown]"
@@ -145,7 +145,7 @@ async def test_a_long_listing_is_cut_and_says_so(tmp_path: Path):
 
 async def test_a_long_file_is_cut_and_says_so(tmp_path: Path):
     (tmp_path / "big.txt").write_text("a" * 1000)
-    text = FilesToolkit(root=tmp_path, max_bytes=100).read_file.execute(path="big.txt")
+    text = FilesToolkit(root=tmp_path, max_bytes=100).read.execute(path="big.txt")
     assert text.startswith("a" * 100 + "\n[cut: ")
     assert "first 100 of 1000 bytes" in text
     assert text.split("\n")[0] == "a" * 100
@@ -153,12 +153,12 @@ async def test_a_long_file_is_cut_and_says_so(tmp_path: Path):
 
 async def test_a_file_that_fits_has_no_marker(tmp_path: Path):
     (tmp_path / "ok.txt").write_text("a" * 100)
-    assert FilesToolkit(root=tmp_path, max_bytes=100).read_file.execute(path="ok.txt") == "a" * 100
+    assert FilesToolkit(root=tmp_path, max_bytes=100).read.execute(path="ok.txt") == "a" * 100
 
 
 async def test_a_cut_inside_a_character_is_not_an_error(tmp_path: Path):
     (tmp_path / "wide.txt").write_text("é" * 100, encoding="utf-8")  # two bytes each
-    text = FilesToolkit(root=tmp_path, max_bytes=101).read_file.execute(path="wide.txt")
+    text = FilesToolkit(root=tmp_path, max_bytes=101).read.execute(path="wide.txt")
     assert text.startswith("é" * 50 + "\n[cut: ")
 
 
@@ -167,20 +167,20 @@ async def test_a_binary_file_is_refused(tmp_path: Path):
     (tmp_path / "latin.txt").write_bytes("caf\xe9".encode("latin-1"))
     toolkit = FilesToolkit(root=tmp_path)
     for name in ("data.bin", "latin.txt"):
-        message = await call(toolkit, "read_file", path=name)
+        message = await call(toolkit, "read", path=name)
         assert message.status is CapabilityStatus.ERROR
         assert "text file" in message.content
 
 
-async def test_a_folder_given_to_read_file_and_a_file_given_to_list_files_are_clear_errors(
+async def test_a_folder_given_to_read_and_a_file_given_to_list_are_clear_errors(
     tree: Path,
 ):
     toolkit = FilesToolkit(root=tree)
-    folder = await call(toolkit, "read_file", path="src")
-    assert folder.status is CapabilityStatus.ERROR and "list_files" in folder.content
-    file = await call(toolkit, "list_files", path="notes.txt")
-    assert file.status is CapabilityStatus.ERROR and "read_file" in file.content
-    missing = await call(toolkit, "read_file", path="nothing.txt")
+    folder = await call(toolkit, "read", path="src")
+    assert folder.status is CapabilityStatus.ERROR and "list" in folder.content
+    file = await call(toolkit, "list", path="notes.txt")
+    assert file.status is CapabilityStatus.ERROR and "read" in file.content
+    missing = await call(toolkit, "read", path="nothing.txt")
     assert missing.status is CapabilityStatus.ERROR and "does not exist" in missing.content
 
 
@@ -205,7 +205,7 @@ async def test_a_folder_given_to_read_file_and_a_file_given_to_list_files_are_cl
 async def test_a_path_that_leaves_the_root_is_refused(tree: Path, path: str):
     (tree.parent / "outside.txt").write_text("secret")
     toolkit = FilesToolkit(root=tree)
-    for name in ("read_file", "list_files"):
+    for name in ("read", "list"):
         message = await call(toolkit, name, path=path)
         assert message.status is CapabilityStatus.ERROR, (name, path)
         assert "secret" not in message.content
@@ -219,7 +219,7 @@ async def test_a_sibling_folder_with_the_same_prefix_is_refused(tmp_path: Path):
     other.mkdir()
     (other / "x.txt").write_text("secret")
     toolkit = FilesToolkit(root=root)
-    message = await call(toolkit, "read_file", path="../project-other/x.txt")
+    message = await call(toolkit, "read", path="../project-other/x.txt")
     assert message.status is CapabilityStatus.ERROR
     assert "secret" not in message.content
 
@@ -240,13 +240,11 @@ async def test_a_link_that_points_outside_is_refused(tmp_path: Path):
     (root / "real.txt").write_text("fine")
     toolkit = FilesToolkit(root=root)
     for path in ("file-link", "folder-link/x.txt"):
-        message = await call(toolkit, "read_file", path=path)
+        message = await call(toolkit, "read", path=path)
         assert message.status is CapabilityStatus.ERROR, path
         assert "secret" not in message.content
-    assert (await call(toolkit, "list_files", path="folder-link")).status is CapabilityStatus.ERROR
-    assert (
-        toolkit.read_file.execute(path="inside-link") == "fine"
-    )  # a link that stays inside is allowed
+    assert (await call(toolkit, "list", path="folder-link")).status is CapabilityStatus.ERROR
+    assert toolkit.read.execute(path="inside-link") == "fine"  # a link that stays inside is allowed
 
 
 @pytest.mark.skipif(not hasattr(os, "symlink"), reason="no symbolic links on this platform")
@@ -258,7 +256,7 @@ async def test_a_root_that_is_a_link_is_resolved_once(tmp_path: Path):
         (tmp_path / "link").symlink_to(real, target_is_directory=True)
     except OSError:
         pytest.skip("symbolic links are not allowed here")
-    assert FilesToolkit(root=tmp_path / "link").read_file.execute(path="x.txt") == "ok"
+    assert FilesToolkit(root=tmp_path / "link").read.execute(path="x.txt") == "ok"
 
 
 # -- read only, schemas, errors
@@ -269,48 +267,48 @@ async def test_nothing_is_written_by_any_call(tree: Path):
     before = snapshot(tree)
     toolkit = FilesToolkit(root=tree)
     for name, arguments in [
-        ("list_files", {}),
-        ("list_files", {"path": "src"}),
-        ("read_file", {"path": "notes.txt"}),
-        ("read_file", {"path": "../x"}),
-        ("read_file", {"path": ".secret"}),
-        ("read_file", {"path": "src"}),
+        ("list", {}),
+        ("list", {"path": "src"}),
+        ("read", {"path": "notes.txt"}),
+        ("read", {"path": "../x"}),
+        ("read", {"path": ".secret"}),
+        ("read", {"path": "src"}),
     ]:
         await call(toolkit, name, **arguments)
     assert snapshot(tree) == before
     assert {schema.name for schema in await toolkit.list_schemas()} == {
-        "files.list_files",
-        "files.read_file",
+        "files_list",
+        "files_read",
     }
 
 
 async def test_the_schemas_carry_the_prefix_and_have_no_self(tree: Path):
     schemas = {s.name: s for s in await FilesToolkit(root=tree).list_schemas()}
-    assert set(schemas) == {"files.list_files", "files.read_file"}
+    assert set(schemas) == {"files_list", "files_read"}
     for schema in schemas.values():
         assert "self" not in schema.parameters["properties"]
         assert schema.description
-    assert schemas["files.read_file"].parameters["required"] == ["path"]
+    assert schemas["files_read"].parameters["required"] == ["path"]
     assert (
-        "required" not in schemas["files.list_files"].parameters
-        or not schemas["files.list_files"].parameters["required"]
+        "required" not in schemas["files_list"].parameters
+        or not schemas["files_list"].parameters["required"]
     )
 
 
 async def test_a_failing_call_is_an_error_message_and_not_an_exception(tree: Path):
-    message = await call(FilesToolkit(root=tree), "read_file", path="../../etc/passwd")
+    message = await call(FilesToolkit(root=tree), "read", path="../../etc/passwd")
     assert message.status is CapabilityStatus.ERROR
     assert message.content.startswith("Error: ")
     unknown = await call(FilesToolkit(root=tree), "delete_file", path="notes.txt")
     assert unknown.status is CapabilityStatus.ERROR
-    wrong_type = await call(FilesToolkit(root=tree), "read_file", path=5)
+    wrong_type = await call(FilesToolkit(root=tree), "read", path=5)
     assert wrong_type.status is CapabilityStatus.ERROR
 
 
 async def test_the_built_toolkit_takes_an_alias(tree: Path):
     toolkit = skye.toolkit("files", alias="docs-files", root=tree)
     names = {s.name for s in await toolkit.list_schemas()}
-    assert names == {"docs-files.list_files", "docs-files.read_file"}
+    assert names == {"docs-files_list", "docs-files_read"}
 
 
 async def test_two_toolkits_keep_their_own_root(
@@ -319,8 +317,8 @@ async def test_two_toolkits_keep_their_own_root(
     other = tmp_path_factory.mktemp("other")
     (other / "only-here.txt").write_text("x")
     first, second = FilesToolkit(root=tree), FilesToolkit(root=other)
-    assert "only-here.txt" in second.list_files.execute()
-    assert "only-here.txt" not in first.list_files.execute()
+    assert "only-here.txt" in second.list_entries.execute()
+    assert "only-here.txt" not in first.list_entries.execute()
 
 
 # -- loading
@@ -359,18 +357,18 @@ def _two_roots(tmp_path):
 
 def test_roots_list_the_names_and_a_repeated_name_gets_a_number(tmp_path):
     toolkit, _, _ = _two_roots(tmp_path)
-    assert toolkit.list_files.execute() == ["refund/", "refund-2/"]
-    assert toolkit.list_files.execute(path=".") == ["refund/", "refund-2/"]
-    assert toolkit.list_files.execute(path="refund-2") == ["references/"]
+    assert toolkit.list_entries.execute() == ["refund/", "refund-2/"]
+    assert toolkit.list_entries.execute(path=".") == ["refund/", "refund-2/"]
+    assert toolkit.list_entries.execute(path="refund-2") == ["references/"]
 
 
 def test_roots_read_each_folder_by_its_name_and_keep_two_tools(tmp_path):
     toolkit, _, _ = _two_roots(tmp_path)
-    assert toolkit.read_file.execute(path="refund/references/n.md") == "text 0"
-    assert toolkit.read_file.execute(path="refund-2/references/n.md") == "text 1"
+    assert toolkit.read.execute(path="refund/references/n.md") == "text 0"
+    assert toolkit.read.execute(path="refund-2/references/n.md") == "text 1"
     assert [s.name for s in asyncio.run(toolkit.list_schemas())] == [
-        "files.list_files",
-        "files.read_file",
+        "files_list",
+        "files_read",
     ]
 
 
@@ -388,7 +386,7 @@ def test_roots_read_each_folder_by_its_name_and_keep_two_tools(tmp_path):
 def test_roots_keep_the_limits_of_each_folder(tmp_path, path):
     toolkit, _, _ = _two_roots(tmp_path)
     with pytest.raises(CapabilityError) as error:
-        toolkit.read_file.execute(path=path)
+        toolkit.read.execute(path=path)
     assert str(tmp_path) not in str(error.value)  # the real path is never named
 
 
@@ -396,7 +394,7 @@ def test_roots_refuse_a_link_that_leaves_its_folder(tmp_path):
     toolkit, first, _ = _two_roots(tmp_path)
     (first / "link.txt").symlink_to(tmp_path / "outside.txt")
     with pytest.raises(CapabilityError):
-        toolkit.read_file.execute(path="refund/link.txt")
+        toolkit.read.execute(path="refund/link.txt")
 
 
 def test_roots_options_are_checked(tmp_path):
@@ -408,6 +406,6 @@ def test_roots_options_are_checked(tmp_path):
         FilesToolkit(roots=[])
     with pytest.raises(ValidationError):
         FilesToolkit(roots=[folder, tmp_path / "missing"])
-    assert FilesToolkit(roots=[folder, folder]).list_files.execute() == [
+    assert FilesToolkit(roots=[folder, folder]).list_entries.execute() == [
         "f/"
     ]  # the same folder twice is one

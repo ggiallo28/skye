@@ -48,42 +48,42 @@ def _call(name: str, **arguments: object) -> CapabilityCall:
 async def test_methods_are_listed_with_the_prefix_of_the_class_name():
     schemas = await JiraToolkit().list_schemas()
     assert [schema.name for schema in schemas] == [
-        "jira.close_issue",
-        "jira.create_issue",
-        "jira.fetch",
-        "jira.slugify",
+        "jira_close_issue",
+        "jira_create_issue",
+        "jira_fetch",
+        "jira_slugify",
     ]
 
 
 async def test_a_name_of_its_own_and_a_description_are_kept():
     by_name = {schema.name: schema for schema in await JiraToolkit().list_schemas()}
-    assert by_name["jira.close_issue"].description == "Close an issue that is done."
+    assert by_name["jira_close_issue"].description == "Close an issue that is done."
 
 
 async def test_a_call_runs_by_the_prefixed_name():
     message = await JiraToolkit(base_url="https://x.example").run(
-        _call("jira.create_issue", title="Broken login")
+        _call("jira_create_issue", title="Broken login")
     )
     assert message.status == CapabilityStatus.OK
     assert message.content == "PROJ-1 at https://x.example: Broken login"
-    assert message.capability_name == "jira.create_issue"
+    assert message.capability_name == "jira_create_issue"
 
 
 async def test_an_async_method_runs():
-    message = await JiraToolkit().run(_call("jira.fetch", key="A-1"))
+    message = await JiraToolkit().run(_call("jira_fetch", key="A-1"))
     assert message.content == "A-1 from https://acme.example"
 
 
 async def test_two_instances_keep_their_own_state():
     first, second = JiraToolkit(base_url="https://one"), JiraToolkit(base_url="https://two")
-    one = await first.run(_call("jira.fetch", key="K"))
-    two = await second.run(_call("jira.fetch", key="K"))
+    one = await first.run(_call("jira_fetch", key="K"))
+    two = await second.run(_call("jira_fetch", key="K"))
     assert (one.content, two.content) == ("K from https://one", "K from https://two")
 
 
 async def test_a_staticmethod_capability_is_a_tool_with_no_self():
     toolkit = JiraToolkit()
-    message = await toolkit.run(_call("jira.slugify", title="Broken Login Page"))
+    message = await toolkit.run(_call("jira_slugify", title="Broken Login Page"))
     assert message.content == "broken-login-page"
     # The same function stays a free tool outside the toolkit.
     assert slugify.execute(title="A B") == "a-b"
@@ -98,8 +98,8 @@ async def test_self_is_in_no_schema():
 async def test_the_toolkit_name_is_the_prefix_when_it_is_set():
     toolkit = JiraToolkit()
     toolkit.toolkit_name = "tracker"
-    assert [s.name for s in await toolkit.list_schemas()][0] == "tracker.close_issue"
-    assert (await toolkit.run(_call("tracker.fetch", key="K"))).status == CapabilityStatus.OK
+    assert [s.name for s in await toolkit.list_schemas()][0] == "tracker_close_issue"
+    assert (await toolkit.run(_call("tracker_fetch", key="K"))).status == CapabilityStatus.OK
 
 
 async def test_an_alias_replaces_the_toolkit_name():
@@ -107,9 +107,9 @@ async def test_an_alias_replaces_the_toolkit_name():
     eu.toolkit_name, eu.alias = "jira", "jira-eu"
     us = JiraToolkit(base_url="https://us")
     us.toolkit_name, us.alias = "jira", "jira-us"
-    assert (await eu.run(_call("jira-eu.fetch", key="K"))).content == "K from https://eu"
-    assert (await us.run(_call("jira-us.fetch", key="K"))).content == "K from https://us"
-    unknown = await eu.run(_call("jira.fetch", key="K"))
+    assert (await eu.run(_call("jira-eu_fetch", key="K"))).content == "K from https://eu"
+    assert (await us.run(_call("jira-us_fetch", key="K"))).content == "K from https://us"
+    unknown = await eu.run(_call("jira_fetch", key="K"))
     assert unknown.status == CapabilityStatus.ERROR
 
 
@@ -117,11 +117,11 @@ async def test_a_prefix_set_after_the_first_use_is_taken():
     toolkit = JiraToolkit()
     await toolkit.list_schemas()
     toolkit.alias = "late"
-    assert (await toolkit.run(_call("late.fetch", key="K"))).status == CapabilityStatus.OK
+    assert (await toolkit.run(_call("late_fetch", key="K"))).status == CapabilityStatus.OK
 
 
 async def test_an_unknown_name_is_an_error_message_and_does_not_raise():
-    message = await JiraToolkit().run(_call("jira.nothing"))
+    message = await JiraToolkit().run(_call("jira_nothing"))
     assert message.status == CapabilityStatus.ERROR
     assert "not found" in message.content
 
@@ -133,7 +133,7 @@ async def test_a_failing_tool_is_an_error_message():
             """Always fails."""
             raise RuntimeError("no luck")
 
-    message = await Failing().run(_call("failing.boom"))
+    message = await Failing().run(_call("failing_boom"))
     assert message.status == CapabilityStatus.ERROR
     assert "no luck" in message.content
 
@@ -202,4 +202,4 @@ async def test_a_toolkit_without_the_class_suffix_uses_its_whole_name():
             """Today."""
             return "sunny"
 
-    assert [s.name for s in await Weather().list_schemas()] == ["weather.today"]
+    assert [s.name for s in await Weather().list_schemas()] == ["weather_today"]

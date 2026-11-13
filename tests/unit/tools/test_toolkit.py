@@ -79,10 +79,10 @@ async def test_a_toolkit_is_built_by_name_and_lists_its_tools_with_the_prefix(pl
     jira = skye.toolkit("jira", base_url="https://acme.example/jira")
     names = [schema.name for schema in await jira.list_schemas()]
     assert sorted(names) == [
-        "jira.close_issue",  # the name of its own, not `move_to_done`
-        "jira.create_issue",
-        "jira.issue_url",
-        "jira.slugify",  # the function written outside the class
+        "jira_close_issue",  # the name of its own, not `move_to_done`
+        "jira_create_issue",
+        "jira_issue_url",
+        "jira_slugify",  # the function written outside the class
     ]
 
 
@@ -90,12 +90,12 @@ async def test_a_toolkit_is_built_by_name_and_lists_its_tools_with_the_prefix(pl
 async def test_each_tool_runs_by_its_prefixed_name(plugins):
     register_jira(plugins)
     jira = skye.toolkit("jira", base_url="https://acme.example/jira")
-    assert await run(jira, "jira.create_issue", title="Broken login") == (
+    assert await run(jira, "jira_create_issue", title="Broken login") == (
         "PROJ-1 created at https://acme.example/jira: Broken login"
     )
-    assert await run(jira, "jira.close_issue", key="PROJ-1") == "PROJ-1 closed"
-    assert await run(jira, "jira.slugify", title="Broken Login Page") == "broken-login-page"
-    assert await run(jira, "jira.issue_url", key="PROJ-1") == (
+    assert await run(jira, "jira_close_issue", key="PROJ-1") == "PROJ-1 closed"
+    assert await run(jira, "jira_slugify", title="Broken Login Page") == "broken-login-page"
+    assert await run(jira, "jira_issue_url", key="PROJ-1") == (
         "https://acme.example/jira/browse/PROJ-1"
     )
 
@@ -117,10 +117,10 @@ async def test_self_is_in_no_schema(plugins):
         assert "self" not in schema.parameters.get("required", []), schema.name
         assert "self" not in str(schema.description), schema.name
     by_name = {schema.name: schema for schema in await jira.list_schemas()}
-    assert list(by_name["jira.create_issue"].parameters["properties"]) == ["title"]
-    assert list(by_name["jira.close_issue"].parameters["properties"]) == ["key"]
+    assert list(by_name["jira_create_issue"].parameters["properties"]) == ["title"]
+    assert list(by_name["jira_close_issue"].parameters["properties"]) == ["key"]
     assert (
-        by_name["jira.close_issue"].description
+        by_name["jira_close_issue"].description
         == "Close an issue that is done or no longer needed."
     )
 
@@ -131,10 +131,10 @@ async def test_return_direct_is_on_the_schema_of_the_tool_that_asked_for_it(plug
     jira = skye.toolkit("jira", base_url="https://acme.example/jira")
     flags = {schema.name: schema.return_direct for schema in await jira.list_schemas()}
     assert flags == {
-        "jira.create_issue": False,
-        "jira.issue_url": True,
-        "jira.close_issue": False,
-        "jira.slugify": False,
+        "jira_create_issue": False,
+        "jira_issue_url": True,
+        "jira_close_issue": False,
+        "jira_slugify": False,
     }
 
 
@@ -143,12 +143,12 @@ async def test_an_alias_is_the_prefix_when_one_toolkit_is_built_twice(plugins):
     register_jira(plugins)
     eu = skye.toolkit("jira", alias="jira-eu", base_url="https://eu.example")
     us = skye.toolkit("jira", base_url="https://us.example")
-    assert "jira-eu.create_issue" in [schema.name for schema in await eu.list_schemas()]
-    assert "jira.create_issue" in [schema.name for schema in await us.list_schemas()]
+    assert "jira-eu_create_issue" in [schema.name for schema in await eu.list_schemas()]
+    assert "jira_create_issue" in [schema.name for schema in await us.list_schemas()]
     assert "eu.example" in await run(
-        eu, "jira-eu.create_issue", title="x"
+        eu, "jira-eu_create_issue", title="x"
     )  # each keeps its own state
-    assert "us.example" in await run(us, "jira.create_issue", title="x")
+    assert "us.example" in await run(us, "jira_create_issue", title="x")
 
 
 @pytest.mark.asyncio
@@ -164,7 +164,7 @@ async def test_a_second_toolkit_is_built_by_its_own_name(plugins):
 
     jira = skye.toolkit("jira", base_url="https://acme.example/jira")
     wiki = skye.toolkit("wiki")
-    assert await run(wiki, "wiki.search", text="plugins") == "found plugins"
+    assert await run(wiki, "wiki_search", text="plugins") == "found plugins"
     assert not any(schema.name.startswith("wiki.") for schema in await jira.list_schemas())
     assert not any(schema.name.startswith("jira.") for schema in await wiki.list_schemas())
 
@@ -184,8 +184,8 @@ async def test_a_toolkit_is_replaced_and_the_builder_returns_the_new_one(plugins
     new = skye.toolkit("jira")
     assert type(new) is OtherToolkit
     names = [schema.name for schema in await new.list_schemas()]
-    assert names == ["jira.ping"]  # the tools= of the old registration went with it
-    assert await run(new, "jira.ping") == "pong"
+    assert names == ["jira_ping"]  # the tools= of the old registration went with it
+    assert await run(new, "jira_ping") == "pong"
 
 
 @pytest.mark.asyncio
@@ -203,8 +203,8 @@ async def test_a_function_that_returns_a_registry_is_a_toolkit(plugins):
         return registry
 
     built = skye.toolkit("notes", folder="work")
-    assert [schema.name for schema in await built.list_schemas()] == ["notes.add_note"]
-    assert await run(built, "notes.add_note", text="call back") == "work: call back"
+    assert [schema.name for schema in await built.list_schemas()] == ["notes_add_note"]
+    assert await run(built, "notes_add_note", text="call back") == "work: call back"
 
 
 def test_a_toolkit_with_no_class_is_the_list_of_its_functions(plugins):

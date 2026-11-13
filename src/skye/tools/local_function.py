@@ -16,7 +16,8 @@ from collections.abc import Callable
 from functools import partial
 from typing import Any, Literal, Union
 
-from skye.base.interfaces.capability import CapabilityInterface, CapabilitySchema
+from skye.base.exceptions import ValidationError
+from skye.base.interfaces.capability import CapabilityInterface, CapabilitySchema, check_wire_name
 from skye.tools.exceptions import CapabilityValidationError
 
 logger = logging.getLogger(__name__)
@@ -102,6 +103,13 @@ class LocalFunctionCapability(CapabilityInterface):
         self._return_direct = return_direct
         # With a schema override the capability is known by the overridden name, errors included
         self._name = schema_override.name if schema_override else (name or func.__name__)
+        try:
+            check_wire_name(self._name)
+        except ValidationError as error:
+            raise CapabilityValidationError(
+                f"{error} (give the function a name with name=... or @capability(name=...))",
+                capability_name=self._name,
+            ) from error
         self._description = description or self._extract_docstring(func)
         self._schema_override = schema_override
         self._is_async = inspect.iscoroutinefunction(func)
@@ -138,6 +146,14 @@ class LocalFunctionCapability(CapabilityInterface):
         bound = copy.copy(self)
         bound.func = types.MethodType(self.func, target)
         return bound
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """Call the wrapped function as it was written (synchronous or ``async``), so that a decorated function stays callable.
+
+        There is no validation and no schema here: use :meth:`execute` for that. Read through an instance, a method
+        capability is bound, so the call needs no ``self``.
+        """
+        return self.func(*args, **kwargs)
 
     def _first_parameter(self) -> str | None:
         """The name of the first parameter of the wrapped function, or ``None`` when it has none."""

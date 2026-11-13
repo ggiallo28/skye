@@ -36,7 +36,7 @@ def ticket_of(line: str) -> str:
 
 
 async def call(toolkit: HumanToolkit, name: str, **arguments: object):
-    return await toolkit.run(CapabilityCall(id="1", name=f"human.{name}", arguments=arguments))
+    return await toolkit.run(CapabilityCall(id="1", name=f"human_{name}", arguments=arguments))
 
 
 # -- registration and options
@@ -89,10 +89,10 @@ def test_a_channel_object_takes_no_options_and_needs_send_and_poll():
 
 def test_the_schemas_have_the_prefix_and_no_self(toolkit: HumanToolkit):
     schemas = {s.name: s for s in asyncio.run(toolkit.list_schemas())}
-    assert set(schemas) == {"human.ask_human", "human.escalate", "human.check_escalation"}
+    assert set(schemas) == {"human_ask", "human_escalate", "human_check_escalation"}
     for schema in schemas.values():
         assert "self" not in schema.parameters.get("properties", {})
-    assert schemas["human.escalate"].parameters["required"] == ["reason", "summary"]
+    assert schemas["human_escalate"].parameters["required"] == ["reason", "summary"]
 
 
 # -- escalate and check_escalation
@@ -179,11 +179,11 @@ def test_the_write_is_atomic_and_leaves_only_the_final_file(toolkit: HumanToolki
     assert sorted(p.name for p in inbox.iterdir()) == sorted(f"{t}.json" for t in tickets)
 
 
-# -- ask_human
+# -- ask
 # --------------------------------------------------------------------------------------------------
 
 
-async def test_ask_human_returns_a_reply_written_after_a_short_delay(
+async def test_ask_returns_a_reply_written_after_a_short_delay(
     toolkit: HumanToolkit, inbox: Path, monkeypatch
 ):
     async def quick_sleep(seconds: float) -> None:
@@ -205,7 +205,7 @@ async def test_ask_human_returns_a_reply_written_after_a_short_delay(
     thread.start()
     try:
         message = await call(
-            toolkit, "ask_human", question="May I refund order 42?", context="the customer waited"
+            toolkit, "ask", question="May I refund order 42?", context="the customer waited"
         )
     finally:
         thread.join()
@@ -215,7 +215,7 @@ async def test_ask_human_returns_a_reply_written_after_a_short_delay(
     assert sent["kind"] == "question" and sent["context"] == "the customer waited"
 
 
-async def test_ask_human_times_out_with_the_ticket_in_the_error(
+async def test_ask_times_out_with_the_ticket_in_the_error(
     toolkit: HumanToolkit, inbox: Path, monkeypatch
 ):
     clock = [0.0]
@@ -225,7 +225,7 @@ async def test_ask_human_times_out_with_the_ticket_in_the_error(
 
     monkeypatch.setattr(module, "_sleep", fake_sleep)
     monkeypatch.setattr(module, "_monotonic", lambda: clock[0])
-    message = await call(toolkit, "ask_human", question="Anyone there?")
+    message = await call(toolkit, "ask", question="Anyone there?")
     assert message.status is CapabilityStatus.ERROR
     ticket = next(inbox.glob("*.json")).stem
     assert ticket in message.content
@@ -233,7 +233,7 @@ async def test_ask_human_times_out_with_the_ticket_in_the_error(
     assert clock[0] >= 300  # it waited the whole time, by the fake clock, and not by the real one
 
 
-async def test_ask_human_polls_at_the_interval(inbox: Path, monkeypatch):
+async def test_ask_polls_at_the_interval(inbox: Path, monkeypatch):
     seen: list[float] = []
     clock = [0.0]
 
@@ -244,7 +244,7 @@ async def test_ask_human_polls_at_the_interval(inbox: Path, monkeypatch):
     monkeypatch.setattr(module, "_sleep", fake_sleep)
     monkeypatch.setattr(module, "_monotonic", lambda: clock[0])
     toolkit = HumanToolkit(directory=inbox, timeout=10, poll_interval=2.5)
-    await call(toolkit, "ask_human", question="q")
+    await call(toolkit, "ask", question="q")
     assert seen and set(seen) == {2.5}
 
 
@@ -272,7 +272,7 @@ async def test_a_custom_channel_object_works(monkeypatch):
     monkeypatch.setattr(module, "_sleep", no_wait)
     fake = Fake()
     toolkit = HumanToolkit(channel=fake)
-    message = await call(toolkit, "ask_human", question="q")
+    message = await call(toolkit, "ask", question="q")
     assert message.content == "done"
     assert fake.sent[0].kind == "question" and fake.polls == 2
     assert (

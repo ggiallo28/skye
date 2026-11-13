@@ -14,12 +14,12 @@ class TestCapabilityCallCreation:
         """Test creating a valid tool call."""
         tool_call = CapabilityCall(
             id="call_123",
-            name="weather.get_current",
+            name="weather_get_current",
             arguments={"location": "San Francisco"},
         )
 
         assert tool_call.id == "call_123"
-        assert tool_call.name == "weather.get_current"
+        assert tool_call.name == "weather_get_current"
         assert tool_call.arguments == {"location": "San Francisco"}
 
     def test_create_tool_call_with_empty_arguments(self) -> None:
@@ -37,7 +37,7 @@ class TestCapabilityCallCreation:
         """Test creating a tool call with complex nested arguments."""
         tool_call = CapabilityCall(
             id="call_789",
-            name="database.query",
+            name="database_query",
             arguments={
                 "query": "SELECT * FROM users",
                 "filters": {
@@ -126,12 +126,12 @@ class TestCapabilityResultCreation:
         """Test creating a successful tool result."""
         result = CapabilityResult(
             capability_call_id="call_123",
-            name="weather.get_current",
+            name="weather_get_current",
             result={"temperature": 72, "condition": "sunny"},
         )
 
         assert result.capability_call_id == "call_123"
-        assert result.name == "weather.get_current"
+        assert result.name == "weather_get_current"
         assert result.result == {"temperature": 72, "condition": "sunny"}
         assert result.error is None
 
@@ -139,13 +139,13 @@ class TestCapabilityResultCreation:
         """Test creating a failed tool result with error."""
         result = CapabilityResult(
             capability_call_id="call_456",
-            name="weather.get_current",
+            name="weather_get_current",
             result=None,
             error="Location not found",
         )
 
         assert result.capability_call_id == "call_456"
-        assert result.name == "weather.get_current"
+        assert result.name == "weather_get_current"
         assert result.result is None
         assert result.error == "Location not found"
 
@@ -186,7 +186,7 @@ class TestCapabilityResultCreation:
         """Test creating a tool result with complex nested result."""
         result = CapabilityResult(
             capability_call_id="call_complex",
-            name="database.query",
+            name="database_query",
             result={
                 "rows": [
                     {"id": 1, "name": "Alice"},
@@ -263,42 +263,42 @@ class TestCapabilityCallSerialization:
         """Test converting CapabilityCall to dictionary."""
         tool_call = CapabilityCall(
             id="call_123",
-            name="weather.get_current",
+            name="weather_get_current",
             arguments={"location": "San Francisco"},
         )
 
         data = tool_call.to_dict()
 
         assert data["id"] == "call_123"
-        assert data["name"] == "weather.get_current"
+        assert data["name"] == "weather_get_current"
         assert data["arguments"] == {"location": "San Francisco"}
 
     def test_tool_call_to_json(self) -> None:
         """Test converting CapabilityCall to JSON string."""
         tool_call = CapabilityCall(
             id="call_123",
-            name="weather.get_current",
+            name="weather_get_current",
             arguments={"location": "San Francisco"},
         )
 
         json_str = tool_call.to_json()
 
         assert "call_123" in json_str
-        assert "weather.get_current" in json_str
+        assert "weather_get_current" in json_str
         assert "San Francisco" in json_str
 
     def test_tool_call_from_dict(self) -> None:
         """Test creating CapabilityCall from dictionary."""
         data = {
             "id": "call_456",
-            "name": "database.query",
+            "name": "database_query",
             "arguments": {"query": "SELECT * FROM users"},
         }
 
         tool_call = CapabilityCall(**data)
 
         assert tool_call.id == "call_456"
-        assert tool_call.name == "database.query"
+        assert tool_call.name == "database_query"
         assert tool_call.arguments["query"] == "SELECT * FROM users"
 
     def test_tool_call_from_json(self) -> None:
@@ -319,14 +319,14 @@ class TestCapabilityResultSerialization:
         """Test converting CapabilityResult to dictionary."""
         result = CapabilityResult(
             capability_call_id="call_123",
-            name="weather.get_current",
+            name="weather_get_current",
             result={"temperature": 72},
         )
 
         data = result.to_dict()
 
         assert data["capability_call_id"] == "call_123"
-        assert data["name"] == "weather.get_current"
+        assert data["name"] == "weather_get_current"
         assert data["result"] == {"temperature": 72}
         assert data["error"] is None
 
@@ -334,7 +334,7 @@ class TestCapabilityResultSerialization:
         """Test converting CapabilityResult to JSON string."""
         result = CapabilityResult(
             capability_call_id="call_123",
-            name="weather.get_current",
+            name="weather_get_current",
             result={"temperature": 72},
             error=None,
         )
@@ -342,14 +342,14 @@ class TestCapabilityResultSerialization:
         json_str = result.to_json()
 
         assert "call_123" in json_str
-        assert "weather.get_current" in json_str
+        assert "weather_get_current" in json_str
         assert "72" in json_str
 
     def test_tool_result_from_dict(self) -> None:
         """Test creating CapabilityResult from dictionary."""
         data = {
             "capability_call_id": "call_456",
-            "name": "database.query",
+            "name": "database_query",
             "result": [{"id": 1}, {"id": 2}],
             "error": None,
         }
@@ -357,7 +357,7 @@ class TestCapabilityResultSerialization:
         result = CapabilityResult(**data)
 
         assert result.capability_call_id == "call_456"
-        assert result.name == "database.query"
+        assert result.name == "database_query"
         assert len(result.result) == 2
 
     def test_tool_result_from_json(self) -> None:
@@ -407,7 +407,7 @@ class TestCapabilityCallAndResultIntegration:
         """Test that CapabilityResult correctly corresponds to CapabilityCall."""
         tool_call = CapabilityCall(
             id="call_123",
-            name="weather.get_current",
+            name="weather_get_current",
             arguments={"location": "San Francisco"},
         )
 
@@ -425,12 +425,12 @@ class TestCapabilityCallAndResultIntegration:
         tool_calls = [
             CapabilityCall(
                 id="call_1",
-                name="weather.get_current",
+                name="weather_get_current",
                 arguments={"location": "SF"},
             ),
             CapabilityCall(
                 id="call_2",
-                name="weather.get_forecast",
+                name="weather_get_forecast",
                 arguments={"location": "SF", "days": 3},
             ),
         ]
@@ -438,12 +438,12 @@ class TestCapabilityCallAndResultIntegration:
         results = [
             CapabilityResult(
                 capability_call_id="call_1",
-                name="weather.get_current",
+                name="weather_get_current",
                 result={"temperature": 72},
             ),
             CapabilityResult(
                 capability_call_id="call_2",
-                name="weather.get_forecast",
+                name="weather_get_forecast",
                 result={"forecast": ["sunny", "cloudy", "rainy"]},
             ),
         ]

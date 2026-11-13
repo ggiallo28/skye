@@ -69,15 +69,19 @@ class MCPClientInterface(ResourceProviderInterface, ABC):
 class MCPToolCapability(CapabilityInterface):
     """A Skye capability backed by a tool on an MCP server (executes through the client)."""
 
-    def __init__(self, schema: CapabilitySchema, client: MCPClientInterface) -> None:
+    def __init__(
+        self, schema: CapabilitySchema, client: MCPClientInterface, remote_name: str | None = None
+    ) -> None:
         self._schema = schema
         self._client = client
+        # The server's own name for the tool, which can differ from the name given to a model.
+        self._remote_name = remote_name or schema.name
 
     def get_schema(self) -> CapabilitySchema:
         return self._schema
 
     async def aexecute(self, **kwargs: Any) -> Any:
-        return await self._client.call_tool(self._schema.name, kwargs)
+        return await self._client.call_tool(self._remote_name, kwargs)
 
     def execute(self, **kwargs: Any) -> Any:
         try:
@@ -99,7 +103,10 @@ def _tool_value(name: str, raw: Any) -> Any:
 
 class _ToolsFacet:
     def _capabilities(self, raws: list[Any]) -> list[CapabilityInterface]:
-        return [MCPToolCapability(boundary.to_tool_schema(r), self) for r in raws]  # type: ignore[arg-type]
+        return [
+            MCPToolCapability(boundary.to_tool_schema(r), self, boundary.tool_name(r))  # type: ignore[arg-type]
+            for r in raws
+        ]
 
 
 def create_mcp_client(

@@ -277,7 +277,7 @@ def test_capability_registry_works_on_its_own_and_is_not_a_view_of_the_registrar
         """Count the words of a text."""
         return len(text.split())
 
-    @capability(name="text.chars")
+    @capability(name="text_chars")
     def char_count(text: str) -> int:
         """Count the characters of a text."""
         return len(text)
@@ -288,10 +288,10 @@ def test_capability_registry_works_on_its_own_and_is_not_a_view_of_the_registrar
     registry.register(char_count)
     assert registry.count() == 2 and registry.exists("word_count")
     assert registry.get("word_count") is word_count
-    assert [c.get_schema().name for c in registry.get_by_namespace("text")] == ["text.chars"]
+    assert [c.get_schema().name for c in registry.get_by_namespace("text")] == ["text_chars"]
     assert registry.get("word_count").execute(text="one two") == 2
     registry.unregister("word_count")
-    assert registry.list_all() == ["text.chars"]
+    assert registry.list_all() == ["text_chars"]
 
     assert "capability" not in KINDS and not hasattr(get_registrar(), "capability")
     assert CapabilityRegistry().list_all() == []  # nothing a registry holds is in a new one

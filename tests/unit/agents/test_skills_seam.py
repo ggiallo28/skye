@@ -84,7 +84,7 @@ def test_several_skills_build_one_toolkit_with_all_the_folders(tmp_path):
 def test_a_hundred_skills_build_one_instance_with_two_tools(tmp_path):
     skills_ = [_make_skill(tmp_path / f"s{n}", "skill") for n in range(100)]
     (toolkit,) = skill_toolkits(skills_)
-    names = toolkit.list_files.execute()
+    names = toolkit.list_entries.execute()
     assert (
         len(names) == 100 and len(set(names)) == 100
     )  # the same folder name, a number to tell them apart
@@ -95,13 +95,13 @@ async def test_the_real_files_toolkit_reads_the_skill_and_nothing_outside(tmp_pa
     folder = _make_skill(tmp_path, "refund")
     (toolkit,) = skill_toolkits([folder / "SKILL.md"])
     names = [schema.name for schema in await toolkit.list_schemas()]
-    assert names == ["files.list_files", "files.read_file"]
+    assert names == ["files_list", "files_read"]
     read = await toolkit.run(
-        CapabilityCall(id="1", name="files.read_file", arguments={"path": "refund/references/a.md"})
+        CapabilityCall(id="1", name="files_read", arguments={"path": "refund/references/a.md"})
     )
     assert read.status is CapabilityStatus.OK and "reference text" in read.content
     outside = await toolkit.run(
-        CapabilityCall(id="2", name="files.read_file", arguments={"path": "refund/../outside.txt"})
+        CapabilityCall(id="2", name="files_read", arguments={"path": "refund/../outside.txt"})
     )
     assert outside.status is CapabilityStatus.ERROR and "secret" not in outside.content
 

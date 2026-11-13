@@ -38,7 +38,7 @@ def order_status(order_id: str) -> str:
     return "shipped"
 
 
-@capability(name="billing.refund", return_direct=True)
+@capability(name="billing_refund", return_direct=True)
 def refund(order_id: str) -> str:
     """Refund an order and confirm it to the customer."""
     return f"Order {order_id} refunded."
@@ -55,7 +55,7 @@ def main() -> None:
     print("tools:", [tool.get_schema().name for tool in agent.options["tools"]])
     print("toolkits:", [type(toolkit).__name__ for toolkit in agent.options["toolkits"]])
     print("added for the skill:", [type(toolkit).__name__ for toolkit in agent.skill_toolkits])
-    # Running it, `await agent.invoke("Refund order 42")`: the model calls `billing.refund` and,
+    # Running it, `await agent.invoke("Refund order 42")`: the model calls `billing_refund` and,
     # with return_direct, the confirmation it returns is the answer.
 
 

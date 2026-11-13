@@ -1,9 +1,9 @@
-# Requirement 62.5, D111
+# Requirement 62.5, D111, D119
 """``Toolkit``: a named set of tools that an agent takes apart from its own.
 
 A toolkit is a class that extends ``Toolkit``. Its methods carry the ``@capability`` that a free
 function carries; the toolkit
-collects them, gives each the prefix ``<toolkit name>.<name>`` and runs a call by that name. It is a
+collects them, gives each the prefix ``<toolkit name>_<name>`` and runs a call by that name. It is a
 ``ToolProvider``
 (the Port in ``base``), so an agent takes it wherever it takes a provider of tools.
 
@@ -44,7 +44,7 @@ Example:
     ...         '''Create an issue and return its key.'''
     ...         return "PROJ-1"
     >>> [schema.name for schema in asyncio.run(JiraToolkit().list_schemas())]
-    ['jira.create_issue']
+    ['jira_create_issue']
 
 Raises: ``ConfigurationError`` at construction when two tools of one toolkit end with the same
 prefixed name (the error names both
@@ -67,13 +67,26 @@ from typing import Any
 from skye.base.capability_execution import arun_capability_call
 from skye.base.completion import CapabilityCall
 from skye.base.exceptions import ConfigurationError
-from skye.base.interfaces.capability import CapabilitySchema
+from skye.base.interfaces.capability import WIRE_NAME, CapabilitySchema
 from skye.base.interfaces.tool_provider import CapabilityContext
 from skye.base.messages import CapabilityMessage
 from skye.base.plugins import Registrar, get_registrar
 from skye.tools.local_function import LocalFunctionCapability
 
 _SUFFIX = "Toolkit"
+
+
+def _joined(prefix: str, name: str) -> str:
+    """The wire name ``<prefix>_<name>`` of a tool; ``ConfigurationError`` when a provider would
+    refuse it."""
+    joined = f"{prefix}_{name}"
+    if not WIRE_NAME.fullmatch(joined):
+        raise ConfigurationError(
+            f"the tool name '{joined}' is not valid for a provider: use letters, digits, '_' and "
+            "'-' only, 64 characters at most; give the toolkit another alias or the tool another "
+            "name with @capability(name=...)"
+        )
+    return joined
 
 
 def _capability_of(raw: object) -> LocalFunctionCapability | None:
@@ -102,7 +115,7 @@ def _tool_attributes(cls: type) -> dict[str, LocalFunctionCapability]:
 
 class Toolkit:
     """A named set of tools: the methods of the subclass marked with ``@capability``, each named
-    ``<toolkit>.<name>``.
+    ``<toolkit>_<name>``.
 
     Attributes:
         toolkit_name: The name the toolkit is registered or built with; ``None`` until a builder
@@ -156,11 +169,11 @@ class Toolkit:
                 self, attribute
             )  # the descriptor binds it; a staticmethod gives the capability itself
             schema = bound.get_schema()
-            name = f"{prefix}.{schema.name}"
+            name = _joined(prefix, schema.name)
             table[name] = (bound, dataclasses.replace(schema, name=name))
         for _label, held in self.__dict__.get("_skye_extra", ()):
             schema = held.get_schema()
-            name = f"{prefix}.{schema.name}"
+            name = _joined(prefix, schema.name)
             table[name] = (held, dataclasses.replace(schema, name=name))
         self.__dict__["_skye_tools"] = (prefix, table)
         return table
@@ -249,7 +262,7 @@ class _ProviderToolkit(Toolkit):
         seen = {schema.name for schema in own}
         schemas = list(own)
         for schema in await self._provider.list_schemas(operation):
-            name = f"{prefix}.{schema.name}"
+            name = _joined(prefix, schema.name)
             if name in seen:
                 raise ConfigurationError(
                     f"{type(self).__name__}: the tool '{schema.name}' of the registry and a listed "
@@ -262,7 +275,7 @@ class _ProviderToolkit(Toolkit):
     async def run(
         self, call: CapabilityCall, context: CapabilityContext | None = None
     ) -> CapabilityMessage:
-        prefix = f"{self._prefix()}."
+        prefix = f"{self._prefix()}_"
         if call.name not in self._tools() and call.name.startswith(prefix):
             inner = dataclasses.replace(call, name=call.name[len(prefix) :])
             message: CapabilityMessage = await self._provider.run(inner, context)

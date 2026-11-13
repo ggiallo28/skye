@@ -97,7 +97,7 @@ def test_completion_response_capability_calls():
     # Response with capability calls
     capability_call = CapabilityCall(
         id="call_123",
-        name="weather.get_current",
+        name="weather_get_current",
         arguments={"location": "San Francisco"},
     )
     response_with_capabilities = CompleteResponse(
@@ -110,7 +110,7 @@ def test_completion_response_capability_calls():
     )
     assert response_with_capabilities.has_capability_calls()
     assert len(response_with_capabilities.capability_calls) == 1
-    assert response_with_capabilities.capability_calls[0].name == "weather.get_current"
+    assert response_with_capabilities.capability_calls[0].name == "weather_get_current"
 
     # Response with empty capability_calls list
     response_empty_capabilities = CompleteResponse(
@@ -138,7 +138,7 @@ async def test_completion_response_execute_capability_calls():
 
     capability = LocalFunctionCapability(
         func=get_weather,
-        name="weather.get_current",
+        name="weather_get_current",
         description="Get current weather for a location",
     )
 
@@ -146,7 +146,7 @@ async def test_completion_response_execute_capability_calls():
     usage = TokenUsage(prompt_tokens=50, completion_tokens=20, total_tokens=70)
     capability_call = CapabilityCall(
         id="call_123",
-        name="weather.get_current",
+        name="weather_get_current",
         arguments={"location": "San Francisco"},
     )
     response = CompleteResponse(
@@ -167,7 +167,7 @@ async def test_completion_response_execute_capability_calls():
     assert len(messages) == 1
     assert isinstance(messages[0], CapabilityMessage)
     assert messages[0].capability_id == "call_123"
-    assert messages[0].capability_name == "weather.get_current"
+    assert messages[0].capability_name == "weather_get_current"
     assert messages[0].role == "capability"
     # Content should be JSON string of the result
     import json
@@ -271,12 +271,12 @@ async def test_completion_response_execute_multiple_capability_calls():
 
     weather_cap = LocalFunctionCapability(
         func=get_weather,
-        name="weather.get_current",
+        name="weather_get_current",
         description="Get current weather",
     )
     time_cap = LocalFunctionCapability(
         func=get_time,
-        name="time.get_current",
+        name="time_get_current",
         description="Get current time",
     )
 
@@ -290,12 +290,12 @@ async def test_completion_response_execute_multiple_capability_calls():
     capability_calls = [
         CapabilityCall(
             id="call_1",
-            name="weather.get_current",
+            name="weather_get_current",
             arguments={"location": "NYC"},
         ),
         CapabilityCall(
             id="call_2",
-            name="time.get_current",
+            name="time_get_current",
             arguments={"timezone": "EST"},
         ),
     ]
@@ -316,13 +316,13 @@ async def test_completion_response_execute_multiple_capability_calls():
     assert len(messages) == 2
     assert isinstance(messages[0], CapabilityMessage)
     assert messages[0].capability_id == "call_1"
-    assert messages[0].capability_name == "weather.get_current"
+    assert messages[0].capability_name == "weather_get_current"
     result_0 = json.loads(messages[0].content)
     assert result_0["location"] == "NYC"
     
     assert isinstance(messages[1], CapabilityMessage)
     assert messages[1].capability_id == "call_2"
-    assert messages[1].capability_name == "time.get_current"
+    assert messages[1].capability_name == "time_get_current"
     result_1 = json.loads(messages[1].content)
     assert result_1["timezone"] == "EST"
 
@@ -343,7 +343,7 @@ async def test_completion_response_execute_capability_calls_with_overrides():
 
     capability = LocalFunctionCapability(
         func=get_weather,
-        name="weather.get_current",
+        name="weather_get_current",
         description="Get current weather",
     )
 
@@ -355,7 +355,7 @@ async def test_completion_response_execute_capability_calls_with_overrides():
     usage = TokenUsage(prompt_tokens=50, completion_tokens=20, total_tokens=70)
     capability_call = CapabilityCall(
         id="call_123",
-        name="weather.get_current",
+        name="weather_get_current",
         arguments={"location": "San Francisco", "units": "fahrenheit"},
     )
     response = CompleteResponse(
