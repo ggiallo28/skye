@@ -15,8 +15,13 @@ from skye.base.validated import trusted
 from skye.dsl import build
 from skye.utils.skye_files import file_resolver
 from skye.prompts import BasePromptBuilder
+from skye.prompts import loaders
 from skye.prompts.loaders import TEMPLATES_DIR, load_default_templates
 
+pytestmark = pytest.mark.skipif(
+    not loaders._folder_has_templates(),
+    reason="reads the loose templates of a source checkout; an installed wheel keeps them in an archive",
+)
 BUNDLED = sorted(TEMPLATES_DIR.glob("*.skye"))
 
 
