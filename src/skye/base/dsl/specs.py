@@ -338,9 +338,9 @@ class VariableSpec(Validated):
         return self.item_type is not None or bool(self.fields)
 
 
-#: The formats of an ``output`` block (``output "json" { ... }``; no label means ``"json"``).
-OutputFormat = Literal["json", "table", "xml"]
-OUTPUT_FORMATS: tuple[str, ...] = ("json", "table", "xml")
+#: The formats of an ``output`` block (``output "json" { ... }``; no label means ``"json"``; ``"text"`` is a plain answer).
+OutputFormat = Literal["json", "table", "xml", "text"]
+OUTPUT_FORMATS: tuple[str, ...] = ("json", "table", "xml", "text")
 
 
 @validated
@@ -381,7 +381,7 @@ class OutputSpec(Validated):
     """
 
     format: OutputFormat = field(
-        default="json", description="json, table or xml (not read when format_from is set)"
+        default="json", description="json, table, xml or text (not read when format_from is set)"
     )
     format_from: str | None = field(
         default=None,
@@ -393,6 +393,10 @@ class OutputSpec(Validated):
     schema_from: str | None = field(
         default=None,
         description="schema = VAR: the map variable that gives the fields at render time",
+    )
+    style: str | None = field(default=None, description='output "text" { style = "..." }: the style')
+    style_from: str | None = field(
+        default=None, description="output text { style = VAR }: the string variable of the style"
     )
 
 

@@ -81,6 +81,7 @@ def _known_block_kinds() -> set[str]:
         kinds |= _block_kinds(parse(text, "example.skye").blocks)
     table = guide.split("## Block kinds", 1)[1].split("###", 1)[0]
     kinds |= set(re.findall(r"^\| `([a-z_]+)", table, flags=re.MULTILINE))
+    kinds -= {"include", "from", "import", "use", "override"}  # statements with their own rules, tested apart
     return kinds
 
 
@@ -192,3 +193,28 @@ def test_extension_js_is_valid_javascript() -> None:
         [node, "--check", str(ROOT / "extension.js")], capture_output=True, text=True
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_grammar_has_the_include_words_in_their_positions() -> None:
+    grammar = json.loads(GRAMMAR.read_text(encoding="utf-8"))
+    repository = grammar["repository"]
+    assert {"include-statement", "import-statement", "as-statement", "use-statement"} <= set(repository)
+    patterns = {p["include"] for p in grammar["patterns"] if "include" in p}
+    assert {"#include-statement", "#import-statement", "#as-statement", "#use-statement"} <= patterns
+    # the words are positional: a variable called `use` or `from` in an assignment is not a keyword
+    use = re.compile(repository["use-statement"]["match"])
+    assert use.search("    use tools") and use.search("use memory  # the entries")
+    assert not use.search("  use = 1") and not use.search("x = use")
+    # `override` is a keyword only before a variables entry and before `when`
+    override = re.compile(repository["override-statement"]["match"])
+    assert override.search("    override show_ids = bool(true)") and override.search("  override when not show_ids {")
+    assert not override.search("  override = string(\"\")") and not override.search("x = override")
+    assert "#override-statement" in patterns
+    start = re.compile(repository["import-statement"]["match"])
+    assert start.search('from "lib/agent.skye" import tools') and not start.search("from = 1")
+    assert re.compile(repository["include-statement"]["match"]).search('include "lib/m.skye" as m')
+
+
+def test_extension_js_shows_a_mistake_of_a_partial_at_its_use_site() -> None:
+    source = (ROOT / "extension.js").read_text(encoding="utf-8")
+    assert "item.via" in source and "document.fileName" in source

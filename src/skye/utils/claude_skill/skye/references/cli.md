@@ -41,7 +41,7 @@ Every template passes `skye check`, so the first check of a new file is clean an
 
 ## Prompt help (`skye prompt`)
 
-`skye prompt info planner_agent` explains a bundled prompt; `skye prompt info prompts.skye --name chat` a prompt of a file (`--name`
+`skye prompt info agent_react` explains a bundled prompt; `skye prompt info prompts.skye --name chat` a prompt of a file (`--name`
 picks one when the file has several; `-` reads stdin). It prints the header `name — title (version)`, the description, then `Inputs`
 (name, type, `required` / `optional` / `= default`, description), `History` (the placeholders), `Messages` (the roles in order, `user*`
 inside `each`, `system?` inside `when`) and `Output` (the format and the fields, or `free text`). `--json` prints the same as a
@@ -61,7 +61,7 @@ skills folder). After upgrading the package, run `skye skill status`: if it says
 
 ## Editors
 
-`skye check --format json` prints `{"diagnostics": [{"file", "line", "column", "reason", "fix", "message"}]}` (lines and columns from 1;
+`skye check --format json` prints `{"diagnostics": [{"file", "line", "column", "reason", "fix", "message"}]}` (lines and columns from 1; a mistake in an included file also has `via`;
 exit 0 none, 1 some, 2 read error with nothing on stdout). `-` reads the text from stdin; `--stdin-filename` names it in the diagnostics.
 `skye vscode install` gives VS Code highlighting and live diagnostics for `.skye` files; the extension runs `skye check`, so `skye` must be
 on PATH or set the `skye.command` setting (for example `["uv", "run", "skye"]`). "Format Document" runs `skye fmt -`. Without an editor command, or with `--dir`, it copies the

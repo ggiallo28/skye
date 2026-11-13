@@ -19,10 +19,12 @@ text.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields, is_dataclass
+from typing import Any
 
 from skye.base.dsl.errors import Diagnostic
 from skye.base.dsl.metadata import FENCE
+from skye.base.dsl.parser import parse_collect
 
 INDENT = "  "
 _OPEN = "{[("
@@ -148,6 +150,24 @@ def _split_front(text: str) -> tuple[list[str], str]:
     return [], text  # an unclosed front matter is reported by the checker
 
 
+_POSITION = {"line", "column", "source", "via"}
+
+
+def _shape(node: Any) -> Any:
+    """The syntax tree without positions and without the spacing of expressions, to compare two texts."""
+    if isinstance(node, list | tuple):
+        return [_shape(item) for item in node]
+    if isinstance(node, dict):
+        return {key: _shape(value) for key, value in node.items()}
+    if is_dataclass(node) and not isinstance(node, type):
+        return {
+            f.name: " ".join(getattr(node, f.name).split()) if f.name == "text" else _shape(getattr(node, f.name))
+            for f in fields(node)
+            if f.name not in _POSITION and not f.name.endswith(("_line", "_column"))
+        }
+    return node
+
+
 def format_text(text: str, filename: str | None = None) -> str:
     """The text of a ``.skye`` file in the standard layout.
 
@@ -165,19 +185,29 @@ def format_text(text: str, filename: str | None = None) -> str:
     from skye.base.dsl.build import build
     from skye.base.dsl.emit import to_text
 
-    before = build(text, filename=filename)
-    if before.diagnostics:
-        raise FormatError("the file has mistakes; fix them first", before.diagnostics)
+    tree, problems = parse_collect(text, filename)
+    # A file with an include, and a partial, are compared as written (no partial is read): the same tree before and after.
+    included = not problems and (tree.has_include or tree.metadata.get("partial") is True)
+    before = None if included else build(text, filename=filename)
+    found = problems or (before.diagnostics if before else [])
+    if found:
+        raise FormatError("the file has mistakes; fix them first", found)
     text = text.replace("\r\n", "\n")
     front, body = _split_front(text)
     lines = _squeeze(_layout(body.expandtabs(len(INDENT))))
     result = "\n".join(front + ([""] if front and lines else []) + lines) + "\n"
-    after = build(result, filename=filename)
-    # Compared through to_text: the models also carry line and column numbers, which move.
-    same = not after.diagnostics and to_text(after) == to_text(before)
+    if before is None:
+        again, problems = parse_collect(result, filename)
+        same = not problems and _shape(again) == _shape(tree)
+        diagnostics = problems
+    else:
+        after = build(result, filename=filename)
+        # Compared through to_text: the models also carry line and column numbers, which move.
+        same = not after.diagnostics and to_text(after) == to_text(before)
+        diagnostics = after.diagnostics
     if not same:
         raise FormatError(
-            "formatting would change what the file means; it was left as it is", after.diagnostics
+            "formatting would change what the file means; it was left as it is", diagnostics
         )
     return result
 

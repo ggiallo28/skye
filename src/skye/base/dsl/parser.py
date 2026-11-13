@@ -72,6 +72,10 @@ class _Parser:
         # > 0 inside an ``output`` block or the ``variables`` map of a prompt: a value may be
         # followed by a string, its description.
         self.described = 0
+        # True from the ``variables`` of a prompt to the first map: there ``use name`` is an entry.
+        self.use_map = False
+        # True once the file holds an ``include``, a ``from ... import`` or a ``use``.
+        self.has_include = False
         # The kinds of the blocks being parsed, innermost last.
         self.kinds: list[str] = []
         self.tokens, self.errors = tokenize(self.text, filename)
@@ -151,6 +155,7 @@ class _Parser:
             self.parse_blocks(tree)
         except _TooDeepError:
             pass
+        tree.has_include = self.has_include
         return tree
 
     def parse_blocks(self, tree: Tree) -> None:
@@ -201,6 +206,14 @@ class _Parser:
         head = self.advance()
         word = head.text
         nxt = self.peek()
+        if word in ("include", "from") and nxt.kind == STRING and not self.kinds:
+            return self.parse_include(head)
+        if word == "override" and nxt.kind == IDENT and nxt.text == "when":
+            self.has_include = True
+            block = self.parse_item()  # the ``when`` block; the word marks it
+            assert isinstance(block, Block)
+            block.override, block.line, block.column = True, head.line, head.column
+            return block
         if (
             word == "set"
             and nxt.kind == IDENT
@@ -255,10 +268,12 @@ class _Parser:
             # ``variables = { task = string "What the agent must achieve" }`` in a prompt
             described = word == "variables" and self.kinds[-1:] == ["prompt"]
             self.described += described
+            self.use_map = described
             try:
                 value = self.parse_value()
             finally:
                 self.described -= described
+                self.use_map = False
             return Attribute(
                 line=head.line,
                 column=head.column,
@@ -269,6 +284,8 @@ class _Parser:
                 description=self.parse_description(),
             )
         block = Block(line=head.line, column=head.column, kind=word)
+        if word == "use" and nxt.kind == IDENT:
+            self.has_include = True
         if nxt.kind == STRING:
             self.advance()
             block.label = Str(line=nxt.line, column=nxt.column, value=str(nxt.value), raw=nxt.text)
@@ -286,6 +303,46 @@ class _Parser:
             return block
         block.braces = False
         return block
+
+    def parse_include(self, head: Token) -> Block:
+        """``include "path" as name`` or ``from "path" import a, b as c`` (a file-level line)."""
+        self.has_include = True
+        path = self.advance()
+        label = Str(line=path.line, column=path.column, value=str(path.value), raw=path.text)
+        block = Block(line=head.line, column=head.column, kind=head.text, label=label, braces=False)
+        if head.text == "include":
+            if self.peek().kind == IDENT and self.peek().text == "as":
+                self.advance()
+                block.var = self.parse_word('a name after "as"').text
+            return block
+        word = self.peek()
+        if word.kind != IDENT or word.text != "import":
+            raise self.fail(
+                word, 'expected "import" after the path', 'Write: from "x.skye" import a'
+            )
+        self.advance()
+        while True:
+            name = self.parse_word("a name to import")
+            item = Block(
+                line=name.line,
+                column=name.column,
+                kind="import",
+                label=Name(line=name.line, column=name.column, path=(name.text,)),
+                braces=False,
+            )
+            if self.peek().kind == IDENT and self.peek().text == "as":
+                self.advance()
+                item.var = self.parse_word('a name after "as"').text
+            block.body.append(item)
+            if not self.is_punct(","):
+                return block
+            self.advance()
+
+    def parse_word(self, what: str) -> Token:
+        tok = self.peek()
+        if tok.kind != IDENT:
+            raise self.fail(tok, f"expected {what}, found {self.describe(tok)}")
+        return self.advance()
 
     def parse_dotted(self) -> Name:
         first = self.advance()
@@ -456,6 +513,7 @@ class _Parser:
 
     def parse_map_entries(self, opener: Token) -> MapNode:
         node = MapNode(line=opener.line, column=opener.column)
+        allow_use, self.use_map = self.use_map, False
         while True:
             while self.peek().kind == NEWLINE or self.is_punct(","):
                 self.pos += 1
@@ -469,6 +527,27 @@ class _Parser:
                 )
             if tok.kind not in (IDENT, STRING):
                 raise self.fail(tok, f"expected a key, found {self.describe(tok)}")
+            over = (
+                allow_use
+                and tok.kind == IDENT
+                and tok.text == "override"
+                and self.peek(1).kind in (IDENT, STRING)
+            )
+            if over:  # ``override name = ...``; ``override = ...`` is still a key
+                self.advance()
+                self.has_include = True
+                tok = self.peek()
+            if allow_use and not over and tok.text == "use" and self.peek(1).kind == IDENT:
+                self.advance()
+                used = self.parse_dotted()
+                self.has_include = True
+                node.entries.append(
+                    MapEntry(line=tok.line, column=tok.column, key=used.text, value=used, use=True)
+                )
+                tail = self.peek()
+                if not (tail.kind == NEWLINE or (tail.kind == PUNCT and tail.text in ",}")):
+                    raise self.fail(tail, f"unexpected {self.describe(tail)} in the map")
+                continue
             self.advance()
             if not self.is_punct("="):
                 raise self.fail(self.peek(), f'expected "=" after the key "{tok.text}"')
@@ -482,6 +561,7 @@ class _Parser:
                     key=key,
                     value=value,
                     description=self.parse_description(),
+                    override=over,
                 )
             )
             tail = self.peek()

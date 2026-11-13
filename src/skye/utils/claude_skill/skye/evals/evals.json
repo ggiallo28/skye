@@ -148,11 +148,11 @@
     },
     {
       "id": 13,
-      "prompt": "I want to call the bundled planner_agent prompt from Python but I don't know which variables it needs or what it returns. Also, in my own prompt file, document that `task` is the goal and `phase` is plan, execute or replan.",
-      "expected_output": "Runs `skye prompt info planner_agent` (or uses `BasePromptBuilder().help` / `describe_prompt`) to list the inputs and output instead of guessing; documents the variables with a trailing string, `task = string \"The goal\"`, `phase = string(\"plan\") \"plan, execute or replan\"`, and the file passes skye check.",
+      "prompt": "I want to call the bundled agent_react prompt from Python but I don't know which variables it needs or what it returns. Also, in my own prompt file, document that `task` is the goal and `phase` is plan, execute or replan.",
+      "expected_output": "Runs `skye prompt info agent_react` (or uses `BasePromptBuilder().help` / `describe_prompt`) to list the inputs and output instead of guessing; documents the variables with a trailing string, `task = string \"The goal\"`, `phase = string(\"plan\") \"plan, execute or replan\"`, and the file passes skye check.",
       "files": [],
       "expectations": [
-        "The assistant used `skye prompt info planner_agent`, `prompt_help` / `describe_prompt` or `BasePromptBuilder().help` to read the inputs rather than guessing them",
+        "The assistant used `skye prompt info agent_react`, `prompt_help` / `describe_prompt` or `BasePromptBuilder().help` to read the inputs rather than guessing them",
         "The variable descriptions are strings right after the type inside `variables = { ... }`, not `#` comments and not extra fields",
         "The assistant ran skye check on the edited file and it reported ok"
       ]
@@ -203,6 +203,19 @@
         "The wait is written as retry_after = \"2s\" with exponential_backoff = true (no retry_after_seconds in the .skye file)",
         "The cooldown policy is allowed_fails_policy \"ServerError\" with allowed_fails_per_minute = 20",
         "The Python code passes a shared store to ModelRouter.from_file with storage= (DynamoDB or another external backend), because the in-memory default does not survive between invocations"
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "I want to add a provider called acme to Skye. Its API speaks the OpenAI chat format, the key is in ACME_API_KEY, the endpoint is https://api.acme.example/v1 and acme-small costs 0.10 dollars per million input tokens and 0.40 per million output tokens. Write the plugin as a Python module.",
+      "expected_output": "A module with plugins = skye.Plugins() and one plugins.provider(\"acme\", OpenAICompatibleProvider, profile=ProviderProfile(...)) call. The name, the key variable, the endpoint and the prices appear only inside the profile, and the client is built with skye.provider(\"acme\").",
+      "files": [],
+      "expectations": [
+        "The module creates a handle with skye.Plugins() and registers the provider with plugins.provider, not with a registry class or a subclass of a built-in provider",
+        "The key variable ACME_API_KEY, the endpoint and the two prices are written once, inside a ProviderProfile (or a profile.toml), as data",
+        "No literal ACME_API_KEY, base URL or price appears outside the profile: not in a class attribute, an if branch, a dictionary of prices or a header",
+        "The class OpenAICompatibleProvider is reused, and no class that calls the HTTP API by hand is written",
+        "The provider is built by name with skye.provider(\"acme\")"
       ]
     }
   ]

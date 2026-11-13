@@ -16,6 +16,21 @@
       "include": "#comment-block"
     },
     {
+      "include": "#include-statement"
+    },
+    {
+      "include": "#import-statement"
+    },
+    {
+      "include": "#as-statement"
+    },
+    {
+      "include": "#use-statement"
+    },
+    {
+      "include": "#override-statement"
+    },
+    {
       "include": "#string-triple"
     },
     {
@@ -381,6 +396,52 @@
           "include": "#punctuation"
         }
       ]
+    },
+    "include-statement": {
+      "match": "\\b(include)\\b(?=\\s+\")",
+      "captures": {
+        "1": {
+          "name": "keyword.control.import.skye"
+        }
+      }
+    },
+    "import-statement": {
+      "match": "^\\s*(from)\\b(?=\\s+\")|(?<=\")\\s+(import)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.import.skye"
+        },
+        "2": {
+          "name": "keyword.control.import.skye"
+        }
+      }
+    },
+    "as-statement": {
+      "match": "(?<=[A-Za-z0-9_\"])\\s+(as)\\s+(?=[A-Za-z_])",
+      "captures": {
+        "1": {
+          "name": "keyword.control.import.skye"
+        }
+      }
+    },
+    "override-statement": {
+      "match": "^\\s*(override)\\b(?=\\s+(?:when\\b|[A-Za-z_][A-Za-z0-9_]*\\s*=(?!=)))",
+      "captures": {
+        "1": {
+          "name": "keyword.control.use.skye"
+        }
+      }
+    },
+    "use-statement": {
+      "match": "^\\s*(use)\\s+([A-Za-z_][A-Za-z0-9_]*)(?=\\s*(?:#|/\\*|$))",
+      "captures": {
+        "1": {
+          "name": "keyword.control.use.skye"
+        },
+        "2": {
+          "name": "variable.other.reference.skye"
+        }
+      }
     }
   }
 }

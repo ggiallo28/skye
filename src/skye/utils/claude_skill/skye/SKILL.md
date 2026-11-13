@@ -1,6 +1,6 @@
 ---
 name: skye
-description: Write, check, generate and explain Skye (the `skyeai` Python library) code and `.skye` files, which hold routers, flows and prompts. Use whenever the user mentions Skye, skyeai, a `.skye` file, `skye check` or `skye new`, a model router with fallbacks, a flow with steps, or a prompt block, or asks to configure, generate or fix any of them, even if they never say "skill".
+description: Write, check, generate and explain Skye (the `skyeai` Python library) code and `.skye` files, which hold routers, flows and prompts. Use whenever the user mentions Skye, skyeai, a `.skye` file, `skye check` or `skye new`, a model router with fallbacks, a flow with steps, a prompt block, or a plugin (`skye.Plugins()`, a provider profile), or asks to configure, generate or fix any of them, even if they never say "skill".
 ---
 
 # Skye
@@ -26,6 +26,7 @@ Its core is the Python standard library only, and routers, flows and prompts are
 | a prompt: variables, roles, conditions, loops | [references/prompt.md](references/prompt.md) |
 | a prompt's answer as JSON, table or XML (`output`, conditional outputs) | [references/output.md](references/output.md) |
 | calling a provider or loading a router from Python | [references/python-api.md](references/python-api.md) |
+| adding a provider, a store, a tool set or an agent with `skye.Plugins()`, a provider profile, `skye plugins` | [references/plugins.md](references/plugins.md) |
 | writing or reviewing code inside the library | [references/rules.md](references/rules.md) |
 
 ## Why these habits

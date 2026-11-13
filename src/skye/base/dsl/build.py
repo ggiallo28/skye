@@ -1,4 +1,5 @@
-"""Build the block models from the syntax tree, and apply the load-time checks of Requirement 54.4.
+# Requirement 54.4
+"""Build the block models from the syntax tree, and apply the load-time checks.
 
 Nothing here reads a file or runs anything. Every mistake found is collected as a
 :class:`~skye.base.dsl.errors.Diagnostic`; the models are built for the blocks that are sound.
@@ -21,6 +22,7 @@ from skye.base.dsl.errors import (
     too_deep_reason,
 )
 from skye.base.dsl.expressions import Expression, check_expression, locate, references
+from skye.base.dsl.include import PARTIAL_ALONE, PROMPTS_ONLY, Resolver, expand
 from skye.base.dsl.parser import TYPE_NAMES, parse_collect
 from skye.base.dsl.shapes import conform
 from skye.base.dsl.specs import (
@@ -75,7 +77,7 @@ PREFIXES = ("registry", "flow", "router", "prompt", "step", "context", "env", "i
 _WAIT_MESSAGE = '"{}" needs persistence and is not available in this version'
 _V2_MESSAGE = '"{}" is not available in this version'
 _V2_FLOW = frozenset({"wait", "on_event"})
-_V2_PROMPT = frozenset({"examples", "content", "from", "bind", "parts", "separator", "include"})
+_V2_PROMPT = frozenset({"examples", "content", "from", "bind", "parts", "separator"})
 #: The word of an ``output`` block that names a map variable giving the fields at render time.
 _SCHEMA_WORD = "schema"
 _SCALARS = ("string", "number", "bool")
@@ -223,6 +225,9 @@ class _Builder:
         # the prompt being built: its variables and its output blocks inside when blocks
         self.prompt_variables: list[VariableSpec] = []
         self.conditional_outputs: list[Block] = []
+        # the file that the node being read comes from, when an include brought it, and the use sites
+        self.source = ""
+        self.via: tuple[tuple[str, int, int], ...] = ()
 
     def labels(self, kind: str) -> list[str]:
         return [b.label_text for b in self.tree.blocks if b.kind == kind and b.label_text]
@@ -230,11 +235,28 @@ class _Builder:
     # -- reporting -----------------------------------------------------------------------------
     def err(self, line: int, column: int, reason: str, fix: str = "") -> None:
         self.errors.append(
-            Diagnostic(file=self.file, line=line, column=column, reason=reason, fix=fix)
+            Diagnostic(
+                file=self.source or self.file,
+                line=line,
+                column=column,
+                reason=reason,
+                fix=fix,
+                via=self.via,
+            )
         )
 
     def at(self, node: Node, reason: str, fix: str = "") -> None:
-        self.err(node.line, node.column, reason, fix)
+        # a node that an include brought is reported in the file it comes from
+        self.errors.append(
+            Diagnostic(
+                file=node.source or self.file,
+                line=node.line,
+                column=node.column,
+                reason=reason,
+                fix=fix,
+                via=node.via,
+            )
+        )
 
     def fail(self, node: Node, reason: str, fix: str = "") -> _SkipError:
         self.at(node, reason, fix)
@@ -264,6 +286,8 @@ class _Builder:
                         "In version 1 each file is self-sufficient; load several files from "
                         "Python.",
                     )
+                elif block.kind == "use":
+                    self.at(block, "use is available in prompts only.", PROMPTS_ONLY)
                 else:
                     self.at(
                         block,
@@ -327,6 +351,9 @@ class _Builder:
     def unknown(self, node: Node, word: str, what: str, known: Collection[str]) -> None:
         line = (node.name_line if isinstance(node, Attribute) else 0) or node.line
         col = (node.name_column if isinstance(node, Attribute) else 0) or node.column
+        if word == "use":
+            self.err(line, col, "use is available in prompts only.", PROMPTS_ONLY)
+            return
         if word.endswith("_seconds") and word[: -len("_seconds")] in known:
             new = word[: -len("_seconds")]
             self.err(line, col, f'"{word}" was renamed "{new}" and takes a duration such as "60s"')
@@ -1363,8 +1390,8 @@ class _Builder:
 
     # -- output --------------------------------------------------------------------------------
     def output(self, block: Block, variables: list[VariableSpec]) -> OutputSpec:
-        """``output ["json" | "table" | "xml" | VAR] { field = type ["description"], ... }`` or
-        ``{ schema = VAR }``.
+        """``output ["json" | "table" | "xml" | "text" | VAR] { field = type ["description"], ... }``,
+        ``{ schema = VAR }`` or, for ``"text"``, ``{ style = "..." | VAR }``.
         """
         fmt: Any = "json"
         format_from: str | None = None
@@ -1376,7 +1403,7 @@ class _Builder:
                 raise self.fail(
                     block.label,
                     f'output format "{word}" is not known.',
-                    (did_you_mean(word, OUTPUT_FORMATS) + " Use json, table or xml.").strip(),
+                    (did_you_mean(word, OUTPUT_FORMATS) + " Use json, table, xml or text.").strip(),
                 )
             fmt = block.label.value
         items: list[Attribute] = []
@@ -1391,6 +1418,8 @@ class _Builder:
                 self.at(item, f'"{item.keyword}" is not allowed in an output block.')
             else:
                 items.append(item)
+        if fmt == "text" and format_from is None:
+            return self.text_output(items, variables)
         if any(item.name == _SCHEMA_WORD for item in items):
             schema_from = self.schema_from(items, variables)
             return OutputSpec(format=fmt, format_from=format_from, schema_from=schema_from)
@@ -1407,6 +1436,30 @@ class _Builder:
         if not fields and not items:
             self.at(block, "the output block has no field.", "Add one: name = string")
         return OutputSpec(format=fmt, format_from=format_from, fields=fields)
+
+    def text_output(self, items: list[Attribute], variables: list[VariableSpec]) -> OutputSpec:
+        """``output "text" { style = "a short paragraph" | VAR }``: a plain answer, no fields."""
+        style: str | None = None
+        style_from: str | None = None
+        for item in items:
+            value = item.value
+            if item.name != "style":
+                self.at(
+                    item,
+                    f'output "text": "{item.name}" is not allowed; a plain answer has no fields.',
+                    'The only line is style = "a short paragraph"',
+                )
+            elif isinstance(value, Str):
+                style = value.value
+            elif isinstance(value, Name) and len(value.path) == 1:
+                word = value.path[0]
+                declared = next((v for v in variables if v.name == word), None)
+                if declared is None or declared.type != "string":
+                    self.at(value, f'"{word}" is not a declared string variable.')
+                style_from = word
+            else:
+                self.at(value, 'style takes a string or a string variable: style = "a bulleted list"')
+        return OutputSpec(format="text", style=style, style_from=style_from)
 
     def format_from(self, label: Name, variables: list[VariableSpec]) -> str:
         """``output VAR { ... }``: a declared string variable gives the format at render time."""
@@ -1434,7 +1487,7 @@ class _Builder:
                 label,
                 f'the default of "{word}" is "{declared.default}", which is not an output format.',
                 (
-                    did_you_mean(str(declared.default), OUTPUT_FORMATS) + " Use json, table or xml."
+                    did_you_mean(str(declared.default), OUTPUT_FORMATS) + " Use json, table, xml or text."
                 ).strip(),
             )
         return word
@@ -1584,10 +1637,13 @@ class _Builder:
             return []
         out: list[VariableSpec] = []
         for entry in attr.value.entries:
+            self.source, self.via = entry.source, entry.via
             try:
                 spec = self.variable(entry.key, entry.value)
             except _SkipError:
                 continue
+            finally:
+                self.source, self.via = "", ()
             note = entry.description
             if note is not None and not note.value.strip():
                 self.at(
@@ -1674,7 +1730,9 @@ class _Builder:
         """
         out: list[PromptPartSpec] = []
         allowed_blocks = ("message", "each", "when", "placeholder") if top else ("each", "when")
+        outer = (self.source, self.via)
         for item in block.body:
+            self.source, self.via = item.source, item.via
             try:
                 if isinstance(item, Attribute):
                     if block.kind == "prompt":
@@ -1718,6 +1776,7 @@ class _Builder:
                     out.append(self.part_block(item, scope, top=top, out_ok=out_ok))
             except _SkipError:
                 pass
+        self.source, self.via = outer
         return out
 
     def part_block(
@@ -1924,6 +1983,8 @@ def build(
     *,
     filename: str | None = None,
     registry_names: Collection[str] | None = None,
+    resolver: Resolver | None = None,
+    key: str | None = None,
 ) -> Document:
     """Parse (if given text) and validate a ``.skye`` file into block models.
 
@@ -1932,6 +1993,10 @@ def build(
         filename: The name used in diagnostics when ``source`` is text.
         registry_names: The names the caller will pass in its registry. When given, every
             ``registry.NAME`` is checked against them; when ``None`` they are not checked.
+        resolver: ``resolver(target, from_key) -> Resolved``, which gives the text of a file named
+            by an ``include`` or a ``from ... import``; without one they are an error (``build``
+            reads no file).
+        key: The identity of the file for the resolver (the file name by default).
 
     Returns:
         A :class:`Document` with the sound blocks and every diagnostic. It does not raise; call
@@ -1948,6 +2013,26 @@ def build(
             errors
         ):  # a text that does not parse is reported as is; checks on a partial tree would mislead
             return Document(filename=tree.filename or DEFAULT_FILENAME, diagnostics=errors)
+        if tree.metadata.get("partial") is True:
+            return Document(
+                filename=tree.filename,
+                metadata=dict(tree.metadata),
+                diagnostics=[
+                    Diagnostic(
+                        file=tree.filename,
+                        line=1,
+                        column=1,
+                        reason=PARTIAL_ALONE,
+                        fix='Include it from another file: include "<path>" as <name>.',
+                    )
+                ],
+            )
+        if tree.has_include:
+            tree, errors = expand(tree, resolver, key)
+            if errors:
+                return Document(
+                    filename=tree.filename, metadata=dict(tree.metadata), diagnostics=errors
+                )
         return _Builder(tree, registry_names).build()
     except RecursionError:  # the last safety net: a file must never end in a traceback
         return Document(
@@ -1968,6 +2053,8 @@ def check_text(
     text: str,
     filename: str | None = None,
     registry_names: Collection[str] | None = None,
+    resolver: Resolver | None = None,
+    key: str | None = None,
 ) -> list[Diagnostic]:
     """Every mistake in a ``.skye`` text (syntax and load-time checks); empty when it is valid.
 
@@ -1975,8 +2062,14 @@ def check_text(
         text: The ``.skye`` text (this function reads no file).
         filename: The name used in diagnostics.
         registry_names: Known names for ``registry.NAME`` (``None`` = do not check them).
+        resolver: Gives the text of the files that an ``include`` names (see :func:`build`).
+        key: The identity of the file for the resolver (the file name by default).
     """
-    return build(text, filename=filename, registry_names=registry_names).diagnostics
+    found = build(
+        text, filename=filename, registry_names=registry_names, resolver=resolver, key=key
+    ).diagnostics
+    # a partial checked alone is only read for its syntax: the rest is checked where it is used
+    return [d for d in found if d.reason != PARTIAL_ALONE]
 
 
 __all__ = ["END", "PREFIXES", "Document", "build", "check_text"]

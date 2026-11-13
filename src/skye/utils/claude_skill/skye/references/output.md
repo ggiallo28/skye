@@ -25,7 +25,7 @@ prompt "extract_invoice" {
 }
 ```
 
-- The format is `"json"`, `"table"` or `"xml"`; `output { ... }` with no label is `"json"`. At most one unconditional `output` block per
+- The format is `"json"`, `"table"`, `"xml"` or `"text"` (plain answer, no fields, optional `style = "a short paragraph"`); `output { ... }` with no label is `"json"`. At most one unconditional `output` block per
   prompt, in the prompt (not in a message), or conditional ones (below), never both.
 - Conditional outputs: to let a variable choose the shape, put each `output` in a top-level `when` (a `when` nested in one works too;
   never inside a `message` or an `each`). Write conditions that exclude each other: at render time exactly the one that holds is used,
@@ -55,7 +55,7 @@ prompt "extract_invoice" {
   error); it takes no description.
 - Dynamic format: `output format { ... }` (no quotes) takes the format from a declared `string` variable, whose default, if any, must be
   `json`, `table` or `xml`; any other value at render time is an error, and so is `"table"` with a list or map field. The bundled prompt
-  `structured_output` does this with its `format` and `schema` variables (`schema` is optional: without it the answer has `name` and
+  `extraction_structured` does this with its `format` and `schema` variables (`schema` is optional: without it the answer has `name` and
   `value`, as in the example above). In Python the block is `PromptSpec.output`, an `OutputSpec`
   with `format`, `format_from`, `fields` (each an `OutputFieldSpec` with `name`, `type`, `default`, `item_type`, `fields`,
   `description`) and `schema_from`.

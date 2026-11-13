@@ -1,3 +1,4 @@
+# O37
 """A small in-memory cache of built documents, keyed by a hash of the text.
 
 Parsing and checking a ``.skye`` text is the expensive part of loading it. When the same text is
@@ -18,7 +19,7 @@ did not change) the cached :class:`~skye.base.dsl.build.Document` is returned an
 
 This module reads no file; the code that reads a file and also skips the read when the file did not
 change is
-``skye.utils.skye_files`` (the cache on disk is open decision O37).
+``skye.utils.skye_files`` (the cache on disk is open decision).
 """
 
 from __future__ import annotations
@@ -26,15 +27,16 @@ from __future__ import annotations
 import hashlib
 import threading
 from collections import OrderedDict
-from collections.abc import Collection
+from collections.abc import Collection, Hashable
 from dataclasses import dataclass
 
 from skye.base.dsl.build import Document, build
+from skye.base.dsl.include import INCLUDE_LINE, Resolver
 
 #: How many documents are kept.
 MAX_ENTRIES = 64
 
-_Key = tuple[str, str, frozenset[str] | None]
+_Key = tuple[str, str, frozenset[str] | None, Hashable]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -64,10 +66,16 @@ def text_digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def cache_key(text: str, filename: str | None, registry_names: Collection[str] | None) -> _Key:
-    """The key under which a text is cached (its digest, its file name and the registry names)."""
+def cache_key(
+    text: str,
+    filename: str | None,
+    registry_names: Collection[str] | None,
+    fingerprint: Hashable = None,
+) -> _Key:
+    """The key under which a text is cached (its digest, its file name, the registry names and the
+    fingerprint of the files an include reads)."""
     names = None if registry_names is None else frozenset(registry_names)
-    return (text_digest(text), filename or "", names)
+    return (text_digest(text), filename or "", names, fingerprint)
 
 
 def remember(key: _Key, document: Document) -> Document:
@@ -97,23 +105,42 @@ def build_cached(
     *,
     filename: str | None = None,
     registry_names: Collection[str] | None = None,
+    resolver: Resolver | None = None,
+    key: str | None = None,
 ) -> Document:
     """:func:`~skye.base.dsl.build`, skipping the parse when the same text was built before.
+
+    A text with an ``include`` or a ``from ... import`` line depends on files that the text does not
+    hold, so it is cached only when the resolver has a ``fingerprint()`` (what changes when those
+    files change) and the fingerprint is part of the key; without one it is built every time.
 
     Args:
         text: The ``.skye`` text.
         filename: The name used in diagnostics.
         registry_names: The names the caller will pass in its registry (``None`` = not checked).
+        resolver: Gives the text of the files that an include names (see :func:`build`).
+        key: The identity of the file for the resolver.
 
     Returns:
         The document. **Treat it as read-only**: it is shared by every caller that builds the same
         text.
     """
-    key = cache_key(text, filename, registry_names)
-    cached = recall(key)
+    fingerprint = None
+    if INCLUDE_LINE.search(text):
+        fingerprint_of = getattr(resolver, "fingerprint", None)
+        if fingerprint_of is None:
+            return build(
+                text, filename=filename, registry_names=registry_names, resolver=resolver, key=key
+            )
+        fingerprint = fingerprint_of()
+    entry = cache_key(text, filename, registry_names, fingerprint)
+    cached = recall(entry)
     if cached is not None:
         return cached
-    return remember(key, build(text, filename=filename, registry_names=registry_names))
+    built = build(
+        text, filename=filename, registry_names=registry_names, resolver=resolver, key=key
+    )
+    return remember(entry, built)
 
 
 def clear_cache() -> None:

@@ -63,7 +63,7 @@ for a prompt, a `RouterInfo` (routes with targets and fallbacks) for a router, a
 
 `from skye.prompts import describe_prompt, prompt_help, PromptInfo`: `describe_prompt(document.prompt("chat"), document.metadata)`
 returns a `PromptInfo` (inputs with type, default and description; placeholders; roles; output fields) and `prompt_help(spec, metadata)`
-the same as plain text (what `skye prompt info` prints). `BasePromptBuilder().help("planner_agent")` / `.describe(name)` work on a
+the same as plain text (what `skye prompt info` prints). `BasePromptBuilder().help("agent_react")` / `.describe(name)` work on a
 registered template, bundled ones included. Import these from `skye.prompts`, not from `skye.base.dsl.info`. The specs are public
 there too: `PromptSpec`, `PromptPartSpec`, `OutputSpec`; and `render_parts`, `output_json_schema`, `PromptParts`, `OutputSchema`
 (prompt.md).

@@ -1,3 +1,4 @@
+# O37
 """Read a ``.skye`` file, and skip the read and the parse when the file did not change.
 
 ``skye.base.dsl`` takes text; this module is the one that reads a file. It keeps, in memory, what it
@@ -17,7 +18,7 @@ and the size; call
 documents are
 **read-only** and shared (see ``skye.base.dsl.cache``). Keeping the result on disk, in a form that
 is quicker to read than
-the source, is open decision O37.
+the source, is still open.
 """
 
 from __future__ import annotations
@@ -27,10 +28,13 @@ from collections import OrderedDict
 from collections.abc import Collection
 from pathlib import Path
 
-from skye.base.dsl import Document, build
+from skye.base.dsl import Document, Resolved, build
 from skye.base.dsl.cache import MAX_ENTRIES, cache_key, recall, remember, text_digest
+from skye.base.dsl.include import INCLUDE_LINE, Resolver
 from skye.base.exceptions import ConfigurationError
 
+# A line that names another file: the document then depends on files this module does not cache.
+_INCLUDES = INCLUDE_LINE
 _FileKey = tuple[str, frozenset[str] | None]
 _Signature = tuple[int, int]
 
@@ -66,6 +70,45 @@ def read_text(path: str | Path) -> str:
         ) from exc
 
 
+def file_resolver(entry: str | Path) -> Resolver:
+    """The resolver of the ``include`` and ``from ... import`` lines of the file ``entry``.
+
+    The root is the folder of ``entry``; a target is a path relative to the including file and must stay
+    inside the root, also through a symbolic link. The key of a file is its real path.
+
+    Args:
+        entry: The ``.skye`` file whose includes are read (it need not exist, only its folder).
+
+    Returns:
+        ``resolver(target, from_key)``; it raises ``ValueError`` for a target outside the root and
+        ``FileNotFoundError`` (naming the folder searched) for a missing file.
+    """
+    root = Path(entry).resolve().parent
+
+    def resolve(target: str, from_key: str | None) -> Resolved:
+        folder = Path(from_key).parent if from_key else root
+        path = (folder / target).resolve()
+        if not path.is_relative_to(root):
+            raise ValueError(f"it is outside {root}")
+        if not path.is_file():
+            raise FileNotFoundError(f"no such file in {folder}")
+        return Resolved(
+            text=path.read_text(encoding="utf-8"), name=path.relative_to(root).as_posix(), key=str(path)
+        )
+
+    return resolve
+
+
+def _build_with_includes(text: str, target: Path, names: Collection[str] | None) -> Document:
+    return build(
+        text,
+        filename=str(target),
+        registry_names=names,
+        resolver=file_resolver(target),
+        key=str(target.resolve()),
+    )
+
+
 def load_document(
     path: str | Path,
     *,
@@ -87,7 +130,7 @@ def load_document(
     """
     target = Path(path)
     if not use_cache:
-        return build(read_text(target), filename=str(target), registry_names=registry_names)
+        return _build_with_includes(read_text(target), target, registry_names)
     try:
         stat = target.stat()
     except OSError as exc:
@@ -104,6 +147,8 @@ def load_document(
     if known is not None and known[0] == signature:
         return known[2]
     text = read_text(target)
+    if _INCLUDES.search(text):  # a partial may change without this file changing: build every time
+        return _build_with_includes(text, target, registry_names)
     digest = text_digest(text)
     if known is not None and known[1] == digest:
         document = known[2]
@@ -167,4 +212,11 @@ def load(path: str | Path, *, registry_names: Collection[str] | None = None) -> 
     return document
 
 
-__all__ = ["clear_files_cache", "diagnostics_error", "load", "load_document", "read_text"]
+__all__ = [
+    "clear_files_cache",
+    "diagnostics_error",
+    "file_resolver",
+    "load",
+    "load_document",
+    "read_text",
+]

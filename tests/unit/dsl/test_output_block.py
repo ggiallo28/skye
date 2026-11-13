@@ -75,11 +75,11 @@ def test_dynamic_schema() -> None:
     assert output == OutputSpec(format="table", schema_from="fields")
 
 
-def test_an_unknown_format_lists_the_three() -> None:
+def test_an_unknown_format_lists_the_four() -> None:
     (message,) = _messages('  output "csv" { a = string }')
-    assert message == 'output format "csv" is not known. Use json, table or xml.'
+    assert message == 'output format "csv" is not known. Use json, table, xml or text.'
     (message,) = _messages('  output "tabel" { a = string }')
-    assert 'Did you mean "table"?' in message and "json, table or xml" in message
+    assert 'Did you mean "table"?' in message and "json, table, xml or text" in message
 
 
 def test_a_table_with_a_nested_field_names_it() -> None:
@@ -332,7 +332,7 @@ def test_format_variable_mistakes() -> None:
     (message,) = _messages("  output bad { a = string }", variables=variables)
     assert (
         message
-        == 'the default of "bad" is "csv", which is not an output format. Use json, table or xml.'
+        == 'the default of "bad" is "csv", which is not an output format. Use json, table, xml or text.'
     )
 
 

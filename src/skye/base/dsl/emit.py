@@ -390,6 +390,9 @@ def _output_map(fields: list[OutputFieldSpec], depth: int) -> str:
 
 def _output(spec: OutputSpec, depth: int = 1) -> list[str]:
     head = f"output {spec.format_from or quote(spec.format)}"
+    if spec.format == "text" and spec.format_from is None:
+        style = spec.style_from if spec.style is None else quote(spec.style)
+        return _block(head, [] if style is None else [f"style = {style}"], depth)
     if spec.schema_from is not None:
         return _block(head, [f"schema = {spec.schema_from}"], depth)
     entries = [_output_entry(f, depth + 1) for f in spec.fields]
