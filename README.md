@@ -108,7 +108,7 @@ How the project is specified: the requirements, the design and the decisions are
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/ggiallo28/skye/blob/main/CONTRIBUTING.md). Fork, create a branch, make your changes with tests, run the code quality checks, and open a pull request.
+See [CONTRIBUTING.md](https://github.com/ggiallo28/skye/blob/main/CONTRIBUTING.md). Fork, create a branch, make your changes with tests, run the code quality checks, and open a pull request. Add a line under Unreleased in [CHANGELOG.md](https://github.com/ggiallo28/skye/blob/main/CHANGELOG.md) for any change a user would notice.
 
 Everyone taking part in the project follows the [Code of Conduct](https://github.com/ggiallo28/skye/blob/main/CODE_OF_CONDUCT.md).
 

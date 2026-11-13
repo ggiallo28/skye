@@ -14,7 +14,7 @@ from skye import SystemMessage, UserMessage
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # the shared offline helper lives in examples/
 from _offline import provider_or_scripted  # noqa: E402
 
-MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"
+MODEL = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 
 
 def main() -> None:

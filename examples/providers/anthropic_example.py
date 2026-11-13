@@ -13,7 +13,7 @@ from skye import SystemMessage, UserMessage
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # the shared offline helper lives in examples/
 from _offline import provider_or_scripted  # noqa: E402
 
-MODEL = "claude-3-sonnet-20240229"
+MODEL = "claude-sonnet-4-5-20250929"
 
 
 def main() -> None:
