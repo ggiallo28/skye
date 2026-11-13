@@ -25,7 +25,7 @@ builder is the only caller (no second implementation of the Port exists).
 | `prompts/messages.py` | `BasePromptBuilder`: registry (`name:version`), variable merge, examples, role sections, content and schema configuration, metadata and validation. Re-exports the message types for peers. |
 | `prompts/loaders.py` | `load_default_templates(builder)`: reads the files of `prompts/templates/` and registers them as version `1.0`. |
 | `prompts/skye_prompts.py` | The `.skye` renderer: `load_prompt`, `render_prompt` (a `PromptSpec` plus variables gives `SkyeMessage`s with real roles), `render_parts` (the same as a `PromptParts`, D81, D101), `output_json_schema` and `PromptRunnable` (the `Runnable` a flow step `run = prompt.NAME` will reach once the flow runtime exists). |
-| `prompts/templates/` | The bundled prompts, all `.skye`: the 18 original templates converted (task 4.3) and the agent prompts written directly in `.skye` (see "Agent prompts"). |
+| `prompts/templates/` | The bundled prompts, all `.skye`: the shared parts in `common/` and 11 prompts (`text_*`, `extraction_*`, `generation_*` and `agent_react`). The other 26 prompts, among them the agent prompts of "Agent prompts" below, are a gallery in `examples/prompts/catalogue/` since 2026-11-13 (D118), not installed. |
 
 Flow of one rendering: look up the latest (or the given) version, extract the variable names, merge defaults, partial variables and
 provided variables (the provided ones win, callable defaults are called at each rendering, Requirement 30.4), inject the selected
@@ -104,8 +104,8 @@ Format from a variable (D70). `output VAR { ... }` (a bare name) takes the forma
 it declared ("Did you mean"), of type string, and a default (if any) among json, table, xml; `OutputSpec.format_from` holds its name.
 `output_instructions` resolves the value (or the default) at render time and raises `ValidationError` for a value that is not one of
 the three, or for `table` with a list or map field (static fields too, since they cannot be checked at load time). The bundled prompt
-`structured_output` uses it (`format = string("json")`, `output format { ... }`) next to the fixed-format
-`structured_output_json`, `_table` and `_xml`.
+`structured_output` uses it (`format = string("json")`, `output format { ... }`); the fixed-format `structured_output_json`, `_table` and `_xml`
+were removed on 2026-11-13 (task 24.10 of `0-base-plugins`).
 
 Conditional outputs (D70). An `output` block may also sit inside a `when` at the top of the prompt (or a `when` nested in one; never
 inside a `message` or an `each`): the builder reads it into a `PromptPartSpec(kind="output", output=OutputSpec)` among the parts of
@@ -144,18 +144,18 @@ Version 2, measured on the 18 templates (what the language cannot say yet): `els
 `X == "value"`); loop variables in `each` (`loop.index` 3 uses, `loop.last` 1 use, plus `first` and `length`; done by D69); a loop
 over a dictionary (`for key, value in collected_data.items()`, 2 uses; done by D69 as `{key, value}` entries); a condition inside a line (20 lines in
 11 files, for example `- {{ memory.content }}{% if memory.timestamp %} ({{ memory.timestamp }}){% endif %}`; options are a conditional
-expression in `{{ }}` or an inline `when`); an inline loop with a separator (`tool_agent.jinja`; done by D69 with the filter `map`). Still version 2: `else`/`elif` and a condition inside a line (written today as `when not` chains and pairs of `when` blocks).
+expression in `{{ }}` or an inline `when`); an inline loop with a separator (`agent_tool.jinja`; done by D69 with the filter `map`). Still version 2: `else`/`elif` and a condition inside a line (written today as `when not` chains and pairs of `when` blocks).
 Measured again by the conversion (task 4.3): `else`/`elif` were written as `when not x` and `==`/`!=` chains in all 15
 converted files (18 with the last three), and a condition inside a line as two `when` blocks (four for two conditions in `summarization`); both work but
 are verbose. Two more needs: a falsy test of a missing key (`x.key` on a map without `key` is an error in an expression, falsy in
 Jinja; written `"key" in x and x.key`), and a `when` that can test the history given to a `placeholder` (the old templates print a
 "Recent conversation" heading only with history, so those prompts loop over a `chat_history` variable instead). The last three
-(`form_agent`: `for key, value in collected_data.items()`; `multimodal_agent`: `loop.index`; `tool_agent`: an inline list with a
+(`agent_form`: `for key, value in collected_data.items()`; `agent_multimodal`: `loop.index`; `agent_tool`: an inline list with a
 separator) were converted once D69 added, without new syntax, `loop.*` inside `each`, `{key, value}` entries when an `each` goes
 over a map, and the engine filter `map(attribute)`. The equivalence test (task 4.4) lists the intended differences: real
 roles, history as messages, whitespace, empty messages omitted, and lines the old templates glued together because an
-`{% endif %}` swallowed the newline (`main_agent`, `memory_agent`, `sql_generation`, `relation_extraction`,
-`tabular_extraction`). The old engine cannot render the legacy `{% %}` templates any more (D76), so their output for every case was
+`{% endif %}` swallowed the newline (`agent_memory_assistant`, `agent_memory_recall`, `sql_generation`, `extraction_relations`,
+`extraction_table`). The old engine cannot render the legacy `{% %}` templates any more (D76), so their output for every case was
 rendered once and frozen in `tests/unit/prompts/legacy_renderings/` (task 9.1); the test compares against those texts.
 Already enough in the engine: the filters `default`, `join`, `upper`, nested `each`, attribute access (`table.columns`). Not to be
 added (D20): macros, inheritance, include, variable assignment. `prompts/engine.py` keeps only `{{ }}` interpolation with filters
@@ -166,12 +166,14 @@ Bundled prompts written directly in `.skye`, all with the same optional inputs: 
 parameters, returns}`), the memory lists `episodic_memory`, `semantic_memory`, `procedural_memory`, `persona_memory`,
 `working_memory` (a section per non-empty kind, nothing when all are empty), `system_prompt` to replace the role sentence, and a
 `placeholder "history"`. Every agent prompt shows the parameters of a tool as its JSON Schema, `Parameters: {{ tool.parameters | tojson }}`
-(D80, the four smolagents-style prompts converted in task 9.4). smolagents-style (`smol_code_agent`, `smol_tool_calling_agent`, `smol_planning`, `smol_managed_agent`);
-reasoning (`self_reflection_agent`, `chain_of_thought_agent`, `tree_of_thoughts_agent`, `planner_agent`); supervisors
-(`supervisor_router`, `supervisor_planner`, `supervisor_reviewer`, `supervisor_hierarchical`); shared conversation of several
-agents (`group_chat_participant`, which answers a pass token unless its triggers match or it is mentioned, `group_chat_manager`,
-which picks the next speakers, and `group_chat_summarizer`); memory upkeep (`memory_update_agent`, `memory_consolidation_agent`, `working_memory_agent`, which return JSON operations a memory store applies). The older agent templates (`code_agent`, `main_agent`, `memory_agent`, `procedure_agent`, `reasoning_agent` and the three `.jinja` ones) take the same optional inputs, with their own variables kept. Their text is written for Skye (Requirement 14.3): smolagents
+(D80, the four smolagents-style prompts converted in task 9.4). smolagents-style (`agent_smol_code`, `agent_smol_tool_calling`, `agent_smol_planning`, `agent_smol_managed`);
+reasoning (`agent_reasoning_self_reflection`, `agent_reasoning_chain_of_thought`, `agent_reasoning_tree_of_thoughts`, `agent_planner`); supervisors
+(`agent_supervisor_router`, `agent_supervisor_planner`, `agent_supervisor_reviewer`, `agent_supervisor_hierarchical`); shared conversation of several
+agents (`agent_groupchat_participant`, which answers a pass token unless its triggers match or it is mentioned, `agent_groupchat_manager`,
+which picks the next speakers, and `agent_groupchat_summarizer`); memory upkeep (`agent_memory_update`, `agent_memory_consolidation`, `agent_memory_working`, which return JSON operations a memory store applies). The older agent templates (`agent_code`, `agent_memory_assistant`, `agent_memory_recall`, `agent_procedure`, `agent_reasoning` and the three `.jinja` ones) take the same optional inputs, with their own variables kept. Their text is written for Skye (Requirement 14.3): smolagents
 (Apache-2.0) and the other libraries were read for their structure only.
+
+Note (2026-11-13, D118): of the agent prompts listed above only `agent_react` (the former `agent_smol_tool_calling`) is bundled; the others are in the gallery `examples/prompts/catalogue/` and come back into the library when a component uses them.
 
 ## Data Models
 No class of the old design survives as a public type. The state of the builder is private dictionaries keyed by template name.

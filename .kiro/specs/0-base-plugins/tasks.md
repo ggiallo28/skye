@@ -61,7 +61,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
   - [x] 3.4 Property tests: a lookup never raises for a missing profile or model (cost `None`, the estimate for tokens)
     - _Requirements: 59.10_
 
-- [~] 4. Discovery and control
+- [x] 4. Discovery and control
   - [x] 4.1 `utils/plugins.py` `discover(registrar)`: `importlib.metadata.entry_points(group="skye.plugins")`, each entry point loaded and
     passed to `use`; the report (`PluginReport`) kept for the command and the errors (depends on O60, option A)
     - _Requirements: 57.1_
@@ -133,7 +133,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     updated, the budget tests on the new paths; the specs of finished work (`0-base-structure`, `0-base-uxui`) keep the paths of their time
     - _Requirements: 56.9, 56.10; D110_
 
-- [~] 6. Provider knowledge in one place
+- [x] 6. Provider knowledge in one place
   - [x] 6.1 `CostCalculator` without `PRICING`: prices from the profiles, `add_custom_pricing` as a user layer that wins,
     `get_pricing`, `pricing_for`, `list_models` unchanged for the caller
     - _Requirements: 60.1, 59.3_
@@ -156,11 +156,11 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     - _Requirements: 60.6, 59.6_
   - [x] 6.7 Bedrock reads its native-JSON-output capability from `get_model_info()`; `_native_json_output` goes
     - _Requirements: 60.7_
-  - [ ] 6.8 `tests/budget/test_provider_knowledge.py`: a built-in provider name, a key variable or a price as a literal outside the
+  - [x] 6.8 `tests/budget/test_provider_knowledge.py`: a built-in provider name, a key variable or a price as a literal outside the
     adapter and profile of that provider fails; an allowlist that only shrinks
     - _Requirements: 60.8_
 
-- [~] 7. The other registries as views
+- [x] 7. The other registries as views
   - [x] 7.1 `store/plugins/` (`register`) and `register_backend` as a view (the `_BUILTIN` table becomes registrations by text)
     - _Requirements: 56.6, 56.7_
     - Note: built against the interface before D111; the kind `store_backend` is `backend` after task 13.1.
@@ -187,7 +187,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     `tests/unit/plugins/test_layout_tools.py`
     - _Requirements: 56.9, 56.10; D110_
 
-- [ ] 8. Storage knowledge in one place
+- [x] 8. Storage knowledge in one place
   - [x] 8.1 `CounterStore.count(key)` on the Port and in all six backends; `check_backend` checks it
     - _Requirements: 60.9; D98_
   - [x] 8.2 `ExpiryStore` (`is_alive`, `remaining`) beside the Protocols of D98, in every backend that stores an expiry; the
@@ -202,7 +202,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     does reading the key `"count"` of a stored value outside `store`
     - _Requirements: 60.12_
 
-- [~] 9. The closed kinds
+- [x] 9. The closed kinds
   - [x] 9.1 Routing strategies by name through the registrar; the eight built-ins registered in `router/plugins/`; every
     `RoutingStrategy` member still works; the `if`/`elif` chain goes; the `.skye` checker accepts a registered name in `strategy`
     - _Requirements: 58.1_
@@ -214,26 +214,26 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     - Note: built against the interface before D111; the decision model is a provider with the function `decide` after task 15.2.
   - [x] 9.4 A test with a third-party strategy, MCP client and decision provider registered with `plugins` decorators
     - _Requirements: 58.1, 58.2, 58.3_
-- [ ] 10. Conformance per kind
-  - [ ] 10.1 One public `check_<kind>` per kind, next to its owner, offline against fakes, returning the names of the checks passed and
+- [x] 10. Conformance per kind
+  - [x] 10.1 One public `check_<kind>` per kind, next to its owner, offline against fakes, returning the names of the checks passed and
     raising on the first failure: `check_provider` (the checks of the function the class has: model, embedding or decision), `check_credential_source`,
     `check_routing_strategy`, `check_mcp_client`, `check_tokenizer`, `check_template_filter`, `check_agent`, `check_toolkit` (store: `check_backend`
     exists)
     - _Requirements: 58.4; D98, D111_
-  - [ ] 10.2 One parametrized test runs every built-in registration of every kind through its function
+  - [x] 10.2 One parametrized test runs every built-in registration of every kind through its function
     - _Requirements: 58.5_
 
-- [ ] 11. Documentation, skill and budgets
-  - [ ] 11.1 The guide "Write a plugin" and a reference of `ProviderProfile` in the wiki, with snippets from `examples/plugins/`; the extension
+- [x] 11. Documentation, skill and budgets
+  - [x] 11.1 The guide "Write a plugin" and a reference of `ProviderProfile` in the wiki, with snippets from `examples/plugins/`; the extension
     page (`docs/guides/extend/index.md`) lists the decorator of each kind (the pages written before D111 are redone by task 21.3)
     - _Requirements: 61.2, 15.10_
-  - [ ] 11.2 The Claude skill that ships with the package: `skye plugins`, `skye.Plugins`, the `plugins` key, the registrar and the profile;
+  - [x] 11.2 The Claude skill that ships with the package: `skye plugins`, `skye.Plugins`, the `plugins` key, the registrar and the profile;
     an eval for the rule that a provider is declared once, in its profile
     - _Requirements: 61.3_
-  - [ ] 11.3 No third-party dependency and no extra added; size, import time and cold start of `budgets.toml` not higher
+  - [x] 11.3 No third-party dependency and no extra added; size, import time and cold start of `budgets.toml` not higher
     - _Requirements: 61.4, 7.9; D27_
 
-- [ ] 13. The nine kinds (D111)
+- [x] 13. The nine kinds (D111)
   - [x] 13.1 Rename `store_backend` to `backend`, `agent_type` to `agent` and `prompt_filter` to `template_filter` in `KINDS`,
     `RegistrarInterface`, `Registrar` and the views (`register_backend`, `register_agent_type`, the prompt builders); the tests of the old
     names are updated
@@ -249,7 +249,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     path of `utils/plugins.py` that used it; the module docstring of `base/interfaces/plugin.py` describes `RegistrarInterface` only
     - _Requirements: 56.1; D111, D37_
 
-- [ ] 14. `skye.Plugins` (D111)
+- [x] 14. `skye.Plugins` (D111)
   - [x] 14.1 The class `Plugins` in `base/plugins.py`: a handle on the default registrar with no table of its own; one method for each kind that
     registers when it has the name and the target, and returns a decorator when it has the name only; the decorator returns the object it
     decorates; `replace=False`, `profile=` on `provider` and `tools=` on `toolkit` are taken
@@ -264,7 +264,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     duplicate raises and `replace=True` overrides, `unregister` removes, the decorated class stays usable
     - _Requirements: 56.1, 56.2, 56.3, 56.4, 56.6_
 
-- [ ] 15. One `provider` kind (D111)
+- [x] 15. One `provider` kind (D111)
   - [x] 15.1 The function of a `provider` from the method of the class (`generate`, `encode`, `decide`); the table keyed by name and function; a
     class with the methods of two functions raises `ConfigurationError`; the call that registers a text target gives the function, and the
     argument is chosen here and written in `design.md` (the text is not imported at registration)
@@ -284,7 +284,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     built through `skye.provider(name, provider_type="decision")` and through `create_decision_model`
     - _Requirements: 56.12, 58.3_
 
-- [ ] 16. One word to add and to build (D111)
+- [x] 16. One word to add and to build (D111)
   - [x] 16.1 The builders as lazy names of `skye/__init__.py`: `skye.agent` (a view of `create_agent`; `REACT` stays in `skye.agents`),
     `skye.backend`, `skye.mcp_client`, `skye.credential_source`, `skye.routing_strategy`, each reading the table of its kind; the exports count test
     is updated (D34)
@@ -296,7 +296,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     by `names`
     - _Requirements: 56.11, 62.9_
 
-- [ ] 17. The profile of an existing provider and the tokenizer by name (D111)
+- [x] 17. The profile of an existing provider and the tokenizer by name (D111)
   - [x] 17.1 `plugins.profile(provider, models={model: ModelProfile(...)})` merges the given model entries into the profile of an existing
     provider and changes nothing else (depends on O72: what merges, the error for an unknown provider or model)
     - _Requirements: 59.11; D111_
@@ -307,7 +307,7 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     tokenizer in its profile; a model with no tokenizer gets the estimate
     - _Requirements: 59.11, 59.10_
 
-- [ ] 18. Toolkits (D111; the loop and the content are other specs and O70)
+- [x] 18. Toolkits (D111; the loop and the content are other specs and O70)
   - [x] 18.1 `LocalFunctionCapability` as a descriptor (`__get__` binds it to the instance) and a schema that skips `self`, so that
     `@capability` works on a method (open in O70: `__call__` and the early check of the schema)
     - _Requirements: 62.2, 62.5_
@@ -340,36 +340,36 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     user asks for it or a feature of the agent needs it; `IMPLEMENTATIONS` of `tools/plugins/` lists the MCP clients and the toolkits; `test_layout_tools.py`
     is updated
     - _Requirements: 62.7, 56.9_
-  - [ ] 19.6 The toolkit `shell`, the base only (opt-in: an allow list of executables is required, no shell, a time limit, a cut of the output, a ON HOLD until O80 is decided; the code is parked outside the repository.
+  - [x] 19.6 The toolkit `shell`, the base only (opt-in: an allow list of executables is required, no shell, a time limit, a cut of the output, a Restored and registered after the O80 parking (it is not part of O80).
     working folder, a minimal environment); the rest is listed as issues for contributors
     - _Requirements: 62.7_
   - [x] 19.7 The toolkit `human` for escalations, the base only (the agent asks a person a question, or hands a case over; the way to reach the person is
     a pluggable channel: `console`, `file` (JSON files in a folder, polled) and the Protocol for the others); the rest is listed as issues for contributors
     - _Requirements: 62.7_
-  - [ ] 19.5 The seam for the skills: an agent that is given a `SKILL.md` asks the registrar for the toolkit `files`, limited to the folder of the
+  - [x] 19.5 The seam for the skills: an agent that is given a `SKILL.md` asks the registrar for the toolkit `files`, limited to the folder of the
     skill, and never imports `tools`; the skill itself and the loop are the agents spec
     - _Requirements: 62.8_
 
-- [ ] 20. Async only for the plugin author (D111)
+- [x] 20. Async only for the plugin author (D111)
   - [x] 20.1 `run_sync(coroutine)` and `iterate_sync(async_generator)` in `base`: the first runs on a worker thread when a loop is already
     running; the second runs the generator on its own loop in one thread, with a bounded queue, raises the error in the caller and closes the
     generator when the caller stops; tests for a running loop, an error in the middle and an early stop
     - _Requirements: 56.13_
-  - [ ] 20.2 The model base classes derive `complete` and `stream` from `acomplete` and `astream`; the parallel sync paths go and the adapters
+  - [x] 20.2 The model base classes derive `complete` and `stream` from `acomplete` and `astream`; the parallel sync paths go and the adapters
     write only the async methods (depends on O68)
     - _Requirements: 56.13_
-  - [ ] 20.3 The embedding base class derives `encode` and `encode_batch` from `aencode` and `aencode_batch`; the example embedding provider writes
+  - [x] 20.3 The embedding base class derives `encode` and `encode_batch` from `aencode` and `aencode_batch`; the example embedding provider writes
     two methods; tests
     - _Requirements: 56.13_
 
-- [ ] 22. The name of the built-in MCP client (D112)
+- [x] 22. The name of the built-in MCP client (D112)
   - [x] 22.1 The built-in MCP client is called `skyemcp` and no longer `builtin`: the registered name, the default `impl` of
     `create_mcp_client`, the folder `tools/plugins/builtin` (now `tools/plugins/skyemcp`, with its door and `client.py`), the class
     `BuiltinMCPClient` (now `SkyeMCPClient`, exported by `skye.tools`), `IMPLEMENTATIONS` in `tools/plugins/__init__.py`, the tests, the examples
     and the docs and specs that name it; the old name is not kept as an alias
     - _Requirements: 58.2; D16, D110, D112_
 
-- [ ] 23. Strategies that read the request (D113)
+- [x] 23. Strategies that read the request (D113)
   - [x] 23.1 `StrategyContext` in `router`: a frozen, read-only dataclass with the models, the alias, the token estimate, the request and the
     snapshot of the metrics; `RouterStrategy.select(context)` for the built-ins, a plain function keeps `(models)` and one that wants the context is
     marked with `with_context`; the two call sites of `ModelRouter` pass the request; the eight built-ins and their tests move to the context
@@ -394,15 +394,15 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     the repository keep the comments; a test that the wheel has no comment and that every bundled template builds to the same objects with and without
     its comments
     - _Requirements: 61.4; O77_
-  - [ ] 24.4 The references to requirements, decisions and tasks move from the docstrings to comments (docstrings only say what the library does);
+  - [x] 24.4 The references to requirements, decisions and tasks move from the docstrings to comments (docstrings only say what the library does);
     a budget test that forbids the patterns in docstrings, with a list of exceptions that only shrinks; no cap of docstring bytes
     - _Requirements: 61.4; O77_
-  - [~] 24.5 DESIGN WRITTEN (`docs/_notes/include-design.md`, O79): the implementation waits for the owner's answers to O79. `include` in the `.skye` language, a public feature (the owner, O77, T3): its target, the detection of a cycle and the rules of the
-    checker, the formatter, the renderer and the extension are decided in the design first
-    - _Requirements: 61.4; O77_
-  - [ ] 24.6 The bundled `.skye` templates use `include` for what 2 or more files repeat (33% of their bytes are in repeated lines); the output of
+  - [ ] 24.5 The `include` of the `.skye` language is implemented and documented (D116, `docs/_notes/include-design.md`): the work is the tasks 25.1 to 25.6; this task
+    is closed when they are and when the bundled templates are migrated (24.6)
+    - _Requirements: 63.1 to 63.17; D116_
+  - [x] 24.6 The bundled `.skye` templates use `include` and `from ... import` for what 2 or more files repeat (five partials: `system_prompt`, `tools`, the memories and two small groups, 93% of the gain; 33% of their bytes are in repeated lines); the output of
     each template does not change (a test renders every template before and after)
-    - _Requirements: 61.4; O77_
+    - _Requirements: 63.14, 63.16, 61.4; D116_
   - [x] 24.7 The bundled templates are one `zipfile` archive made at build and read by name (opened at the first read, never at `import skye`); a
     source checkout reads the folder; `skye prompt export` writes them out; a test of both paths
     - _Requirements: 61.4; O77_
@@ -411,23 +411,82 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     of the objects (a context that `validate_instance` reads), guarded by a test that the build with and without validation gives equal objects for
     all the bundled templates; a template of the user is validated when it is registered; a row in `budgets.toml` for the construction of a builder
     - _Requirements: 61.4; O78_
+  - [x] 24.9 The comments inside the bundled `.skye` templates go: the examples (the `/** Example: builder.render(...) **/` blocks, 87 in 40 files) move to `examples/prompts/bundled/` as one data file per template with its sample variables, with one example `examples/prompts/bundled_templates.py` that renders each bundled template from them; the explanatory comments (block and `#` lines) are removed and not moved (a copy of what was removed is kept in `docs/_notes/skye-comments-removed.md`, which git ignores); the front matter (`title`, `description`, `version`, `tags`) stays; the sample files are the single source of the render checks of 24.6; the output of every template does not change
+    - _Requirements: 61.4, 63.16; O77_
+  - [x] 24.10 The catalogue of bundled templates is reduced (owner, 2026-11-13): `structured_output_json`, `structured_output_table` and `structured_output_xml` go (`structured_output` already takes `format`); the pairs `main_agent` and `memory_agent` (the second takes a subset of the variables of the first), `code_agent` and `code_generation`, and `chain_of_thought_agent` and `reasoning_agent` are each evaluated as one template with options and variables, and merged when the render of the options that replace the old template equals the old render (a test per merged template); tests and pages that name a removed template are updated; the renames are decided by the owner (2026-11-13): `ner` to `entity_extraction`, `tabular_extraction` to `table_extraction`, `main_agent` and `memory_agent` to one `memory_assistant`, `memory_update_agent`/`memory_consolidation_agent`/`working_memory_agent` to `memory_update`/`memory_consolidation`/`memory_working`, `tree_of_thoughts_agent` and `self_reflection_agent` to `reasoning_tree_of_thoughts` and `reasoning_self_reflection`, `smol_planning` to `smol_planning_agent`; the three merges (`main_agent`/`memory_agent`, `code_agent`/`code_generation`, `chain_of_thought_agent`/`reasoning_agent`) are approved when the render with the options equals the old render; no other merge is planned: two templates are merged only when they are the same job with options, never to force a `mode` on different jobs (owner, 2026-11-13: the families supervisor, groupchat, smol, reasoning beyond the approved pair, tool and procedure, extraction and text stay as they are); the memory agents end as two templates (owner, 2026-11-13): `agent_memory_assistant` (conversational, absorbs `agent_memory_recall`) and `agent_memory_maintenance` with a `mode` (`update`, `consolidate`, `working`) that replaces `agent_memory_update`, `agent_memory_consolidation` and `agent_memory_working`; the parts activate by `mode` and the JSON answer is a conditional `output` block per mode, with the renders of each old template reproduced by its mode (intended changes listed); the variables of the templates are unified (one name per idea, `docs/_notes/template-variables-unification.md`) and the answer format of every template is written with the `output` block of the language through one shared partial (`output_format` and `output_schema`) instead of a hand-written format text in 16 templates (owner, 2026-11-13: `chat` still has a free-form format while the structured one exists); the free-form style of an answer stays a separate text variable; the parts the agent templates share besides the memories, the tools block and the system prompt (the `## Constraints` section, the `## Tools` listing in its three variants, the task block `## Task` and its variable, the examples as user and assistant turns, the transcript and progress sections of the supervisor and group chat families) are unified to one wording and moved to the shared partials of step 2 (`common/io.skye` and, for the agents, `common/agent.skye`) where the pairing rule allows it; the one-off context variables become generic reusable ones (owner, 2026-11-13: no code-specific optional variables such as `database_schema` and `database_type`): `context` (background text, for `code_context`, `additional_context`, `domain_knowledge`), `references` (a list of named items with an optional description and a content, for `database_schema`, `table_schema`, `documents` and the files of `code_context`) and `environment` (the dialect, runtime or version, for `database_type` and the runtime of a language); `generation_sql` becomes a case of `generation_code` through them, with a thin template over a shared partial and an `override` of the language, or no template of its own (the owner chooses) DONE as step 1: the three `structured_output_*` removed and the templates renamed to `scope_detail` (every agent `agent_*`); the three merges were refused because no merge reproduces the old render; the steps 1b, 2 and 3 are not planned (D118: 26 templates left the bundle) and are done on the gallery only if the owner asks
+    - _Requirements: 61.4; O77_
+  - [x] 24.11 The bundled prompts are reduced (D118, owner 2026-11-13): the 26 templates other than `generation_*`, `extraction_*`, `text_*` and the ReAct agent prompt (`agent_smol_tool_calling` renamed `agent_react`) move to `examples/prompts/catalogue/` with their sample variables (a gallery with one runner example that lists and renders them offline, and a test that every file passes `skye check` and renders; the files that use a shared partial carry their own copy of `common/`); `src/skye/prompts/templates/` keeps `common/` and the 11 kept templates; the comments inside the templates go (the examples already moved to `examples/prompts/bundled/` in 24.9; the explanations are removed and kept in a local note); every test, page, example and the skill that uses a moved template by name uses the gallery; Requirement 30.14 and the specification `2-services-prompts` are amended; the steps 1b, 2 and 3 of 24.10 are done only if the owner asks; the gallery also holds `extraction_generic` (one prompt for entity, relation and table extraction, with three sample files), 27 files in all
+    - _Requirements: 61.4; D118_
+  - [ ] 24.12 `generation_code` and `generation_sql` become one bundled template `generation_code` (owner, 2026-11-13): SQL is a case of code generation through generic variables and not through variables of its own: `language` (`"SQL"` for SQL), `input` (what to generate), `description`, `requirements` and `constraints` (one list), `references` (a list of named items with an optional description and a content, for the tables of a schema, files or documents), `environment` (the dialect, runtime or version, for the SQL dialect or the runtime), `examples` (`input` and `output`), `input_format`, the answer through the `output` block (`format` json, table, xml or text) and `include_tests` and `include_comments`; the renders of the two old templates are reproduced by their options except the intended changes (the system sentence follows the language, the sections follow one layout), listed in a test with the old and the new text; the tests, pages, examples and the skill that name `generation_sql` use `generation_code` with `language` set; done after 24.11
+    - _Requirements: 61.4; D118_
 
-- [ ] 21. The examples, the lint scope and the pages written before D111
-  - [ ] 21.1 `examples/plugins/` runs offline: remove the entry `plugins` of `EXPECTED_TO_FAIL` in `tests/examples/test_examples.py` and
+- [ ] 25. The `include` of the `.skye` language (D116)
+  - [x] 25.1 Lexer, parser and syntax tree (`src/skye/base/dsl`): `include "path" as alias`, `from "path" import a, b as c`, `use name` and `use alias`
+    in a `variables` body, a prompt body and a message body; the words `from`, `import`, `use` and `partial` (the front matter key); the expansion
+    in `build` before the validation with a resolver given to `build` and `check_text`, the kind taken from the place, the pairing of a name with
+    its text, the limits (64 includes, 1 MB) and the cycle; the origin (file, line, column) kept on every node that comes from a partial; `base`
+    does no file I/O (the budget test passes); tests for each rule of Requirements 63.1 to 63.10 and 63.13
+    - _Requirements: 63.1, 63.2, 63.3, 63.4, 63.5, 63.6, 63.7, 63.8, 63.9, 63.10, 63.13; D116_
+  - [x] 25.2 Errors and diagnostics: the messages of the table of errors of the note (a name that does not exist with the names that do, a name not imported,
+    a kind that does not fit the place, a name imported twice, an alias used twice, an `include` without `as`, a duplicate with both origins, a name with an
+    entry and no text, a `use` inside a partial); `via` in `Diagnostic` and in the JSON of `skye check` (optional, the keys that exist do not change); the
+    check of the variables of the expanded tree (an undeclared variable read by brought text is reported with its origin)
+    - _Requirements: 63.2, 63.3, 63.6, 63.7, 63.11; D116_
+  - [x] 25.3 The tools: the resolver that reads the file system in `utils` (`skye.load`, `skye check` with `--stdin-filename`), the path rules and the symbolic
+    link out of the root; `skye fmt` keeps the lines and formats partials and refuses a result that builds differently; `skye.dsl.to_text` writes
+    expanded text; `skye prompt list` and `skye prompt info` skip `partial = true`; the facade `skye.dsl` re-exports only what exists
+    - _Requirements: 63.1, 63.8, 63.9, 63.11, 63.12; D116_
+  - [x] 25.4 The bundled catalogue: the resolver for the folder and for the archive (a member by its normalized path, one above the root refused), the
+    fingerprint of the catalogue in the key of the compiled bundled templates (`_BUNDLED_ENTRIES`) and the fingerprint of a resolver in `build_cached`,
+    `discover_templates` and the loader skip partials in subfolders, and the hook of tasks 24.3 and 24.7 walks the subfolders and keeps `partial = true`;
+    a test that a changed partial does not give a stale document and that the builder of the bundled templates stays under `max_builder_ms`
+    - _Requirements: 63.14, 63.15, 63.16; D116_
+  - [x] 25.5 Documents and editors: `docs/reference/skye-language.md` (the grammar table and the table of the versions), `docs/concepts/skye-language.md`
+    (the sentence that says there is no include in version 1), the language reference of the Claude skill (`utils/claude_skill/skye/references/language.md`) and
+    its test, the grammar of the VS Code extension (`include`, `from`, `import`, `use`, `partial` and the path string), with the examples checked by
+    `tests/unit/dsl/test_docs_examples.py` through a resolver on a temporary folder
+    - _Requirements: 63.17; D116_
+  - [ ] 25.6 The check of the feature: `make size`, the footprint test and the load budgets (the code of tasks 25.1 to 25.4 and 26.1 to 26.3 adds a few KB to the core; the
+    limit is not changed), the construction of the builder under `max_builder_ms`, the whole suite, `mypy src`, and the strict docs build
+    - _Requirements: 61.4, 63.15; D116, D117_
+
+- [x] 26. The override of the include (D117)
+  - [x] 26.1 The language core of `override` (`src/skye/base/dsl`: parser, syntax tree, expansion): `override name = <definition>` in the `variables` map and
+    `override when name { ... }` / `override when not name { ... }` in a prompt or message body; the expansion marks every entry and block with the `use` that
+    brought it, an `override` replaces the marked target and is accepted only after that `use`, an `override` of something that was not brought (or written
+    before its `use`) is an error that lists what was brought, the word is not accepted in a partial or in a file without a `use`, the overriding definition is
+    validated like any other, and the check of duplicates runs last on the result; the word `override` is added to the language (version 1.1); tests in
+    `tests/unit/dsl/test_include_override*.py` with the `memories` and `show_ids` case of the design note
+    - _Requirements: 63.18, 63.19, 63.20; D117_
+  - [x] 26.2 Diagnostics, `skye fmt` and `skye check` for `override`: the messages (what was brought, the `use` must come first, an override and a definition of the same
+    name with both lines), the diagnostic of an overriding entry or block pointing to the `override` line and the `via` of what the partial still brings kept,
+    `skye fmt` keeping the `override` lines and refusing a result that would build differently, and the tests of each message
+    - _Requirements: 63.20, 63.21; D117_
+  - [x] 26.3 Documents, the Claude skill language reference, the grammar of the VS Code extension (the keyword `override` in its positions) and the doc-example
+    test: one example with an `override` that `skye check` accepts, in `docs/reference/skye-language.md`, `docs/concepts/skye-language.md`, the skill reference
+    and the strict docs build; the added bytes of the skill and the extension are reported
+    - _Requirements: 63.21; D117_
+  - [x] 26.4 The `text` format of the `output` block (D70, amended 2026-11-13; the code, the tests in `tests/unit/dsl/test_output_text.py` and the documents are written, the bundled templates do not use it yet: task 24.10): `output "text" { style = "..." }` is a plain answer with no fields; with the format from a variable, the value `text` leaves the fields and `schema = VAR` unread; `set_output_schema` refuses it
+    - _Requirements: 33.5, 33.7; D70_
+  - [x] 26.5 `register_template` resolves includes from a path: a `.skye` file registered with `from_string=False` reads its `include`, `from ... import`, `use` and `override` from its folder (the file resolver, read again at each registration), a text takes an optional `resolver=`, a text without one keeps the 'no resolver' error that names the argument, the folder loader registers such files and skips the files with `partial = true`, and `validate_template` rebuilds them; the code is in `src/skye/prompts/messages.py` and `loaders.py`, the tests in `tests/unit/prompts/test_register_template_include.py`
+    - _Requirements: 63.11, 63.14; D116_
+
+- [x] 21. The examples, the lint scope and the pages written before D111
+  - [x] 21.1 `examples/plugins/` runs offline: remove the entry `plugins` of `EXPECTED_TO_FAIL` in `tests/examples/test_examples.py` and
     `test_examples_offline.py` (the two `agents/hooks` entries stay for the agents spec); every example passes `ruff` and `black`
     - _Requirements: 61.1, 24.11_
-  - [ ] 21.2 The scope of `.github/workflows/lint.yml` (`LINTED`) grows to the code written by tasks 13 to 20 once it is clean
+  - [x] 21.2 The scope of `.github/workflows/lint.yml` (`LINTED`) grows to the code written by tasks 13 to 20 once it is clean
     - _Requirements: 61.1_
-  - [ ] 21.3 The pages written before D111 are redone for the new interface: `docs/guides/extend/*`, `docs/reference/api/plugins.md`,
+  - [x] 21.3 The pages written before D111 are redone for the new interface: `docs/guides/extend/*`, `docs/reference/api/plugins.md`,
     `docs/reference/configuration-keys.md`, and the strict docs build passes
     - _Requirements: 61.2, 15.10_
 
-- [ ] 12. Final checkpoint (it runs after tasks 13 to 21; its id does not move because tests cite this file)
-  - [ ] 12.0 Validate the code against every criterion this spec points to (`requirements.md`: Requirements 56 to 62 of
+- [x] 12. Final checkpoint (it runs after tasks 13 to 21; its id does not move because tests cite this file)
+  - [x] 12.0 Validate the code against every criterion this spec points to (`requirements.md`: Requirements 56 to 62 of
     `10-requirements.md`, and decisions D27, D97, D98, D104, D107, D108, D110 and D111). For each criterion, write one evidence line: the
     file or function that realizes it and the test that checks it. A criterion with no code or no test is a finding.
-  - [ ] 12.1 Run `uv run pytest tests -q`, `make budget`, the doctests of the new modules and the strict docs build; record the numbers
-  - [ ] 12.2 Close in steering what the work settled: the open decisions of `12-decisions.md` that the code answered (O63, O65, O68 to O73)
+  - [x] 12.1 Run `uv run pytest tests -q`, `make budget`, the doctests of the new modules and the strict docs build; record the numbers
+  - [x] 12.2 Close in steering what the work settled: the open decisions of `12-decisions.md` that the code answered (O63, O65, O68 to O73)
     marked as taken with the options used, the "Extension points" table of `11-design.md` updated, and the scan note
     `docs/_notes/extension-points-scan.md` marked as done
 ## Notes
@@ -484,8 +543,8 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     { "id": 19, "tasks": ["4.7", "15.3", "15.4", "23.2", "24.1", "24.8"] },
     { "id": 20, "tasks": ["15.5", "16.1", "17.1", "24.2"] },
     { "id": 21, "tasks": ["9.4", "16.3", "17.2", "18.3", "24.3"] },
-    { "id": 22, "tasks": ["6.3", "7.4", "17.3", "18.4", "24.5"] },
-    { "id": 23, "tasks": ["6.5", "18.6", "19.1", "24.6"] },
+    { "id": 22, "tasks": ["6.3", "7.4", "17.3", "18.4"] },
+    { "id": 23, "tasks": ["6.5", "18.6", "19.1"] },
     { "id": 24, "tasks": ["6.6", "6.7", "19.2", "19.5", "24.7"] },
     { "id": 25, "tasks": ["6.8", "10.1", "19.3", "20.2"] },
     { "id": 26, "tasks": ["10.2", "19.4", "20.3", "19.6", "19.7"] },
@@ -495,7 +554,18 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     { "id": 30, "tasks": ["11.3"] },
     { "id": 31, "tasks": ["12.0"] },
     { "id": 32, "tasks": ["12.1"] },
-    { "id": 33, "tasks": ["12.2"] }
+    { "id": 33, "tasks": ["12.2"] },
+    { "id": 34, "tasks": ["25.1"] },
+    { "id": 35, "tasks": ["25.2", "25.4"] },
+    { "id": 36, "tasks": ["25.3"] },
+    { "id": 37, "tasks": ["24.6", "25.5"] },
+    { "id": 38, "tasks": ["24.9"] },
+    { "id": 39, "tasks": ["26.1"] },
+    { "id": 40, "tasks": ["26.2", "24.10", "24.11"] },
+    { "id": 41, "tasks": ["24.12"] },
+    { "id": 42, "tasks": ["26.3", "26.4", "26.5"] },
+    { "id": 43, "tasks": ["25.6"] },
+    { "id": 44, "tasks": ["24.5"] }
   ]
 }
 ```

@@ -844,6 +844,354 @@
         "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
         "timestamp": 1794515797051
       }
+    ],
+    "6.8 `tests/budget/test_provider_knowledge.py`: a built-in provider name, a key variable or a price as a literal outside the": [
+      {
+        "executionId": "f26110a7-178d-4ebf-8045-6dd6029bbfe5",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568022288
+      }
+    ],
+    "10.1 One public `check_<kind>` per kind, next to its owner, offline against fakes, returning the names of the checks passed and": [
+      {
+        "executionId": "0214a341-137d-4827-9183-cfc58c76b75e",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568022288
+      }
+    ],
+    "19.5 The seam for the skills: an agent that is given a `SKILL.md` asks the registrar for the toolkit `files`, limited to the folder of the": [
+      {
+        "executionId": "8637d117-5c12-49f1-a056-3bd1cece6853",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568022288
+      }
+    ],
+    "20.2 The model base classes derive `complete` and `stream` from `acomplete` and `astream`; the parallel sync paths go and the adapters": [
+      {
+        "executionId": "6497aca0-4bb5-4d46-a957-8d7f4884be4f",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568022288
+      }
+    ],
+    "10.2 One parametrized test runs every built-in registration of every kind through its function": [
+      {
+        "executionId": "aeec2887-8b34-4b9b-96ff-01236de8ce42",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568680810
+      }
+    ],
+    "20.3 The embedding base class derives `encode` and `encode_batch` from `aencode` and `aencode_batch`; the example embedding provider writes": [
+      {
+        "executionId": "f358ee5b-56fb-4fd4-9549-e1fb8372889a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568680810
+      }
+    ],
+    "21.1 `examples/plugins/` runs offline: remove the entry `plugins` of `EXPECTED_TO_FAIL` in `tests/examples/test_examples.py` and": [
+      {
+        "executionId": "4a767933-24b5-4f94-b3aa-bbbebaa63705",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794570267528
+      }
+    ],
+    "21.3 The pages written before D111 are redone for the new interface: `docs/guides/extend/*`, `docs/reference/api/plugins.md`,": [
+      {
+        "executionId": "56bbf3b3-177f-4adf-9dbc-b1fabbd88892",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794570267528
+      }
+    ],
+    "24.4 The references to requirements, decisions and tasks move from the docstrings to comments (docstrings only say what the library does);": [
+      {
+        "executionId": "cfdabdcc-c68b-477e-88d1-e3e24dfb4f5c",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794570267528
+      }
+    ],
+    "21.2 The scope of `.github/workflows/lint.yml` (`LINTED`) grows to the code written by tasks 13 to 20 once it is clean": [
+      {
+        "executionId": "57eec10f-7c54-4ddc-a63b-b92a065d92a8",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794571338117
+      }
+    ],
+    "11.1 The guide \"Write a plugin\" and a reference of `ProviderProfile` in the wiki, with snippets from `examples/plugins/`; the extension": [
+      {
+        "executionId": "28b81b76-525d-4593-bbf1-12ac7b60431c",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794571766240
+      }
+    ],
+    "11.2 The Claude skill that ships with the package: `skye plugins`, `skye.Plugins`, the `plugins` key, the registrar and the profile;": [
+      {
+        "executionId": "462aea6d-91aa-4414-9075-045f941f7138",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794571766241
+      }
+    ],
+    "11.3 No third-party dependency and no extra added; size, import time and cold start of `budgets.toml` not higher": [
+      {
+        "executionId": "ae9285d3-a2e9-459b-a53f-70399303eea6",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794571766241
+      }
+    ],
+    "12.0 Validate the code against every criterion this spec points to (`requirements.md`: Requirements 56 to 62 of": [
+      {
+        "executionId": "9ad1f1d8-64c0-42ff-8660-bce993fe313c",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "12.1 Run `uv run pytest tests -q`, `make budget`, the doctests of the new modules and the strict docs build; record the numbers": [
+      {
+        "executionId": "7249463b-866d-4849-aea2-130a65bc44e8",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "12.2 Close in steering what the work settled: the open decisions of `12-decisions.md` that the code answered (O63, O65, O68 to O73)": [
+      {
+        "executionId": "1899ece7-b25a-4386-aa58-71f154c38bbb",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "4. Discovery and control": [
+      {
+        "executionId": "1c4ab193-6664-41c8-a756-6a6724599fe3",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "6. Provider knowledge in one place": [
+      {
+        "executionId": "4756fad7-102c-4ac9-ac30-517ce71adfbc",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "7. The other registries as views": [
+      {
+        "executionId": "c71dedbd-67e2-4618-99be-9497c7f8c5a6",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "8. Storage knowledge in one place": [
+      {
+        "executionId": "dcf14e2b-571e-4506-9b64-33550f5eb446",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "9. The closed kinds": [
+      {
+        "executionId": "4d082b2a-9cc3-429b-a0d2-e39f8abda1c2",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "10. Conformance per kind": [
+      {
+        "executionId": "60e6cde3-1bb5-4672-9c6a-56633e86ff21",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "11. Documentation, skill and budgets": [
+      {
+        "executionId": "bc49663f-187b-4df3-8e97-c17685a14c8d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "13. The nine kinds (D111)": [
+      {
+        "executionId": "2877db15-d961-4d99-aa2a-381710faf1e6",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "14. `skye.Plugins` (D111)": [
+      {
+        "executionId": "af98ff95-e3f8-40cb-8afe-b2a3ce76713d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "15. One `provider` kind (D111)": [
+      {
+        "executionId": "248dd65c-a7f5-4015-98b4-8d12037eb0a4",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "16. One word to add and to build (D111)": [
+      {
+        "executionId": "1191a907-7326-4f89-93d3-49c4beefdaf8",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "17. The profile of an existing provider and the tokenizer by name (D111)": [
+      {
+        "executionId": "c5782f55-c900-4c99-a9ee-23405d6333fb",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "18. Toolkits (D111; the loop and the content are other specs and O70)": [
+      {
+        "executionId": "7b68b505-d18b-43c9-9ded-a6e1b32e3d30",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "20. Async only for the plugin author (D111)": [
+      {
+        "executionId": "fc941ff1-a94d-444c-9bbb-4e32cd2df9f0",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "22. The name of the built-in MCP client (D112)": [
+      {
+        "executionId": "ebcded81-03be-48a6-8b38-89fc677149be",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "23. Strategies that read the request (D113)": [
+      {
+        "executionId": "4d50eed8-a7c0-4984-bf0d-2898b0ce9bd7",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "21. The examples, the lint scope and the pages written before D111": [
+      {
+        "executionId": "82755d27-8905-4b7a-8190-499de7d63ad3",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "12. Final checkpoint (it runs after tasks 13 to 21; its id does not move because tests cite this file)": [
+      {
+        "executionId": "9b274fbc-f9a0-43fd-8fea-54f873a667cc",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "25.1 Lexer, parser and syntax tree (`src/skye/base/dsl`): `include \"path\" as alias`, `from \"path\" import a, b as c`, `use name` and `use alias`": [
+      {
+        "executionId": "5c8f6a44-ebb9-4923-8071-a10c12f0c0dc",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794576464094
+      }
+    ],
+    "25.2 Errors and diagnostics: the messages of the table of errors of the note (a name that does not exist with the names that do, a name not imported,": [
+      {
+        "executionId": "835f20f5-057e-45c0-8124-ebee60460316",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794577224777
+      }
+    ],
+    "25.3 The tools: the resolver that reads the file system in `utils` (`skye.load`, `skye check` with `--stdin-filename`), the path rules and the symbolic": [
+      {
+        "executionId": "905de6e6-d82c-4624-ac9c-b51c397fd54a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794578067846
+      }
+    ],
+    "25.4 The bundled catalogue: the resolver for the folder and for the archive (a member by its normalized path, one above the root refused), the": [
+      {
+        "executionId": "70627472-da1f-4137-8658-df9486b0fdc7",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794579129161
+      }
+    ],
+    "24.6 The bundled `.skye` templates use `include` and `from ... import` for what 2 or more files repeat (five partials: `system_prompt`, `tools`, the memories and two small groups, 93% of the gain; 33% of their bytes are in repeated lines); the output of": [
+      {
+        "executionId": "734ffb9a-dc5d-495b-8817-349bc74aa0f4",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794581657285
+      }
+    ],
+    "25.5 Documents and editors: `docs/reference/skye-language.md` (the grammar table and the table of the versions), `docs/concepts/skye-language.md`": [
+      {
+        "executionId": "8ccbfd1f-65cd-4b0d-9c5d-e27b55592f30",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794581657285
+      }
+    ],
+    "26.4 The `text` format of the `output` block (D70, amended 2026-11-13; the code, the tests in `tests/unit/dsl/test_output_text.py` and the documents are written, the bundled templates do not use it yet: task 24.10): `output \"text\" { style = \"...\" }` is a plain answer with no fields; with the format from a variable, the value `text` leaves the fields and `schema = VAR` unread; `set_output_schema` refuses it": [
+      {
+        "executionId": "485c017e-d5e4-4637-8685-e7fe01adbd36",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794583139694
+      }
+    ],
+    "26.1 The language core of `override` (`src/skye/base/dsl`: parser, syntax tree, expansion): `override name = <definition>` in the `variables` map and": [
+      {
+        "executionId": "85babd44-44e4-4aec-a70a-60f47deb21c1",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794583767259
+      },
+      {
+        "executionId": "767d324d-fb99-4a18-ae10-df27a93c2e6d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794583776368
+      }
+    ],
+    "26.2 Diagnostics, `skye fmt` and `skye check` for `override`: the messages (what was brought, the `use` must come first, an override and a definition of the same": [
+      {
+        "executionId": "189463b0-c7f6-494b-aa86-8ed418a4dac3",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794584506165
+      }
+    ],
+    "26.3 Documents, the Claude skill language reference, the grammar of the VS Code extension (the keyword `override` in its positions) and the doc-example": [
+      {
+        "executionId": "caca8982-594b-4f67-84a2-af8be4fcaee9",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794585170186
+      }
+    ],
+    "26. The override of the include (D117)": [
+      {
+        "executionId": "74718379-21fd-444f-a295-cb76f438d673",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794585170186
+      }
+    ],
+    "24.9 The comments inside the bundled `.skye` templates go: the examples (the `/** Example: builder.render(...) **/` blocks, 87 in 40 files) move to `examples/prompts/bundled/` as one data file per template with its sample variables, with one example `examples/prompts/bundled_templates.py` that renders each bundled template from them; the explanatory comments (block and `#` lines) are removed and not moved (a copy of what was removed is kept in `docs/_notes/skye-comments-removed.md`, which git ignores); the front matter (`title`, `description`, `version`, `tags`) stays; the sample files are the single source of the render checks of 24.6; the output of every template does not change": [
+      {
+        "executionId": "3b4effe8-487e-4716-9708-10625a89f5ae",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794589727350
+      }
+    ],
+    "24.10 The catalogue of bundled templates is reduced (owner, 2026-11-13): `structured_output_json`, `structured_output_table` and `structured_output_xml` go (`structured_output` already takes `format`); the pairs `main_agent` and `memory_agent` (the second takes a subset of the variables of the first), `code_agent` and `code_generation`, and `chain_of_thought_agent` and `reasoning_agent` are each evaluated as one template with options and variables, and merged when the render of the options that replace the old template equals the old render (a test per merged template); tests and pages that name a removed template are updated; the renames are decided by the owner (2026-11-13): `ner` to `entity_extraction`, `tabular_extraction` to `table_extraction`, `main_agent` and `memory_agent` to one `memory_assistant`, `memory_update_agent`/`memory_consolidation_agent`/`working_memory_agent` to `memory_update`/`memory_consolidation`/`memory_working`, `tree_of_thoughts_agent` and `self_reflection_agent` to `reasoning_tree_of_thoughts` and `reasoning_self_reflection`, `smol_planning` to `smol_planning_agent`; the three merges (`main_agent`/`memory_agent`, `code_agent`/`code_generation`, `chain_of_thought_agent`/`reasoning_agent`) are approved when the render with the options equals the old render; no other merge is planned: two templates are merged only when they are the same job with options, never to force a `mode` on different jobs (owner, 2026-11-13: the families supervisor, groupchat, smol, reasoning beyond the approved pair, tool and procedure, extraction and text stay as they are); the memory agents end as two templates (owner, 2026-11-13): `agent_memory_assistant` (conversational, absorbs `agent_memory_recall`) and `agent_memory_maintenance` with a `mode` (`update`, `consolidate`, `working`) that replaces `agent_memory_update`, `agent_memory_consolidation` and `agent_memory_working`; the parts activate by `mode` and the JSON answer is a conditional `output` block per mode, with the renders of each old template reproduced by its mode (intended changes listed); the variables of the templates are unified (one name per idea, `docs/_notes/template-variables-unification.md`) and the answer format of every template is written with the `output` block of the language through one shared partial (`output_format` and `output_schema`) instead of a hand-written format text in 16 templates (owner, 2026-11-13: `chat` still has a free-form format while the structured one exists); the free-form style of an answer stays a separate text variable; the parts the agent templates share besides the memories, the tools block and the system prompt (the `## Constraints` section, the `## Tools` listing in its three variants, the task block `## Task` and its variable, the examples as user and assistant turns, the transcript and progress sections of the supervisor and group chat families) are unified to one wording and moved to the shared partials of step 2 (`common/io.skye` and, for the agents, `common/agent.skye`) where the pairing rule allows it; the one-off context variables become generic reusable ones (owner, 2026-11-13: no code-specific optional variables such as `database_schema` and `database_type`): `context` (background text, for `code_context`, `additional_context`, `domain_knowledge`), `references` (a list of named items with an optional description and a content, for `database_schema`, `table_schema`, `documents` and the files of `code_context`) and `environment` (the dialect, runtime or version, for `database_type` and the runtime of a language); `generation_sql` becomes a case of `generation_code` through them, with a thin template over a shared partial and an `override` of the language, or no template of its own (the owner chooses) DONE as step 1: the three `structured_output_*` removed and the templates renamed to `scope_detail` (every agent `agent_*`); the three merges were refused because no merge reproduces the old render; the steps 1b, 2 and 3 are not planned (D118: 26 templates left the bundle) and are done on the gallery only if the owner asks": [
+      {
+        "executionId": "1d70d165-c887-4977-987b-4f76ef5b5fd0",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794589727350
+      }
+    ],
+    "24.11 The bundled prompts are reduced (D118, owner 2026-11-13): the 26 templates other than `generation_*`, `extraction_*`, `text_*` and the ReAct agent prompt (`agent_smol_tool_calling` renamed `agent_react`) move to `examples/prompts/catalogue/` with their sample variables (a gallery with one runner example that lists and renders them offline, and a test that every file passes `skye check` and renders; the files that use a shared partial carry their own copy of `common/`); `src/skye/prompts/templates/` keeps `common/` and the 11 kept templates; the comments inside the templates go (the examples already moved to `examples/prompts/bundled/` in 24.9; the explanations are removed and kept in a local note); every test, page, example and the skill that uses a moved template by name uses the gallery; Requirement 30.14 and the specification `2-services-prompts` are amended; the steps 1b, 2 and 3 of 24.10 are done only if the owner asks; the gallery also holds `extraction_generic` (one prompt for entity, relation and table extraction, with three sample files), 27 files in all": [
+      {
+        "executionId": "de2afa1b-8f99-4e25-9c0e-adab75da404f",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794589727350
+      }
+    ],
+    "26.5 `register_template` resolves includes from a path: a `.skye` file registered with `from_string=False` reads its `include`, `from ... import`, `use` and `override` from its folder (the file resolver, read again at each registration), a text takes an optional `resolver=`, a text without one keeps the 'no resolver' error that names the argument, the folder loader registers such files and skips the files with `partial = true`, and `validate_template` rebuilds them; the code is in `src/skye/prompts/messages.py` and `loaders.py`, the tests in `tests/unit/prompts/test_register_template_include.py`": [
+      {
+        "executionId": "dc00d4d9-b034-44aa-990c-6af98bd066de",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794589727350
+      }
     ]
   }
 }

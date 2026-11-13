@@ -93,3 +93,5 @@ decision O12 stays open: a task that depends on it takes the value as an argumen
     - _Requirements: 43.5, 39, 40, 41, 42_
   - [ ] 8.5 Example `examples/agents/` that shows the loop with a hook and a local registry, runnable offline
     - _Requirements: 24.2, 24.4, 24.5_
+  - [ ] 8.6 Bring back the prompts that the loop needs (for example `agent_tool`, and `agent_planner` if the loop plans) from `examples/prompts/catalogue/` into `src/skye/prompts/templates/`, as a move of the file with a test that it renders and passes `skye check`; no other prompt is bundled (D118)
+    - _Requirements: 30.14; D118_

@@ -55,3 +55,5 @@ confirm before task 2.
     - _Requirements: 2.2, 4.1, 5.4_
   - [ ] 6.3 Entry in `budgets.toml` for import time; the docs page `docs/teams/` and a runnable example with fake members under `examples/teams/`
     - _Requirements: 7.5, 15.5, 24.2, 24.4_
+  - [ ] 6.4 If a supervisor or a group chat chooses the next member by a call to a model, bring back its prompts (`agent_supervisor_router`, `agent_groupchat_manager` and the others it needs) from `examples/prompts/catalogue/` into `src/skye/prompts/templates/`, as a move of the file with a test; a supervisor that uses a decision model needs none (D118)
+    - _Requirements: 49.3; D118_

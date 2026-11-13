@@ -8,7 +8,7 @@ component: none (cross-cutting: plugins, the registrar and the provider profile)
 
 This spec covers how a third party adds an integration to Skye without changing it, and how the knowledge that belongs to one provider or to
 the store is kept in one place that the other components read. It follows decision D107 (plugins are wanted), D108 (this spec exists; the
-rules are Requirements 56 to 62 of steering) and D111 (the plugin interface, the toolkits and the agent call, taken by writing the examples
+rules are Requirements 56 to 63 of steering) and D111 (the plugin interface, the toolkits and the agent call, taken by writing the examples
 in `examples/plugins/`). What D111 left open is in the O-entries of `12-decisions.md` (O65, O68, O69, O70, O71, O72, O73) and is named in
 `design.md`; this spec follows the decided part and does not guess the rest. The scan that found the scattered knowledge is
 `docs/_notes/extension-points-scan.md`; it is a working note and is not part of the spec.
@@ -175,3 +175,33 @@ closed kinds, then the new interface) is in D108 and D111 and is kept by the tas
 6. THE spec SHALL realize Requirement 62.8 of #[[file:.kiro/steering/10-requirements.md]].
 7. THE spec SHALL realize Requirement 62.9 of #[[file:.kiro/steering/10-requirements.md]].
 8. THE spec SHALL honor decision D111 of #[[file:.kiro/steering/12-decisions.md]].
+
+### Requirement 9: The `include` of the `.skye` language
+
+**User Story:** As a template author, I want to write once the entries and the text that many prompts repeat, in a partial file, and bring them in exactly where they belong, so that a schema or a section of a prompt is changed in one place.
+
+#### Acceptance Criteria
+
+1. THE spec SHALL realize Requirement 63.1 of #[[file:.kiro/steering/10-requirements.md]].
+2. THE spec SHALL realize Requirement 63.2 of #[[file:.kiro/steering/10-requirements.md]].
+3. THE spec SHALL realize Requirement 63.3 of #[[file:.kiro/steering/10-requirements.md]].
+4. THE spec SHALL realize Requirement 63.4 of #[[file:.kiro/steering/10-requirements.md]].
+5. THE spec SHALL realize Requirement 63.5 of #[[file:.kiro/steering/10-requirements.md]].
+6. THE spec SHALL realize Requirement 63.6 of #[[file:.kiro/steering/10-requirements.md]].
+7. THE spec SHALL realize Requirement 63.7 of #[[file:.kiro/steering/10-requirements.md]].
+8. THE spec SHALL realize Requirement 63.8 of #[[file:.kiro/steering/10-requirements.md]].
+9. THE spec SHALL realize Requirement 63.9 of #[[file:.kiro/steering/10-requirements.md]].
+10. THE spec SHALL realize Requirement 63.10 of #[[file:.kiro/steering/10-requirements.md]].
+11. THE spec SHALL realize Requirement 63.11 of #[[file:.kiro/steering/10-requirements.md]].
+12. THE spec SHALL realize Requirement 63.12 of #[[file:.kiro/steering/10-requirements.md]].
+13. THE spec SHALL realize Requirement 63.13 of #[[file:.kiro/steering/10-requirements.md]].
+14. THE spec SHALL realize Requirement 63.14 of #[[file:.kiro/steering/10-requirements.md]].
+15. THE spec SHALL realize Requirement 63.15 of #[[file:.kiro/steering/10-requirements.md]].
+16. THE spec SHALL realize Requirement 63.16 of #[[file:.kiro/steering/10-requirements.md]].
+17. THE spec SHALL realize Requirement 63.17 of #[[file:.kiro/steering/10-requirements.md]].
+18. THE spec SHALL realize Requirement 63.18 of #[[file:.kiro/steering/10-requirements.md]].
+19. THE spec SHALL realize Requirement 63.19 of #[[file:.kiro/steering/10-requirements.md]].
+20. THE spec SHALL realize Requirement 63.20 of #[[file:.kiro/steering/10-requirements.md]].
+21. THE spec SHALL realize Requirement 63.21 of #[[file:.kiro/steering/10-requirements.md]].
+22. THE spec SHALL honor decision D116 of #[[file:.kiro/steering/12-decisions.md]].
+23. THE spec SHALL honor decision D117 of #[[file:.kiro/steering/12-decisions.md]].

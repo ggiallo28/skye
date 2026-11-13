@@ -47,3 +47,5 @@ Ports in `src/skye/base/interfaces`. Each task cites the steering requirement nu
     - _Requirements: 2.2, 52.3, 4.1_
   - [ ] 4.4 Entry in `budgets.toml` for import time and size; a docs page `docs/memory/` and a runnable example
     - _Requirements: 7.5, 15.5, 24.2_
+  - [ ] 4.5 If the memory component calls a model to keep the memories (add, change, forget, tidy, working notes), bring back its prompts (`agent_memory_maintenance` or the ones it needs) from `examples/prompts/catalogue/` into `src/skye/prompts/templates/`, as a move of the file with a test; a memory that does not call a model needs none (D118)
+    - _Requirements: 30.14; D118_

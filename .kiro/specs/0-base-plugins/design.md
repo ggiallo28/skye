@@ -10,7 +10,7 @@ object that registers (`skye.Plugins`), the registrar, the Ports and the profile
 same calls and ships the conformance function of the kind. The layer, the allowed imports, the Port rules and the extras policy are in the
 steering sections named above and are not restated here.
 
-The work has two halves on one mechanism (Requirements 56 to 62 of steering):
+The work has two halves on one mechanism (Requirements 56 to 63 of steering):
 1. **The plugin door.** `plugins = skye.Plugins()` is one object, created anywhere. Its methods are decorators, or direct calls, one for each of
    the nine kinds; they register at the moment they run, from any part of the program. The same word adds and builds (`plugins.agent`,
    `skye.agent`). Installed plugins are found through the entry-point group `skye.plugins`, whose entry points name a module; the scan runs
@@ -406,6 +406,14 @@ For each kind, the word of the decorator is the word of the builder, and `plugin
 No capability is held by the registrar; a tool of a toolkit has the prefix of its toolkit, so it never clashes with a tool of the agent.
 
 **Validates: Requirements 8.1, 8.3**
+
+## The include of the `.skye` language (Requirement 63, D116, D117)
+
+The design is in the section "The include of the `.skye` language" of `.kiro/steering/11-design.md`; this spec carries the work as tasks 25.1 to
+25.6, with 24.5 as the task that closes it and 24.6 as the migration of the bundled templates; the `override` of D117 is group 26 (26.1 the language
+core, 26.2 diagnostics and `skye fmt`, 26.3 documents, skill and editor), which runs before the check 25.6 and before the unification of the templates (24.10) that needs it. The parts that touch the other work of this
+spec are the catalogue and the archive (24.7), the lazy compile and its cache (24.8) and the comment strip (24.3): the resolver reads the
+archive by member name, the cache key of a bundled template is a fingerprint of the catalogue, and the hook keeps the front matter of a partial.
 
 ## Open points (not decided here)
 The interface is decided in D111; what follows is what D111 left open, each in `.kiro/steering/12-decisions.md`. The tasks follow the decided part
