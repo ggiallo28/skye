@@ -70,7 +70,7 @@ router "app" {
 | Model providers (LLMs, embeddings, structured output, streaming) | released | [Call a provider](guides/models/call-a-provider.md) |
 | Router (aliases, strategies, fallbacks, health) | released | [Aliases and fallbacks](guides/routing/aliases-and-fallbacks.md) |
 | Prompts in `.skye` | released | [Write a prompt](guides/prompts/write-a-prompt.md) |
-| Tools: local functions, remote APIs, MCP client | released | [Local functions](guides/tools/local-functions.md) |
+| Tools: local functions, remote APIs, MCP client, toolkits | released | [Local functions](guides/tools/local-functions.md) |
 | State backends (memory, file, DynamoDB, Valkey/Redis, PostgreSQL) | released | [Choose a backend](guides/state/choose-a-backend.md) |
 | Agents, memory, guard, policy, gateway, teams, flows | planned | [Status and roadmap](project/roadmap.md) |
 

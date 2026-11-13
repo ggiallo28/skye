@@ -69,7 +69,7 @@ the store deletes it later (DynamoDB deletes expired items within days).
 
 ## Create a backend
 
-`skye.store.backend(name, **config)` builds a backend by name; the configuration is the keyword arguments of its class. Naming a
+`skye.backend(name, **config)` builds a backend by name (`skye.store.backend` is the same function); the configuration is the keyword arguments of its class. Naming a
 backend imports only its module, and its driver only on first use.
 
 ```python

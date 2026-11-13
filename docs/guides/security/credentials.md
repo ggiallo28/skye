@@ -134,7 +134,7 @@ auth = SigV4Authenticator(region="eu-west-1", service="bedrock", credentials=pro
 
 ## Resolve a source by name
 
-`resolve_credential_source(name, **config)` builds any registered source. The built-in names:
+`skye.credential_source(name, **config)` builds any registered source. The built-in names:
 
 | Name | Returns |
 |---|---|
@@ -145,12 +145,12 @@ auth = SigV4Authenticator(region="eu-west-1", service="bedrock", credentials=pro
 | `aws-secrets-manager`, `aws-ssm`, `azure-key-vault`, `google-secret-manager` | a secret source with `get(name)` |
 
 ```python
-from skye.auth import resolve_credential_source
+import skye
 
-auth = resolve_credential_source("openai")  # reads OPENAI_API_KEY
+auth = skye.credential_source("openai")  # reads OPENAI_API_KEY
 headers = auth.apply("POST", "https://api.openai.com/v1/chat/completions", {})
 
-vault = resolve_credential_source("aws-secrets-manager", region="eu-west-1")
+vault = skye.credential_source("aws-secrets-manager", region="eu-west-1")
 password = vault.get("prod/db/password")
 ```
 
@@ -165,13 +165,12 @@ An authenticator is any object with the `apply` method: the Port is a runtime-ch
 --8<-- "examples/auth/custom_credential_source.py:14:32"
 ```
 
-Register a factory under a name to resolve it like the built-in ones. A factory may also return a secret source with `get(name)`.
+Add it as a plugin under a name to build it like the built-in ones. The decorator goes on top of the class, or on a factory function
+that returns an authenticator or a secret source with `get(name)`. The class has an `__init__` with its options as keyword arguments,
+and `apply` leaves the `headers` it received untouched:
 
 ```python
-from skye.auth import register_credential_source, resolve_credential_source
-
-register_credential_source("static", lambda **config: StaticTokenAuthenticator(**config))
-auth = resolve_credential_source("static", token="...")
+--8<-- "examples/plugins/credential_source.py:16:40"
 ```
 
 A built-in name can only be replaced with `replace=True`.
@@ -180,6 +179,8 @@ A built-in name can only be replaced with `replace=True`.
 
 - [Configuration](../configuration.md): `${VAR}` substitution keeps secrets out of the configuration file.
 - [Remote APIs](../tools/remote-apis.md): headers and basic authentication for a capability.
-- Reference: [`skye.auth`](../../reference/api/auth.md), [`skye.interfaces`](../../reference/api/interfaces.md).
-- Examples: [`credential_sources.py`](https://github.com/ggiallo28/skye/blob/main/examples/auth/credential_sources.py),
+- Reference: [`skye.auth`](../../reference/api/auth.md), [`skye.plugins`](../../reference/api/plugins.md),
+  [`skye.interfaces`](../../reference/api/interfaces.md).
+- Examples: [`plugins/credential_source.py`](https://github.com/ggiallo28/skye/blob/main/examples/plugins/credential_source.py),
+  [`credential_sources.py`](https://github.com/ggiallo28/skye/blob/main/examples/auth/credential_sources.py),
   [`custom_credential_source.py`](https://github.com/ggiallo28/skye/blob/main/examples/auth/custom_credential_source.py).

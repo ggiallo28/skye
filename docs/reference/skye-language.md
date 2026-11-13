@@ -10,7 +10,7 @@ For an overview with one example of each block, read [The .skye language](../con
 
 `.skye` is one small, readable language for routers, flows and prompts, in files with the extension `.skye`. The parser is written in
 the standard library; it takes text, not a path, and never uses `eval`. A file may hold several blocks, in any order; each file is
-self-sufficient in version 1 (no `include`).
+self-sufficient unless it takes parts of other files with `include` and `use` (see [Include and partial files](#include-and-partial-files)).
 
 Check a file with `skye check app.skye`; start a new one with `skye new flow my_flow` (see [Tools](#tools) and the
 [CLI reference](cli.md)).
@@ -39,6 +39,9 @@ typecall    = TYPE [ "(" [ value ] ")" ] ;               (* string("x"), number(
 TYPE        = "string" | "number" | "bool" | "list" | "map" ;
 duration    = STRING matching digits ("s" | "m" | "h" | "d") ;   (* "30s", "5m", "24h" *)
 reference   = name ;
+include     = "include" STRING "as" NAME ;               (* top level: loads a partial file under a name *)
+import      = "from" STRING "import" NAME [ "as" NAME ] { "," NAME [ "as" NAME ] } ;
+use         = "use" NAME ;                               (* where an entry or an item may stand *)
 name        = IDENT { "." IDENT } ;
 comment     = "#" { any character but newline }
             | "/*" { any character } "*/" ;             (* may span lines; does not nest *)
@@ -267,8 +270,8 @@ prompt "extract" {
 }
 ```
 
-- The label is the format: `"json"`, `"table"` or `"xml"`; `output { ... }` with no label is `"json"`. Any other string is an error that
-  lists the three. A prompt has at most one unconditional `output` block, at the top of the prompt (not inside a message), or any
+- The label is the format: `"json"`, `"table"`, `"xml"` or `"text"`; `output { ... }` with no label is `"json"`. Any other string is an error that
+  lists the four. A prompt has at most one unconditional `output` block, at the top of the prompt (not inside a message), or any
   number of conditional ones (next item), never both.
 - Conditional outputs: an `output` block may sit inside a `when` block at the top of the prompt (or a `when` nested in one; never inside a
   `message` or an `each`, an error), so a variable chooses the shape of the answer:
@@ -290,8 +293,27 @@ prompt "extract" {
   the unconditional block. `skye prompt info` shows each one under its condition (`Output (when not schema): json`).
 - The label may also be a declared `string` variable (`output style { ... }`, no quotes): the format is its value at render time (or its
   default). An undeclared name is an error with "Did you mean ...?", a variable of another type is an error, and so is a default that is
-  not `json`, `table` or `xml`; at render time a value that is not one of the three raises `ValidationError` listing them, and with
+  not `json`, `table`, `xml` or `text`; at render time a value that is not one of the four raises `ValidationError` listing them, and with
   `"table"` a list or map field raises `ValidationError` naming it (checked then, since the format is not known before).
+- `text`: a plain answer, with no fields. `output "text" {}` asks for "Answer in plain text, with no JSON, table or markup around it."; the
+  one optional line `style = "a short paragraph"` (or `style = VAR`, a declared `string` variable read at render time) adds the style:
+  "Answer in plain text: a short paragraph." Any other line is an error. A bare `output text { ... }` is the variable form above, so the
+  label is written with quotes. When the format comes from a variable (`output VAR { ... }`) and its value is `"text"` at render time,
+  the fields of the block (and `schema = VAR`) are not read, so one block can serve every format:
+
+  ```skye
+  prompt "answer" {
+    variables = { question = string, answer_format = string("text"), fields = map({}) }
+    output answer_format { schema = fields }
+    message "user" { text = "{{ question }}" }
+  }
+
+  prompt "plain" {
+    variables = { question = string, style = string("a short paragraph") }
+    output "text" { style = style }
+    message "user" { text = "{{ question }}" }
+  }
+  ```
 - A field is `name = string | number | bool | list | map`, a scalar with a default (`currency = string("EUR")`: a field with a default is
   not required), a list of a type (`list(string)` or `[string]`), a list of objects (`list({ a = string })`), or an object
   (`map({ a = string })` or `{ a = string }`). A bare `list` or `map` takes any items or keys. An unknown type is an error with
@@ -320,11 +342,10 @@ prompt "extract" {
   with a description gets an XML comment after its opening tag: `<lines> <!-- One entry per invoice line -->`).
 - A hand-written format text in a message keeps working; so does `BasePromptBuilder.set_output_schema(name, schema, output_format="json")`
   with a dataclass (a field's `metadata={"description": ...}` is its description) or a JSON-schema dictionary (its `description`s are
-  kept), where `output_format` may also be `"table"` or `"xml"`.
-- The bundled prompts `structured_output_json`, `structured_output_table` and `structured_output_xml` fix the format;
-  `structured_output` takes it from its `format` variable (`"json"` by default, `"table"` or `"xml"`) with the same `schema`. In all
-  four `schema` is optional (`map({})`): `when schema` takes the fields from it, `when not schema` asks for two string fields, `name`
-  and `value`.
+  kept), where `output_format` may also be `"table"` or `"xml"` (`"text"` has no fields, so it is refused there).
+- The bundled prompt `extraction_structured` takes the format from its `format` variable (`"json"` by default, `"table"` or `"xml"`)
+  with a `schema`. `schema` is optional (`map({})`): `when schema` takes the fields from it, `when not schema` asks for two string
+  fields, `name` and `value`.
 
 ## References and prefixes
 
@@ -400,11 +421,250 @@ parses. In Python, `skye.dsl.check_text(text, filename, registry_names)` returns
 `diagnostics`) without raising; `document.raise_for_errors()` raises `skye.dsl.SkyeSyntaxError`, whose `.diagnostics` holds every
 mistake.
 
+## Include and partial files
+
+A prompt can take what several files repeat (the declaration of a variable, and the text that prints it) from a **partial file**. A
+partial is an ordinary `.skye` file written like a prompt, with its own `variables` and `message`, marked with `partial = true` in the
+front matter. It is not a prompt: it is not listed by `skye prompt list` and it cannot be built alone. This is language version 1.1.
+
+| Statement | Where | What it does |
+|---|---|---|
+| `include "lib/memory.skye" as memory` | top level | loads a partial under the name `memory` (`as` is required) |
+| `from "lib/agent.skye" import system_prompt, tools` | top level | takes names from a partial; `import tools as agent_tools` renames one |
+| `use memory` or `use tools` | a `variables` map, a prompt body or a message body | inserts the content exactly here, one name per line |
+| `override name = ...` or `override when name { ... }` | after the `use` that brought it | replaces what that `use` brought (see [Override](#override)) |
+
+Rules:
+
+- **The place decides what is inserted.** In `variables` a `use` inserts entries; in a `message` or `prompt` body it inserts blocks.
+  `use memory` (a whole file) inserts the whole `variables` there, and in a message the body of the partial's message of the same name.
+- **A name brings its entry and its text.** `use tools` in `variables` inserts the entry `tools`; in a message it inserts the
+  first-level blocks of the partial's message whose condition is only `tools` or `not tools` (`when tools { ... }`). A wider
+  condition such as `when a or b` is never brought by a name: write it in your file and put `use` inside it.
+- **Paths are relative to the file that writes them**, stay inside the folder of the entry file, and are never absolute or a URL.
+- **A name defined twice is an error** (in your file and in a partial, or in two partials): it names both places. To change what a
+  `use` brought, write an `override` (below); without the word, do not use the part that has it. A partial may not contain `include`,
+  `from`, `use` or `override`.
+- **Limits.** 64 `include` and `from` lines per document and 1 MB of expanded text.
+- **The words are positional.** `from`, `import`, `use`, `as`, `override` and `partial` are still free as the name of a variable or an attribute.
+
+A complete example: two partials, and two prompts that take different names from them. The blocks are one set of files (the `title`
+is the path); `skye check` run on `tool_agent.skye` and `chat_agent.skye` finds no error.
+
+```skye title="lib/agent.skye"
+---
+partial = true
+---
+prompt "agent" {
+  variables = {
+    system_prompt = string("")  "Replaces the default system instructions when not empty"
+    tools = list({
+      name        = string      "Tool name"
+      description = string      "What the tool does"
+    }, []) "Tools the agent may call"
+  }
+  message "system" {
+    when system_prompt     { text = "{{ system_prompt }}" }
+    when not system_prompt { text = "You are an assistant that can use tools." }
+    when tools {
+      text = "## Tools"
+      each t in tools { text = "- {{ t.name }}: {{ t.description }}" }
+    }
+  }
+}
+```
+
+```skye title="lib/memory.skye"
+---
+partial = true
+---
+prompt "memory" {
+  variables = {
+    persona_memory = list({
+      content = string      "What is known about the user"
+      source  = string("")  "Where it comes from"
+    }, []) "Who the user is"
+    episodic_memory = list({
+      content   = string      "What happened"
+      timestamp = string("")  "When it happened"
+    }, []) "Past events"
+  }
+  message "system" {
+    when persona_memory {
+      text = "### Persona"
+      each m in persona_memory { text = "- {{ m.content }}" }
+    }
+    when episodic_memory {
+      text = "### Past events"
+      each m in episodic_memory { text = "- {{ m.content }}" }
+    }
+  }
+}
+```
+
+```skye title="tool_agent.skye"
+from "lib/agent.skye"  import system_prompt, tools
+from "lib/memory.skye" import persona_memory, episodic_memory
+
+prompt "tool_agent" {
+  variables = {
+    use system_prompt
+    use tools
+    input = string("")  "The user's message"
+    use persona_memory
+    use episodic_memory
+  }
+  message "system" {
+    use system_prompt
+    use tools
+    when persona_memory or episodic_memory {
+      text = "## Memory"
+      use persona_memory
+      use episodic_memory
+    }
+  }
+  message "user" { text = "{{ input }}" }
+}
+```
+
+```skye title="chat_agent.skye"
+from "lib/agent.skye"  import system_prompt
+from "lib/memory.skye" import persona_memory
+
+prompt "chat_agent" {
+  variables = {
+    use system_prompt
+    use persona_memory
+    input = string("")  "The user's message"
+  }
+  message "system" {
+    use system_prompt
+    when persona_memory {
+      use persona_memory
+    }
+  }
+  message "user" { text = "{{ input }}" }
+}
+```
+
+The same with a whole file: one `include`, and `use memory` in each place.
+
+```skye title="whole.skye"
+include "lib/memory.skye" as memory
+
+prompt "chat" {
+  variables = {
+    use memory
+    input = string("")  "The user's message"
+  }
+  message "system" {
+    use memory
+    text = "Answer the user."
+  }
+  message "user" { text = "{{ input }}" }
+}
+```
+
+The `when persona_memory or episodic_memory { ... }` block stays in each file because it names the memories that file takes; the
+build puts the inserted blocks inside it, in the order of the `use` lines.
+
+### Override
+
+`override` changes something that a `use` brought, for example the default of a variable taken from a partial. It stands after the `use`
+that brings the name, so the order of the lines is the order of the declarations.
+
+- **In `variables`:** `override name = <definition>` replaces the entry `name` that an earlier `use` of the same map brought. The new
+  entry keeps the place of the `use`.
+- **In a prompt or message body:** `override when name { ... }` and `override when not name { ... }` replace the first-level block of
+  the partial that has exactly that condition. A wider condition such as `when a or b` is replaced by its exact text when a whole-file
+  `use` brought it, and cannot be reached by an import by name.
+- **Only what a `use` brought.** The name must have been brought by a `use` of your file; a second `override` of the same name, an
+  `override` before its `use`, and an `override` in a file with no `use` are errors. A partial may not contain an `override`.
+- **The new definition is checked like any other**, and it is reported in your file at the `override` line.
+
+A complete example: a partial that shows ids only when `show_ids` is true (false by default), and a prompt that takes it and turns the
+ids on. The two files are one set (the `title` is the path), and `skye check` run on `upkeep.skye` finds no error.
+
+```skye title="lib/memories.skye"
+---
+partial = true
+---
+prompt "memories" {
+  variables = {
+    show_ids = bool(false)  "Show the id of each item and tell the model to refer to it"
+    episodic_memory = list({
+      id        = string("")  "Item id"
+      content   = string      "What happened"
+      timestamp = string("")  "When it happened"
+    }, []) "Past events"
+  }
+  message "system" {
+    when show_ids { text = "An item that has an id shows it first, in square brackets; refer to the item by that id." }
+    when not show_ids { text = "Memories are listed below." }
+    when episodic_memory {
+      text = "### Past events"
+      each m in episodic_memory { text = "- {{ m.content }}" }
+    }
+  }
+}
+```
+
+```skye title="upkeep.skye"
+include "lib/memories.skye" as memories
+
+prompt "upkeep" {
+  variables = {
+    use memories
+    override show_ids = bool(true)  "Ids are always shown here"
+    input = string("")  "The user's message"
+  }
+  message "system" {
+    use memories
+    override when not show_ids { text = "Memories are listed below, with their ids." }
+  }
+  message "user" { text = "{{ input }}" }
+}
+```
+
+The prompt `upkeep` declares `show_ids` with the default `true`, and its message uses its own text for the `when not show_ids` block; the
+rest of the partial is inserted as it is.
+
+The messages of the mistakes (the line and column are those of the `override`):
+
+| Written | Message |
+|---|---|
+| `override show_ids = ...` before `use memories` | `cannot override "show_ids": no use before this line brought it; brought: none Write the use before the override.` |
+| `override nothing = ...` | `cannot override "nothing": no use before this line brought it; brought: show_ids, episodic_memory Write the use before the override.` |
+| a second `override show_ids = ...` | `cannot override "show_ids": it is already overridden at line 5 Keep one override.` |
+| `override when persona_memory { ... }` with no such block | `cannot override "when persona_memory": no use before this line brought it; brought: when show_ids, when not show_ids, when episodic_memory Write the use before the override.` |
+| `override when a { ... }` in a router or a flow | `override is available in prompts only. Write it in a file that has a prompt.` |
+
+Every mistake is reported with the file where it is, its line and column, and the use site (`(used from app.skye:10:5)`; in JSON,
+`via`):
+
+| Written | Message |
+|---|---|
+| `from "lib/memory.skye" import semantic_memory` | `"lib/memory.skye" has no variable "semantic_memory"; it has: persona_memory, episodic_memory` |
+| `use memory` with no `include` | `"memory" is not included or imported; the names here are: none` |
+| `include "lib/memory.skye"` | `an include needs a name. Write: include "lib/memory.skye" as <name>` |
+| `use persona_memory` twice in one body | `"persona_memory" is already used at line 2` |
+| an entry written in the file and also brought by a `use` | `"system_prompt" is defined twice: here and at app.skye:2:28. Remove one, or do not use the part that has it.` |
+| `from "/etc/x.skye" import a` | `"/etc/x.skye" is not a relative path. An include takes a path relative to the file, such as lib/memory.skye.` |
+
+`skye fmt` keeps these lines where they are, `skye prompt list` skips partials, and `skye.dsl.to_text` writes the expanded text with no
+`use`. `skye.load(path)` and `skye check` read the included files from the folder of the entry file; from Python,
+`skye.dsl.check_text(text, filename, resolver=...)` takes a `resolver` function instead, because the language itself reads no file.
+A prompt builder reads the same lines: `builder.register_template(name, path, from_string=False)` takes the folder of the file as its root
+(the files are read again at each registration), `register_template(name, text, resolver=...)` takes a `resolver` for a text, and a folder
+loaded with `load_default_templates(builder, folder)` skips the partials. The partials that ship with Skye are private: a file of yours
+cannot include them.
+
 ## Version 1 and version 2
 
 | | Version 1 (built) | Version 2 (reserved) |
 |---|---|---|
-| Blocks | `router`, `flow`, `prompt` | `include "other.skye"` |
+| Blocks | `router`, `flow`, `prompt` | (none) |
+| Sharing | `include`, `from ... import`, `use`, `override` and `partial = true` (version 1.1, see [Include and partial files](#include-and-partial-files)) | (none) |
 | Flows | sequence, `choice`, `parallel`, bounded loops, `retry`, `timeout`, `on_error`, `foreach`, `set`, `emit` | `wait`, `on_event` (waiting for events with persistence and resume) |
 | Prompts | `variables`, `message`, `placeholder`, `text`, `when`, `each`, `allow_missing`, `output` | `examples`, multimodal `content`, `from`/`bind`, `parts`, type `image` |
 

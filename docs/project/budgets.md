@@ -44,7 +44,7 @@ make size           # where the bytes are, by component and by kind; run it at t
 
 Sizes exclude the libraries Lambda already ships. Time is the best of five fresh interpreters. Measurements were taken on Python 3.13; the workflow runs the fast checks on 3.11 (the minimum, D49) and 3.13 and the footprint checks on 3.13.
 
-**Sizes are Linux sizes.** The footprint jobs run on a Linux x86_64 runner, which is also the serverless target, and the compiled wheels (`asyncpg`, `tiktoken`, ...) are larger there than on macOS: the compiled extras are larger there (the core has no compiled file any more: it is the same 1.8 MB everywhere). The limits in `budgets.toml` are the Linux ones. To check the sizes from any machine, without a Linux runner:
+**Sizes are Linux sizes.** The footprint jobs run on a Linux x86_64 runner, which is also the serverless target, and the compiled wheels (`asyncpg`, `tiktoken`, ...) are larger there than on macOS: the compiled extras are larger there (the core has no compiled file any more: it is the same 1.9 MB everywhere). The limits in `budgets.toml` are the Linux ones. To check the sizes from any machine, without a Linux runner:
 
 ```bash
 uv pip install --target /tmp/skye-linux --python-platform x86_64-manylinux_2_28 --python-version 3.13 "skyeai[memory] @ file:///path/to/skyeai.whl"
@@ -68,7 +68,7 @@ Checked against `budgets.toml` and `pyproject.toml`.
 
 | Item | Why it matters | Target |
 |---|---|---|
-| Core dependencies: none since decision D49 (`pydantic` and `tenacity` are gone); one distribution, 1.8 MB, nothing compiled (measured 2026-11-11, below) | nothing to carry | done |
+| Core dependencies: none since decision D49 (`pydantic` and `tenacity` are gone); one distribution, 1.9 MB, nothing compiled (measured 2026-11-11, below) | nothing to carry | done |
 | Extras with no dependency of their own: `agents`, `guard`, `prompts`, `tools`, `teams`, `flows`, `observe`, and the provider extras `anthropic`, `bedrock`, `google`, `cohere` | they are modules, not extras (the provider extras stay so `pip install skyeai[...]` keeps working) | remove the ones that are not provider extras from `pyproject.toml` |
 | Extra sizes over the core, on Linux: `auth` 0.5 MB (`rsa`), `memory` 2.6 MB (`redis`), `tokens` 8.4 MB (`tiktoken`, compiled; decision D33), `postgres` 14.0 MB (`asyncpg`, compiled), `mcp` about 50 MB (`fastmcp`, 7 compiled distributions; not gated since decision D67: an optional third-party library is not part of Skye's budget, and the built-in MCP client is the default) | the compiled ones | only who installs an extra pays for it |
 | `skyeai[all]` size | it includes `mcp` and `memory` | not advertised for Lambda |
@@ -87,7 +87,7 @@ venv, Python 3.13.2, macOS arm64. The wheel has no compiled file, so the files (
 | `import skye`: time, best of 10 | about 91 ms | 16 ms | 100 ms (250) |
 | `import skye`: memory added | about 24 MB | 5 MB | 16 MB (32) |
 | Cold path (import, router, one target, one request), best of 10 | about 95 ms | 56 ms (median 69, worst 152) | 200 ms (300); target 100 ms (150) |
-| Serverless profile (core + `bedrock`, which has no library of its own) | about 9 MB | 1.8 MB | 3 MB (30) |
+| Serverless profile (core + `bedrock`, which has no library of its own) | about 9 MB | 1.9 MB | 3 MB (30) |
 
 The tests that measured them are the real ones: `tests/budget/test_footprint_budget.py -m budget -k "core or serverless"` (4 and 1 passed) and the probe of
 `tests/budget/test_cold_start.py` run with the python of the clean install. Each limit is the measure plus room for a slower runner (the CI runner is about three times a laptop) and for growth; a limit only goes down.

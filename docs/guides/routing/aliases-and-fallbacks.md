@@ -188,7 +188,7 @@ from skye.router import ModelRouter
 
 router = ModelRouter.from_file("router.skye", name="main")
 router = ModelRouter.from_file("router.skye", name="main", cooldown_seconds=120.0)
-router = ModelRouter.from_file("router.skye", name="main", storage=skye.store.backend("dynamodb", table_name="skye-router"))
+router = ModelRouter.from_file("router.skye", name="main", storage=skye.backend("dynamodb", table_name="skye-router"))
 ```
 
 `from_file` also reads a JSON file with the same content as `ModelRouter.from_config_dict`, which takes the same keyword

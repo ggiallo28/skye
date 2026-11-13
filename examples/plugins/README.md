@@ -19,7 +19,7 @@ Read in this order, from the simplest (a function) to the longest (a provider):
 
 1. `template_filter.py`: a function that changes a value in a prompt.
    `template_filter_text.py`: two more, for a list and for a long text.
-2. `builtin_toolkit.py`: the built-in toolkits (`files`, `openapi`, `mcp`), how to ask for one, and how to build your own on top of one.
+2. `builtin_toolkit.py`: the built-in toolkits (`files`, `openapi`), how to ask for one, and how to build your own on top of one.
 3. `tokenizer.py`: a function that counts tokens.
    `tokenizer_provider.py`: the same, for the models of a provider of your own.
 4. `routing_strategy.py`: a function that chooses a model.
@@ -44,7 +44,7 @@ Read in this order, from the simplest (a function) to the longest (a provider):
 | agent type | `@plugins.agent("name")` | a class | `agent_type.py` |
 | credential source | `@plugins.credential_source("name")` | a class | `credential_source.py` |
 | store backend | `@plugins.backend("name")` | a class | `store_backend.py` |
-| embedding provider | `@plugins.provider("name")` | a class with `encode` | `embedding_provider.py` |
+| embedding provider | `@plugins.provider("name")` | a class with `aencode` | `embedding_provider.py` |
 | model provider | `@plugins.provider("name", profile=...)` | a class with `generate`, or `plugins.provider("name", cls, profile=...)` | `model_provider.py` |
 | MCP client | `@plugins.mcp_client("name")` | a class | `mcp_client.py` |
 | toolkit | `@plugins.toolkit("name")` | a class that is a `ToolProvider` | `custom_toolkit.py` |

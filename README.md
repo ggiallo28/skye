@@ -9,7 +9,7 @@
 **A GenAI library for Python with no third-party dependencies.** One client for OpenAI, Anthropic, Bedrock, Azure OpenAI and
 Google, with routing, fallbacks, tools and state on top, all written on the standard library alone.
 
-It installs at 1.8 MB and imports in about 60 ms, so it fits wherever size and start-up time matter: serverless functions,
+It installs at 1.9 MB and imports in about 60 ms, so it fits wherever size and start-up time matter: serverless functions,
 containers, scripts and edge. There is nothing to vendor, no layer and no image to build. AWS Lambda is the tightest case we
 measure, and there a complete function deploys as a 0.56 MB zip. The limits are in [`budgets.toml`](https://github.com/ggiallo28/skye/blob/main/budgets.toml) and the CI fails any change that exceeds them.
 
@@ -23,7 +23,7 @@ measure, and there a complete function deploys as a 0.56 MB zip. The limits are 
 | Measured on skyeai 0.1.1 (2026-11-11) | Value | Limit the CI enforces |
 |---|---|---|
 | Lambda zip, library and handler ([`examples/serverless/lambda_zip`](https://github.com/ggiallo28/skye/tree/main/examples/serverless/lambda_zip)) | 0.56 MB | 1 MB (AWS: 50 MB) |
-| Installed size of the core | 1.8 MB | 2 MB |
+| Installed size of the core | 1.9 MB | 2 MB |
 | Third-party dependencies of the core | 0 | 0 |
 | `import skye` in a fresh interpreter | about 60 ms | 100 ms |
 

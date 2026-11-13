@@ -146,10 +146,42 @@ The promises of the Port:
 No released component takes a `ToolProvider` yet: the agent loop will (see [Status and roadmap](../../project/roadmap.md)). Until then,
 call `list_schemas` and `run` from your own loop.
 
+## A toolkit: a named set of tools
+
+A toolkit is a set of tools that several agents share or that needs a setup (a connection, a folder, a key). You add it as a plugin and
+an agent takes it apart from its own `tools=`, in `toolkits=[...]`. The class extends `skye.Toolkit`, takes its options in `__init__`, and
+writes one method for each tool with the `@capability` you already know (`self` is not part of the schema):
+
+```python
+--8<-- "examples/plugins/custom_toolkit.py:21:60"
+```
+
+The name of a tool is the toolkit and the method: `create_issue` of `"jira"` is `jira.create_issue`, so a toolkit never clashes with your own
+tools. Build one with `skye.toolkit("jira", base_url=...)`; to use the same toolkit twice, give each an `alias`
+(`skye.toolkit("jira", alias="jira-eu", ...)`). Functions with no state need no class: `plugins.toolkit("text", tools=[slugify])`.
+`async close()` releases what the toolkit holds.
+
+Skye ships four toolkits, each built by name:
+
+| Name | Tools | Options |
+|---|---|---|
+| `files` | `list_files`, `read_file`: read-only, nothing outside the folder, hidden names left out | `root` (required), or `roots` for several folders; `max_bytes`, `include_hidden` |
+| `openapi` | one tool for each operation of an OpenAPI document (JSON); GET only unless you allow more | `spec` (path, address or the document), `base_url`, `headers`, `allow`, `timeout`, `max_bytes` |
+| `human` | `ask_human`, `escalate`, `check_escalation`: the agent asks a person, or hands a case over | `channel` (`"file"` or `"console"`), `timeout`, `poll_interval`, and the options of the channel |
+| `shell` | `run_command`: runs one program from a list you give, with no shell | `allow` (required), `cwd`, `timeout`, `max_bytes`, `env` |
+
+`shell` is opt-in and is not a sandbox: it runs the programs you list with the permissions of your process, so list only what the agent may
+run. A built-in toolkit is a plugin like yours, so you can build on it (a subclass of `plugins.get("toolkit", "openapi")` with the document and
+the key already set), as
+[`builtin_toolkit.py`](https://github.com/ggiallo28/skye/blob/main/examples/plugins/builtin_toolkit.py) shows. An agent that is given a
+`SKILL.md` (`skills=[...]`) also gets `files`, limited to the folder of that skill.
+
 ## See also
 
 - [Local functions](../tools/local-functions.md): `@capability`, the registry, and how results go back to the model.
 - [Which Port to implement](index.md): every Port of Skye.
-- Reference: [`skye.tools`](../../reference/api/tools.md), [`skye.interfaces`](../../reference/api/interfaces.md).
-- Examples: [`registry.py`](https://github.com/ggiallo28/skye/blob/main/examples/tools/registry.py),
+- Reference: [`skye.tools`](../../reference/api/tools.md), [`skye.plugins`](../../reference/api/plugins.md),
+  [`skye.interfaces`](../../reference/api/interfaces.md).
+- Examples: [`custom_toolkit.py`](https://github.com/ggiallo28/skye/blob/main/examples/plugins/custom_toolkit.py),
+  [`registry.py`](https://github.com/ggiallo28/skye/blob/main/examples/tools/registry.py),
   [`capability_agent.py`](https://github.com/ggiallo28/skye/blob/main/examples/capabilities/capability_agent.py).

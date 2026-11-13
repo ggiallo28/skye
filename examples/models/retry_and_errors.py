@@ -22,14 +22,14 @@ class FlakyService(BaseModelProvider):
         super().__init__(**config)
         self.failures, self.calls = list(failures), 0
 
-    def _call_provider(self, request: dict[str, Any]) -> Any:
+    async def _acall_provider(self, request: dict[str, Any]) -> Any:
         self.calls += 1
         if self.failures:
             raise self.failures.pop(0)
         return {"text": f"ok after {self.calls} attempts", "model": request["model"]}
 
-    def _call_provider_stream(self, request: dict[str, Any]) -> Any:
-        yield self._call_provider(request)
+    async def _acall_provider_stream(self, request: dict[str, Any]) -> Any:
+        yield await self._acall_provider(request)
 
     def _transform_request(self, request: Any) -> dict[str, Any]:
         return {"model": request.model}

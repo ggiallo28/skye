@@ -14,8 +14,9 @@ Set MCP_SERVER_URL to the address of a server (default: http://localhost:8000/mc
 import asyncio
 import os
 
+import skye
 from skye import SkyeError
-from skye.tools import MCPPrompt, MCPPromptArgument, Resource, create_mcp_client
+from skye.tools import MCPPrompt, MCPPromptArgument, Resource
 
 
 def show_types() -> None:
@@ -32,7 +33,7 @@ def show_types() -> None:
 
 async def main() -> None:
     url = os.getenv("MCP_SERVER_URL", "http://localhost:8000/mcp")
-    client = create_mcp_client(url, impl="skyemcp")
+    client = skye.mcp_client(url, impl="skyemcp")
 
     show_types()
 

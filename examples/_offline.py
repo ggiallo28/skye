@@ -12,7 +12,8 @@ import skye
 from skye import CapabilityMessage, CompleteResponse, ProviderError, StreamChunk, TokenUsage
 from skye.completion import CapabilityCall
 from skye.data import from_mapping, json_schema
-from skye.models import ProviderRegistry
+
+plugins = skye.Plugins()
 
 KEYS = {"openai": "OPENAI_API_KEY", "anthropic": "ANTHROPIC_API_KEY", "google": "GOOGLE_API_KEY", "cohere": "COHERE_API_KEY"}
 REPLY = "Paris is the capital of France."
@@ -88,7 +89,7 @@ class ScriptedClient:
 
 
 class ScriptedProvider(ScriptedClient):
-    """The scripted client under a provider name, so a router can balance it: ``ProviderRegistry`` builds it from a target."""
+    """The scripted client under a provider name, so a router can balance it: ``skye.provider`` builds it from the registered name."""
 
     def __init__(self, **_: Any) -> None:
         super().__init__()
@@ -162,11 +163,11 @@ def router_provider(provider: str = "openai") -> str:
     variable = KEYS.get(provider)
     if variable and os.getenv(variable):
         return provider
-    ProviderRegistry.register_model_provider("scripted", ScriptedProvider)
+    plugins.provider("scripted", ScriptedProvider, replace=True)
     return "scripted"
 
 
 def register_demo_providers() -> None:
     """Register ``scripted`` (always answers) and ``flaky`` (always fails) so a router can use them as targets."""
-    ProviderRegistry.register_model_provider("scripted", ScriptedProvider)
-    ProviderRegistry.register_model_provider("flaky", FlakyProvider)
+    plugins.provider("scripted", ScriptedProvider, replace=True)
+    plugins.provider("flaky", FlakyProvider, replace=True)

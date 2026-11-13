@@ -13,6 +13,7 @@ Exact descriptions, for looking things up.
 | [CLI](cli.md) | The `skye` command: `check`, `fmt`, `render`, `new`, `prompt`, `skill`, `vscode` |
 | [.skye language](skye-language.md) | Grammar, blocks, references, expressions and diagnostics |
 | [Editor support](editor.md) | The VS Code extension for `.skye` files |
+| [Provider profile](provider-profile.md) | The fields of `ProviderProfile`, `ModelProfile` and `RegionRule`, `profile.toml` and how `plugins.profile` merges |
 | [Configuration keys](configuration-keys.md) | Every configuration key, its default and its environment variable |
 | [Extras](extras.md) | Every optional extra, what it enables and what it installs |
 

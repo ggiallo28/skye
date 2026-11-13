@@ -1,6 +1,6 @@
 """MCP client: list and call the tools of an MCP server over HTTP.
 
-``create_mcp_client(target)`` returns the built-in client (standard library, JSON-RPC over HTTP, consume-only, no extra to install).
+``skye.mcp_client(target)`` returns the built-in client (standard library, JSON-RPC over HTTP, consume-only, no extra to install).
 The optional ``fastmcp`` client is chosen only explicitly, with ``impl="fastmcp"`` (extra ``mcp``).
 
 Set MCP_SERVER_URL to the address of a server (default: http://localhost:8000/mcp).
@@ -9,13 +9,13 @@ Set MCP_SERVER_URL to the address of a server (default: http://localhost:8000/mc
 import asyncio
 import os
 
+import skye
 from skye import SkyeError
-from skye.tools import create_mcp_client
 
 
 async def main() -> None:
     url = os.getenv("MCP_SERVER_URL", "http://localhost:8000/mcp")
-    client = create_mcp_client(url)  # impl="skyemcp" is the default
+    client = skye.mcp_client(url)  # impl="skyemcp" is the default
 
     try:
         tools = await client.list_tools()

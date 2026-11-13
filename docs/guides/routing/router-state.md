@@ -29,7 +29,7 @@ flowchart LR
 
 - A store reachable from the function, and the extra of its driver if any:
 
-| Backend | Name in `skye.store.backend` | Install | Fits |
+| Backend | Name in `skye.backend` | Install | Fits |
 |---|---|---|---|
 | In memory (default) | `memory` | nothing | a warm process, tests |
 | DynamoDB | `dynamodb` | nothing in Lambda (boto3 is there); `pip install skyeai[aws]` elsewhere | AWS Lambda, no server to run |
@@ -42,7 +42,7 @@ flowchart LR
 
 ## Step 1: build the backend
 
-`skye.store.backend(name, **config)` builds a backend by name; you can also import its class from `skye.store`. Nothing connects
+`skye.backend(name, **config)` builds a backend by name (`skye.store.backend` is the same function); you can also import its class from `skye.store`. Nothing connects
 until the first operation, so building one needs no network.
 
 === "DynamoDB"

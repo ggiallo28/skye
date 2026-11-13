@@ -47,10 +47,15 @@ prints `FILE: ok`.
 |---|---|
 | `FILE ...` | the `.skye` files to check; `-` reads standard input |
 | `--format text` | `file:line:col message` lines (the default) |
-| `--format json` | one object for the whole run: `{"diagnostics": [{"file", "line", "column", "reason", "fix", "message"}]}` |
+| `--format json` | one object for the whole run: `{"diagnostics": [{"file", "line", "column", "reason", "fix", "message"}]}`; a mistake in a file that an `include` brought also has `"via"`, the use sites `[{"file", "line", "column"}]` |
 | `--stdin-filename NAME` | the file name shown in the diagnostics of `-` (default `<stdin>`) |
 | `--schema` | print the JSON Schema of the `router`, `flow` and `prompt` blocks; with no file, exit 0 after printing |
 | `--registry NAMES` | comma-separated names your registry will hold; every `registry.NAME` is checked against them |
+
+A file that takes parts of other files (`include`, `from ... import`, see [Include and partial files](skye-language.md#include-and-partial-files))
+is checked with its includes read from the folder of the file, and standard input needs `--stdin-filename` to know that folder. A
+partial file (`partial = true`) is checked for syntax only: `FILE: ok (a partial: the rest is checked where it is used)`. A mistake in an
+`override` is reported at the `override` line of your file.
 
 Exit codes: `0` no error, `1` at least one error, `2` no file given or a file cannot be read.
 
@@ -69,7 +74,8 @@ skye fmt [--exclude GLOB] [--check] [--stdin-filename NAME] [PATH ...]
 
 Rewrites each file in the standard layout: two spaces per open bracket, no trailing spaces, at most one blank line in a row. It works
 on the text, so comments, `"""` strings and the front matter stay. It refuses a file with errors and a result that would build a
-different model. Running it twice changes nothing.
+different model. Running it twice changes nothing. It keeps the `include`, `from ... import`, `use` and `override` lines where they are and formats
+partial files too; it never expands them.
 
 | Option | Meaning |
 |---|---|
@@ -153,7 +159,7 @@ skye prompt info [--name PROMPT] [--json] NAME|FILE
 skye prompt export [--force] DIR
 ```
 
-`list` prints the bundled prompts: name, title, version and description. `info` describes one prompt: its inputs with their types,
+`list` prints the bundled prompts: name, title, version and description (a partial file, `partial = true`, is not a prompt and is not listed). `info` describes one prompt: its inputs with their types,
 defaults and descriptions, the history placeholder, the messages and the output.
 
 | Option | Meaning |
@@ -168,12 +174,12 @@ cannot be read, or it has no prompt of that name.
 
 ```bash
 skye prompt list
-skye prompt info structured_output_json
+skye prompt info extraction_structured
 skye prompt info prompts.skye --name summarize --json
 skye prompt export my-prompts
 ```
 
-`export` writes every bundled prompt as a `.skye` file into `DIR`, creating it, so you can copy one and edit it. It refuses to replace a file that is already there (exit `2`, nothing is written) unless you pass `--force`. An installed package keeps the prompts in one `templates.zip` without comments, so a prompt exported from it has no comments; a source checkout exports the files as they are. `list` and `info` work the same in both cases.
+`export` writes every bundled prompt as a `.skye` file into `DIR`, creating it, and the shared files they include into `DIR/common/`, so you can copy one and edit it. It refuses to replace a file that is already there (exit `2`, nothing is written) unless you pass `--force`. An installed package keeps the prompts in one `templates.zip` without comments, so a prompt exported from it has no comments; a source checkout exports the files as they are. `list` and `info` work the same in both cases.
 
 From Python, `skye.prompts.describe_prompt` and `skye.prompts.prompt_help` give the same description.
 

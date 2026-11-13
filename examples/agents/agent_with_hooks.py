@@ -1,14 +1,15 @@
 """Inject optional services into an agent (proposed-interface, guarded).
 
 An agent gets its optional services (memory, guard, observe) through the real Ports, never by importing a concrete component. The services
-below are small local classes that satisfy ``MemoryInterface``, ``SafetyFilterInterface`` and ``ObserverInterface``. The agent loop that
-consumes them ships with the future agents spec, so this builds the wiring and stops before invoking any loop.
+below are small local classes that satisfy ``MemoryInterface``, ``SafetyFilterInterface`` and ``ObserverInterface``. The agent loop that consumes
+them ships with the future agents spec, so this builds the wiring and stops before invoking any loop.
 """
 
 import asyncio
 from typing import Any
 
-from skye.agents import REACT, create_agent
+import skye
+from skye.agents import REACT
 from skye.interfaces import (
     EventType,
     MemoryEntryLike,
@@ -70,8 +71,7 @@ async def main() -> None:
     print("guard policies:", guard.get_policies())
     print("memory hits for 'x':", memory.retrieve("x"))
 
-    # The intended injection shape: services flow in through factory options.
-    agent = create_agent(REACT, memory=memory, guard=guard, observe=observe)
+    agent = skye.agent(REACT, memory=memory, guard=guard, observe=observe)
     assert isinstance(agent, Runnable)
     print("Agent constructed with memory/guard/observe wiring; the loop ships with the future agents spec.")
 

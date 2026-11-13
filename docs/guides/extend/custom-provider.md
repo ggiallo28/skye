@@ -5,8 +5,8 @@ status: current
 
 # Custom provider
 
-This guide shows you how to write a provider adapter for a model API that Skye does not cover, register it under a name, and use it
-like the built-in ones.
+This guide shows you how to write a provider adapter for a model API that Skye does not cover, add it as a plugin under a name, and use
+it like the built-in ones.
 
 ## Before you start
 
@@ -29,18 +29,19 @@ in Skye changes.
 ```mermaid
 flowchart LR
     req["CompleteRequest"] --> tr["_transform_request<br/>(_transform_messages, _transform_capabilities)"]
-    tr --> call["_call_provider"]
+    tr --> call["_acall_provider"]
     call --> resp["_transform_response<br/>(_extract_capability_calls)"]
     resp --> out["CompleteResponse"]
 ```
 
 ## 1. Subclass `BaseModelProvider`
 
-Implement the eleven abstract methods. This toy provider answers by shouting the last message; the "service" is a local function, so
-nothing leaves the process.
+Implement the eleven abstract methods. The two calls are `async`: you write only the async side, and Skye derives `complete` and `stream`
+from `acomplete` and `astream`. This toy provider answers by shouting the last message; the "service" is a local function, so
+nothing leaves the process. The decorator `@plugins.provider("shout")` on the class is what adds it (step 3).
 
 ```python
---8<-- "examples/advanced/custom_providers.py:10:69"
+--8<-- "examples/advanced/custom_providers.py:10:70"
 ```
 
 What each method does:
@@ -51,8 +52,8 @@ What each method does:
 | `_transform_messages(messages)` | Skye messages | the message list of the service (roles, system text, images, tool results) |
 | `_transform_capabilities(capabilities)` | capabilities (`get_schema()` of each) | the tool definitions of the service |
 | `_transform_request(request)` | a `CompleteRequest` | the request body of the service |
-| `_call_provider(request)` | the request body | the raw answer |
-| `_call_provider_stream(request)` | the request body | an iterator of raw chunks |
+| `async _acall_provider(request)` | the request body | the raw answer |
+| `async _acall_provider_stream(request)` | the request body | an async generator of raw chunks |
 | `_transform_response(response)` | the raw answer | a `CompleteResponse` (content, finish reason, `TokenUsage`, `capability_calls`) |
 | `_transform_stream_chunk(chunk)` | a raw chunk | a `StreamChunk` |
 | `_extract_capability_calls(response)` | the raw answer | a list of `CapabilityCall` (`skye.completion`), or `None` |
@@ -60,7 +61,8 @@ What each method does:
 | `get_model_info()` | nothing | a dictionary describing the model (see below) |
 
 The keyword arguments given to `skye.provider(name, **config)` arrive in your constructor and are kept in `self.config`. Read keys and
-endpoints from there, and import an SDK only inside `_initialize_client`, so importing your module stays cheap.
+endpoints from there, and import an SDK only inside `_initialize_client`, so importing your module stays cheap. A blocking call
+(an SDK, `urllib`) goes behind `await asyncio.to_thread(...)` in `_acall_provider`, so it does not hold the event loop.
 
 ## 2. Describe the model
 
@@ -73,21 +75,45 @@ endpoints from there, and import an SDK only inside `_initialize_client`, so imp
 | `supports_structured_output`, `supports_function_calling` | either one lets an output schema travel natively; without both, the schema is written as instructions in the prompt |
 | `supports_streaming` | whether `stream` makes sense for this model |
 
-## 3. Register it and use it
+## 3. Add it and use it
+
+You create the handle once, `plugins = skye.Plugins()`, and put the decorator on the class (the two lines are in the code above):
 
 ```python
---8<-- "examples/advanced/custom_providers.py:72:80"
+plugins = skye.Plugins()
+
+
+@plugins.provider("shout")
+class ShoutProvider(BaseModelProvider): ...
 ```
 
-`ProviderRegistry.register_model_provider(name, cls)` makes `name` a provider like `"openai"`: `skye.provider(name, **config)` builds
-it, and a router can balance it with the others (`"shout/shout-1"` in a route). An embedding adapter subclasses `BaseEmbeddingProvider`
-and is registered with `register_embedding_provider`.
+What you add is there as soon as the decorator runs. `skye.provider(name, **config)` then builds it, as it builds `"openai"`, and a
+router can balance it with the others (`"shout/shout-1"` in a route):
+
+```python
+--8<-- "examples/advanced/custom_providers.py:73:76"
+```
+
+The decorator needs no other call. Without it, `plugins.provider("shout", ShoutProvider)` does the same, and a name that is already
+taken raises `ConfigurationError` unless you pass `replace=True`. `plugins.names("provider")` lists what is registered.
+
+`@plugins.provider` is the one decorator for the three kinds of provider. Skye reads the kind from the class: a model provider (this
+guide), an embedding provider (`aencode`, see [Embeddings](../models/embeddings.md#an-embedding-provider-of-your-own)) or a decision
+model (`decide`). When one class could be two, say which with `function="model"`, `"embedding"` or `"decision"`.
+
+Pass `profile=` when the provider has a key variable, an endpoint, prices or its own tokenizer: that knowledge lives in the
+`ProviderProfile`, not in the adapter. The example
+[`model_provider.py`](https://github.com/ggiallo28/skye/blob/main/examples/plugins/model_provider.py) also shows how to ship the
+provider as a package that `pip install` adds with no line of yours (an entry point of the group `skye.plugins`).
+
+To check an adapter against the rules every provider keeps, run `check_provider` (`from skye.models import check_provider`), as the built-in
+providers do in the test suite.
 
 ## What you get for free
 
-- **Entry points**: `complete`, `stream`, `acomplete` and `astream`. The async forms run the sync ones in a worker thread of the
-  event loop's executor (`astream` hands each chunk over through a queue), so the loop is never blocked; override them when the
-  service has a native async client.
+- **Entry points**: `complete`, `stream`, `acomplete` and `astream`. You write the async side; `complete` and `stream` are derived from
+  `acomplete` and `astream`, so there is no second path to keep in step. A sync call made from inside a running event loop (a
+  notebook, a server) works, on a loop of its own in a worker thread; from async code prefer `acomplete` and `astream`.
 - **Retries** (decision D104): a `RateLimitError`, `ServerError` or `ProviderTimeoutError` raised by the transform or the call is
   retried up to `max_retries` times (3 by default, `0` turns them off), with exponential backoff (1, 2, 4 ... seconds, at most 20)
   or the error's `retry_after`; a stream only before its first chunk. Any other `ProviderError` is raised at once, unchanged. Any
@@ -105,5 +131,5 @@ and is registered with `register_embedding_provider`.
 
 - [Call a provider](../models/call-a-provider.md): how the built-in providers are used.
 - [Which Port to implement](index.md): `ModelInterface` and `VectorEncoderInterface` are the Ports behind the base classes.
-- Reference: [`skye.models`](../../reference/api/models.md).
+- Reference: [`skye.models`](../../reference/api/models.md), [`skye.plugins`](../../reference/api/plugins.md).
 - Example: [`custom_providers.py`](https://github.com/ggiallo28/skye/blob/main/examples/advanced/custom_providers.py).

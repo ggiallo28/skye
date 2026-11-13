@@ -8,13 +8,28 @@ status: current
 This page tells you which Port to implement for what you want to add, and where to plug your implementation in.
 
 A Port is a contract in [`skye.interfaces`](../../reference/api/interfaces.md): an `...Interface` class, or a name without the suffix
-such as `Runnable`, `DecisionModel` or `StorageBackend`. You implement the Port, register the implementation where the table says, and
-the rest of Skye uses it without knowing it is yours. You never edit Skye to add one.
+such as `Runnable`, `DecisionModel` or `StorageBackend`. You implement the Port, add the implementation as a plugin, and the rest of Skye
+uses it without knowing it is yours. You never edit Skye to add one.
+
+You add every kind the same way: create the handle once, `plugins = skye.Plugins()`, and put one decorator on top of your function or
+class. What you add is there as soon as the decorator runs, and the word that adds a kind also builds it (`@plugins.agent("name")` adds,
+`skye.agent("name")` builds):
+
+```python
+import skye
+
+plugins = skye.Plugins()
+
+
+@plugins.template_filter("shout")
+def shout(value):
+    return str(value).upper() + "!"
+```
 
 ```mermaid
 flowchart LR
     you["Your class"] -- implements --> port["Port in skye.interfaces"]
-    you -- registered in --> reg["Registry or argument<br/>(ProviderRegistry, register_backend, ...)"]
+    you -- added with --> reg["skye.Plugins()<br/>(@plugins.provider, @plugins.backend, ...)"]
     reg --> comp["Skye component<br/>(models, router, store, tools)"]
     comp -- calls through --> port
 ```
@@ -22,7 +37,7 @@ flowchart LR
 ## How to read the table
 
 - **Kind**: what the name is for. A *data* row is a type a Port uses, not something to implement.
-- **Where to plug it in**: the registry or the argument that takes your implementation.
+- **Where to plug it in**: the decorator of `skye.Plugins()`, or the argument, that takes your implementation.
 - **Status**: *implemented* when Skye ships an implementation or a released component calls the Port; *Port only* when the contract
   exists but its implementation or its consumer is planned (see [Status and roadmap](../../project/roadmap.md)); *data* for the types.
 
@@ -33,17 +48,24 @@ to call concurrently. A test checks each built-in implementation against the Por
 
 | You want to add | Guide |
 |---|---|
+| The whole path of any plugin, from one decorator to a package | [Write a plugin](write-a-plugin.md) |
 | A model provider (a new API, a gateway, a local server) | [Custom provider](custom-provider.md) |
 | A place to keep state | [Custom store backend](custom-store.md) |
-| A tool the model can call, or a toolset | [Custom capability](custom-capability.md) |
+| A tool the model can call, a toolset, or a toolkit | [Custom capability](custom-capability.md) |
+| An embedding provider | [Embeddings](../models/embeddings.md#an-embedding-provider-of-your-own) |
 | A credential source or a secret manager | [Credentials and secrets](../security/credentials.md#your-own-source) |
+| A tokenizer | [Tokens and cost](../models/tokens-and-cost.md#a-tokenizer-of-your-own) |
+| A routing strategy | [Routing strategies](../routing/strategies.md) |
 | A telemetry exporter | [Observability](../observability.md) |
+
+The nine kinds, the decorator of each and what builds it are in the reference of [`skye.plugins`](../../reference/api/plugins.md), and the fields of a provider's profile in [Provider profile](../../reference/provider-profile.md). A runnable
+example of each is in [`examples/plugins/`](https://github.com/ggiallo28/skye/tree/main/examples/plugins).
 
 ## Every name in `skye.interfaces`
 
 | Name | Kind | Where to plug it in | Example | Status |
 |---|---|---|---|---|
-| `AuthenticationInterface` | request authenticator (credential source) | `skye.auth.register_credential_source` | `examples/auth/custom_credential_source.py` | implemented |
+| `AuthenticationInterface` | request authenticator (credential source) | `@plugins.credential_source("name")` | `examples/auth/custom_credential_source.py` | implemented |
 | `AuthorizerInterface` | authorizer (permit or forbid) | the runtime, by injection (planned `policy`) | `examples/policy/authorizer.py` | Port only |
 | `CapabilityContext` | data: what travels with a call besides its arguments | - | - | data |
 | `CapabilityInterface` | capability (tool) | a list passed to `complete(capabilities=...)`, or a `skye.tools.CapabilityRegistry` | `examples/tools/registry.py` | implemented |
@@ -58,11 +80,11 @@ to call concurrently. A test checks each built-in implementation against the Por
 | `EventHandlerInterface` | lifecycle hooks of a run | the agent loop, by injection (planned) | `examples/observe/custom_exporter.py` | Port only |
 | `ExpiryStore` | store capability: is a key alive, and how many seconds it has left | a store backend (every built-in backend has it) | - | implemented |
 | `EventType` | data: the names of the observability events | - | - | data |
-| `KeyValueStore` | store capability: values by key with expiry | `skye.store.register_backend` | `examples/store/custom_backend.py` | implemented |
+| `KeyValueStore` | store capability: values by key with expiry | `@plugins.backend("name")` | `examples/store/custom_backend.py` | implemented |
 | `MemoryEntryLike` | data: the shape of a memory entry | - | - | data |
 | `MemoryInterface` | memory | the agent, by injection (planned `memory`) | `examples/memory/custom_memory.py` | Port only |
 | `ModelHealthInterface` | router role: failures, cooldown, usage | part of `ModelRouterInterface` | `examples/routing/fallbacks_and_health.py` | implemented |
-| `ModelInterface` | model provider | `skye.models.ProviderRegistry.register_model_provider` | `examples/advanced/custom_providers.py` | implemented |
+| `ModelInterface` | model provider | `@plugins.provider("name")` | `examples/advanced/custom_providers.py` | implemented |
 | `ModelRouterInterface` | router: selection, health and configuration together | `skye.router.ModelRouter` is the built-in one | `examples/routing/basic_routing.py` | implemented |
 | `ModelSelectionInterface` | router role: register, select, complete | part of `ModelRouterInterface` | `examples/routing/basic_routing.py` | implemented |
 | `ObserverInterface` | telemetry exporter: events, metrics, traces | the runtime, by injection (planned `observe`) | `examples/observe/telemetry.py` | Port only |
@@ -72,20 +94,20 @@ to call concurrently. A test checks each built-in implementation against the Por
 | `PromptRegistryInterface` | prompt role: templates and defaults | part of `PromptBuilderInterface` | `examples/advanced/prompt_engineering.py` | implemented |
 | `PromptRenderingInterface` | prompt role: rendering | part of `PromptBuilderInterface` | `examples/advanced/prompt_engineering.py` | implemented |
 | `PromptSchemaInterface` | prompt role: output schema and validation | part of `PromptBuilderInterface` | `examples/advanced/prompt_engineering.py` | implemented |
-| `ProviderRegistryInterface` | provider registry | `skye.models.ProviderRegistry` is the built-in one | `examples/advanced/custom_providers.py` | implemented |
-| `RegistrarInterface` | registrar: one method per kind of integration, which a plugin calls | the default registrar (planned, `0-base-plugins`) | `examples/plugins/model_provider.py` | Port only |
+| `ProviderRegistryInterface` | provider registry | `skye.models.ProviderRegistry` is the built-in one, a view of the `provider` kind of the registrar | `examples/advanced/custom_providers.py` | implemented |
+| `RegistrarInterface` | registrar: one method per kind of integration, which a plugin calls | `skye.Plugins()` is the handle over the default one | `examples/plugins/model_provider.py` | implemented |
 | `Resource` | data: a resource read by URI | - | - | data |
-| `ResourceProviderInterface` | resource source: list, read by URI | every MCP client is one (`skye.tools.create_mcp_client`) | `examples/tools/mcp_prompts_and_resources.py` | implemented |
+| `ResourceProviderInterface` | resource source: list, read by URI | every MCP client is one (`skye.mcp_client`, `skye.tools.create_mcp_client`) | `examples/tools/mcp_prompts_and_resources.py` | implemented |
 | `RouterConfigurationInterface` | router role: strategy, fallbacks, policies | part of `ModelRouterInterface` | `examples/routing/basic_routing.py` | implemented |
 | `RoutingStrategy` | data: the routing strategies | - | - | data |
-| `Runnable` | a unit of work: one request in, one response out | `skye.agents.register_agent_type`, the registry of a `skye.Flow` | `examples/agents/custom_agent_type.py` | implemented |
+| `Runnable` | a unit of work: one request in, one response out | `@plugins.agent("name")`, the registry of a `skye.Flow` | `examples/agents/custom_agent_type.py` | implemented |
 | `SafetyFilterInterface` | safety filter | the runtime, by injection (planned `guard`) | `examples/guard/safety_filters.py` | Port only |
 | `SafetyResult` | data: the outcome of a safety filter | - | - | data |
 | `ScanStore` | store capability: keys by prefix | a store backend that can list keys | `examples/store/custom_backend.py` | implemented |
-| `StorageBackend` | store backend: key-value plus counter | `skye.store.register_backend` | `examples/store/custom_backend.py` | implemented |
+| `StorageBackend` | store backend: key-value plus counter | `@plugins.backend("name")` | `examples/store/custom_backend.py` | implemented |
 | `TokenCounterInterface` | token counter | `skye.models.TokenCounter` is the built-in one | `examples/models/token_counting.py` | implemented |
 | `ToolProvider` | the toolset of an agent: list schemas, run a call | `skye.tools.CapabilityRegistry` is one; the agent loop will take it (planned) | `examples/capabilities/capability_agent.py` | implemented |
-| `VectorEncoderInterface` | embedding provider | `skye.models.ProviderRegistry.register_embedding_provider` | `examples/providers/embeddings_example.py` | implemented |
+| `VectorEncoderInterface` | embedding provider | `@plugins.provider("name")` on a class with `aencode` | `examples/plugins/embedding_provider.py` | implemented |
 
 The examples are in the repository, under
 [`examples/`](https://github.com/ggiallo28/skye/tree/main/examples); they run offline.

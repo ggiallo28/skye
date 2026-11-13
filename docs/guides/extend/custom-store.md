@@ -5,8 +5,8 @@ status: current
 
 # Custom store backend
 
-This guide shows you how to write a store backend of your own, register it under a name, and check it with the conformance suite that
-the built-in backends pass.
+This guide shows you how to write a store backend of your own, add it as a plugin under a name, and check it with the conformance suite
+that the built-in backends pass.
 
 ## What you need
 
@@ -32,7 +32,7 @@ storage can do:
 ## 2. Implement the backend
 
 ```python
---8<-- "examples/store/custom_backend.py:9:49"
+--8<-- "examples/store/custom_backend.py:10:56"
 ```
 
 The promises your backend must keep, the same for every backend:
@@ -54,15 +54,18 @@ The promises your backend must keep, the same for every backend:
 
 The example above keeps the shape of the Ports in focus and ignores expiry, so it would not pass the full suite.
 
-## 3. Register it
+## 3. Add it
+
+The decorator `@plugins.backend("dict")` on the class (above) adds it, after `plugins = skye.Plugins()`. Then `skye.backend(name, **config)`
+builds it:
 
 ```python
---8<-- "examples/store/custom_backend.py:52:61"
+--8<-- "examples/store/custom_backend.py:59:61"
 ```
 
-`register_backend(name, factory)` takes a class or any function that returns a backend; `backend(name, **config)` calls it with the
-configuration as keyword arguments. A name already taken (one of the built-in names included) raises `ConfigurationError` unless you
-pass `replace=True`. Register backends at start-up.
+`@plugins.backend` takes a class, or any function that returns a backend (`plugins.backend("name", factory)`); `skye.backend(name,
+**config)` calls it with the configuration as keyword arguments. A name already taken (one of the built-in names included) raises
+`ConfigurationError` unless you pass `replace=True`. Add backends at start-up. `plugins.names("backend")` lists what is registered.
 
 You can also pass the instance directly wherever a store is accepted, for example `ModelRouter(..., storage=DictBackend())`.
 
@@ -89,6 +92,6 @@ keeps time on its server (Redis does) passes the clock to a fake client in its t
 
 - [Choose a store backend](../state/choose-a-backend.md): the built-in backends and the time-to-live rule.
 - [Which Port to implement](index.md): every Port of Skye.
-- Reference: [`skye.store`](../../reference/api/store.md) (`register_backend`, `check_backend`, `FakeClock`),
-  [`skye.interfaces`](../../reference/api/interfaces.md).
+- Reference: [`skye.store`](../../reference/api/store.md) (`check_backend`, `FakeClock`),
+  [`skye.plugins`](../../reference/api/plugins.md), [`skye.interfaces`](../../reference/api/interfaces.md).
 - Example: [`custom_backend.py`](https://github.com/ggiallo28/skye/blob/main/examples/store/custom_backend.py).

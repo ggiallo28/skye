@@ -173,15 +173,22 @@ local classes for these Ports and wires them in.
 
 ## Extension points
 
-Each kind of integration has one Port in `base`, one owner and one way in. Adding one never edits a file outside the owner.
+Each kind of integration has one Port in `base`, one owner and one way in: the same handle, `plugins = skye.Plugins()`, with one
+decorator for each kind. Adding one never edits a file outside the owner, and `base` never imports what is added: the registrar keeps a
+`"module:attribute"` text and imports it at the first use.
 
 | Kind | Port | Owner | How you add one |
 |---|---|---|---|
-| model provider | `ModelInterface`, `DecisionModel` | `models` | configuration, or a thin dialect inside `models` |
-| store backend | `StorageBackend` and the store Ports | `store` | one new module, or `skye.store.register_backend` |
-| tool | `CapabilityInterface` | `tools` | register it in the capability registry |
-| observability exporter | `ObserverInterface` | `observe` | register it in the observe registry |
-| credential provider | the credential-source Port | `auth` | register it in the `auth` registry |
+| provider (model, embedding, decision) | `ModelInterface`, `VectorEncoderInterface`, `DecisionModel` | `models` | `@plugins.provider("name")`, with `profile=` for its key, endpoint and prices |
+| store backend | `StorageBackend` and the store Ports | `store` | `@plugins.backend("name")` |
+| credential source | the credential-source Port | `auth` | `@plugins.credential_source("name")` |
+| routing strategy | `RouterStrategy` | `router` | `@plugins.routing_strategy("name")` |
+| MCP client | `MCPClientInterface` | `tools` | `@plugins.mcp_client("name")` |
+| toolkit | `ToolProvider` | `tools` | `@plugins.toolkit("name")` on a `skye.Toolkit` |
+| tokenizer | an object with `encode(text)` | `models` | `@plugins.tokenizer("name")` |
+| template filter | a function of a value | `prompts` | `@plugins.template_filter("name")` |
+| agent | `Runnable` | `agents` | `@plugins.agent("name")` |
+| observability exporter | `ObserverInterface` | `observe` | the observe registry |
 
 The [Extend Skye](../guides/extend/index.md) guides show each one with a runnable example.
 

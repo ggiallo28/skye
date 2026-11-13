@@ -23,7 +23,7 @@ instead of JSON for one, YAML for another and Jinja templates for the third:
   reading the file stays outside the core. Skye reads no YAML.
 - **Secrets stay out.** A key is written `env.OPENAI_API_KEY` and read from the environment when the file loads.
 
-A file holds one or more blocks, in any order. Each file is self-sufficient: there is no `include` in version 1.
+A file holds one or more blocks, in any order. A file is self-sufficient unless it takes parts of other files: `include` and `use` insert what several prompts repeat from a partial file (see [Include and partial files](../reference/skye-language.md#include-and-partial-files)).
 
 ## The blocks
 

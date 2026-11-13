@@ -14,14 +14,22 @@ It takes what it can use in three separate options:
 `return_direct=True` on a tool makes its result the answer of the agent: the model is not asked
 again after that call. It is for a result that is already the text to give back.
 
-This one needs a key (`OPENAI_API_KEY`) and, for the toolkit, the network.
+The loop itself ships with the agents spec, so this builds the agent and shows what it holds
+without running it: no key and no network.
 """
 
-import asyncio
+from pathlib import Path
 
 import skye
 from skye.agents import REACT
 from skye.tools import capability
+
+SKILL = Path(__file__).parent / "skills" / "refund-policy" / "SKILL.md"
+ACME = {  # the OpenAPI document of one API, here inline; `spec=` also takes a path or an address
+    "openapi": "3.0.0",
+    "servers": [{"url": "https://api.acme.example"}],
+    "paths": {"/orders/{id}": {"get": {"operationId": "get_order", "summary": "Read an order"}}},
+}
 
 
 @capability
@@ -36,21 +44,20 @@ def refund(order_id: str) -> str:
     return f"Order {order_id} refunded."
 
 
-async def main() -> None:
+def main() -> None:
     agent = skye.agent(
         REACT,
         model="gpt-4o-mini",
         tools=[order_status, refund],
-        toolkits=[skye.toolkit("openapi", spec="https://api.acme.example/openapi.json")],
-        skills=["examples/plugins/skills/refund-policy/SKILL.md"],
+        toolkits=[skye.toolkit("openapi", spec=ACME)],
+        skills=[str(SKILL)],
     )
-
-    # The model calls `order_status`, reads "shipped" and writes the answer.
-    print(await agent.invoke("Where is order 42?"))
-
-    # The model calls `billing.refund`; with return_direct the confirmation is the answer.
-    print(await agent.invoke("Refund order 42"))
+    print("tools:", [tool.get_schema().name for tool in agent.options["tools"]])
+    print("toolkits:", [type(toolkit).__name__ for toolkit in agent.options["toolkits"]])
+    print("added for the skill:", [type(toolkit).__name__ for toolkit in agent.skill_toolkits])
+    # Running it, `await agent.invoke("Refund order 42")`: the model calls `billing.refund` and,
+    # with return_direct, the confirmation it returns is the answer.
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

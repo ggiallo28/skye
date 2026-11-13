@@ -53,6 +53,7 @@ How exact the count is depends on the model name:
 
 | Model name starts with | Count |
 |---|---|
+| a model whose profile names a tokenizer you added with `@plugins.tokenizer` | your tokenizer |
 | a name you registered with `TokenCounter.register_tokenizer` | your tokenizer (the longest registered name wins) |
 | `gpt-`, `o1-`, `o3-` | exact with `tiktoken` installed (the `tokens` extra); estimated without it |
 | `claude-` | estimated |
@@ -63,9 +64,17 @@ languages: treat it as a budget, not a bill. Without `tiktoken`, Skye logs that 
 
 ### A tokenizer of your own
 
-To count better than the estimate for a model, or for every model that starts with a name, register any object that has an
-`encode(text)` method (a `tiktoken` encoding, a `tokenizers` or `transformers` tokenizer behind a small wrapper). Nothing is
-installed by Skye: you bring the tokenizer, and it costs no space when you do not:
+To count better than the estimate for a model, bring any object that has an `encode(text)` method (a `tiktoken` encoding, a `tokenizers`
+or `transformers` tokenizer behind a small wrapper). Nothing is installed by Skye: you bring the tokenizer, and it costs no space when
+you do not. As a plugin, a tokenizer is a function with the decorator `@plugins.tokenizer("name")` that receives the model and returns that
+object; the profile of the model says which one it uses, and `plugins.profile(provider, models=...)` changes only that, leaving the
+prices and the endpoint as they are:
+
+```python
+--8<-- "examples/plugins/tokenizer.py:16:35"
+```
+
+To count every model that starts with a name, without a profile, register the object by that name:
 
 ```python
 from skye.models import TokenCounter
