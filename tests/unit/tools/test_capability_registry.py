@@ -127,14 +127,14 @@ class TestCapabilityRegistryRegistration:
     def test_register_capability_with_namespace(self) -> None:
         """Test registering capabilities with namespaces."""
         registry = CapabilityRegistry.get_instance()
-        cap1 = MockCapability(name="weather.get_current")
-        cap2 = MockCapability(name="weather.forecast")
+        cap1 = MockCapability(name="weather_get_current")
+        cap2 = MockCapability(name="weather_forecast")
 
         registry.register(cap1)
         registry.register(cap2)
 
-        assert registry.exists("weather.get_current")
-        assert registry.exists("weather.forecast")
+        assert registry.exists("weather_get_current")
+        assert registry.exists("weather_forecast")
 
     def test_register_duplicate_raises_error(self) -> None:
         """Test that registering duplicate capability raises error."""
@@ -200,10 +200,10 @@ class TestCapabilityRegistryRetrieval:
     def test_get_capability_with_namespace(self) -> None:
         """Test retrieving capability with namespace."""
         registry = CapabilityRegistry.get_instance()
-        capability = MockCapability(name="weather.get_current")
+        capability = MockCapability(name="weather_get_current")
         registry.register(capability)
 
-        retrieved = registry.get("weather.get_current")
+        retrieved = registry.get("weather_get_current")
 
         assert retrieved is capability
 
@@ -267,16 +267,16 @@ class TestCapabilityRegistryListing:
     def test_list_all_with_namespaces(self) -> None:
         """Test listing capabilities with namespaces."""
         registry = CapabilityRegistry.get_instance()
-        registry.register(MockCapability(name="weather.get_current"))
-        registry.register(MockCapability(name="weather.forecast"))
-        registry.register(MockCapability(name="database.query"))
+        registry.register(MockCapability(name="weather_get_current"))
+        registry.register(MockCapability(name="weather_forecast"))
+        registry.register(MockCapability(name="database_query"))
 
         names = registry.list_all()
 
         assert set(names) == {
-            "weather.get_current",
-            "weather.forecast",
-            "database.query",
+            "weather_get_current",
+            "weather_forecast",
+            "database_query",
         }
 
 
@@ -378,9 +378,9 @@ class TestCapabilityRegistryNamespaceOperations:
     def test_get_by_namespace(self) -> None:
         """Test retrieving capabilities by namespace."""
         registry = CapabilityRegistry.get_instance()
-        cap1 = MockCapability(name="weather.get_current")
-        cap2 = MockCapability(name="weather.forecast")
-        cap3 = MockCapability(name="database.query")
+        cap1 = MockCapability(name="weather_get_current")
+        cap2 = MockCapability(name="weather_forecast")
+        cap3 = MockCapability(name="database_query")
 
         registry.register(cap1)
         registry.register(cap2)
@@ -395,20 +395,20 @@ class TestCapabilityRegistryNamespaceOperations:
     def test_get_by_namespace_with_trailing_dot(self) -> None:
         """Test get_by_namespace with trailing dot."""
         registry = CapabilityRegistry.get_instance()
-        cap1 = MockCapability(name="weather.get_current")
-        cap2 = MockCapability(name="weather.forecast")
+        cap1 = MockCapability(name="weather_get_current")
+        cap2 = MockCapability(name="weather_forecast")
 
         registry.register(cap1)
         registry.register(cap2)
 
-        weather_caps = registry.get_by_namespace("weather.")
+        weather_caps = registry.get_by_namespace("weather_")
 
         assert len(weather_caps) == 2
 
     def test_get_by_namespace_empty_result(self) -> None:
         """Test get_by_namespace with no matching capabilities."""
         registry = CapabilityRegistry.get_instance()
-        registry.register(MockCapability(name="weather.get_current"))
+        registry.register(MockCapability(name="weather_get_current"))
 
         database_caps = registry.get_by_namespace("database")
 
@@ -417,13 +417,13 @@ class TestCapabilityRegistryNamespaceOperations:
     def test_get_by_namespace_does_not_match_partial_names(self) -> None:
         """Test that get_by_namespace doesn't match partial names."""
         registry = CapabilityRegistry.get_instance()
-        registry.register(MockCapability(name="weather_service.get_current"))
-        registry.register(MockCapability(name="weather.get_current"))
+        registry.register(MockCapability(name="weather-service_get_current"))
+        registry.register(MockCapability(name="weather_get_current"))
 
         weather_caps = registry.get_by_namespace("weather")
 
         assert len(weather_caps) == 1
-        assert weather_caps[0].get_schema().name == "weather.get_current"
+        assert weather_caps[0].get_schema().name == "weather_get_current"
 
 
 class TestCapabilityRegistryUtilityMethods:
@@ -556,26 +556,26 @@ class TestCapabilityRegistrySearch:
     def test_search_by_exact_name(self) -> None:
         """Test searching for capability by exact name."""
         registry = CapabilityRegistry.get_instance()
-        cap1 = MockCapability(name="weather.get_current")
-        cap2 = MockCapability(name="weather.forecast")
-        cap3 = MockCapability(name="database.query")
+        cap1 = MockCapability(name="weather_get_current")
+        cap2 = MockCapability(name="weather_forecast")
+        cap3 = MockCapability(name="database_query")
 
         registry.register(cap1)
         registry.register(cap2)
         registry.register(cap3)
 
-        results = registry.search("weather.get_current")
+        results = registry.search("weather_get_current")
 
         assert len(results) == 1
-        assert results[0][0] == "weather.get_current"
+        assert results[0][0] == "weather_get_current"
         assert results[0][1] is cap1
 
     def test_search_by_partial_name(self) -> None:
         """Test searching for capabilities by partial name."""
         registry = CapabilityRegistry.get_instance()
-        cap1 = MockCapability(name="weather.get_current")
-        cap2 = MockCapability(name="weather.forecast")
-        cap3 = MockCapability(name="database.query")
+        cap1 = MockCapability(name="weather_get_current")
+        cap2 = MockCapability(name="weather_forecast")
+        cap3 = MockCapability(name="database_query")
 
         registry.register(cap1)
         registry.register(cap2)
@@ -585,13 +585,13 @@ class TestCapabilityRegistrySearch:
 
         assert len(results) == 2
         names = {name for name, _ in results}
-        assert names == {"weather.get_current", "weather.forecast"}
+        assert names == {"weather_get_current", "weather_forecast"}
 
     def test_search_case_insensitive(self) -> None:
         """Test that search is case-insensitive."""
         registry = CapabilityRegistry.get_instance()
-        cap1 = MockCapability(name="Weather.GetCurrent")
-        cap2 = MockCapability(name="database.query")
+        cap1 = MockCapability(name="Weather_GetCurrent")
+        cap2 = MockCapability(name="database_query")
 
         registry.register(cap1)
         registry.register(cap2)
@@ -599,13 +599,13 @@ class TestCapabilityRegistrySearch:
         results = registry.search("weather")
 
         assert len(results) == 1
-        assert results[0][0] == "Weather.GetCurrent"
+        assert results[0][0] == "Weather_GetCurrent"
 
     def test_search_no_matches(self) -> None:
         """Test search with no matching capabilities."""
         registry = CapabilityRegistry.get_instance()
-        registry.register(MockCapability(name="weather.get_current"))
-        registry.register(MockCapability(name="database.query"))
+        registry.register(MockCapability(name="weather_get_current"))
+        registry.register(MockCapability(name="database_query"))
 
         results = registry.search("nonexistent")
 
@@ -652,19 +652,19 @@ class TestCapabilityRegistrySearch:
     def test_search_with_namespace_pattern(self) -> None:
         """Test search with namespace pattern."""
         registry = CapabilityRegistry.get_instance()
-        cap1 = MockCapability(name="weather.get_current")
-        cap2 = MockCapability(name="weather.forecast")
-        cap3 = MockCapability(name="database.weather_query")
+        cap1 = MockCapability(name="weather_get_current")
+        cap2 = MockCapability(name="weather_forecast")
+        cap3 = MockCapability(name="database_weather_query")
 
         registry.register(cap1)
         registry.register(cap2)
         registry.register(cap3)
 
-        results = registry.search("weather.")
+        results = registry.search("weather_")
 
         assert len(results) == 2
         names = {name for name, _ in results}
-        assert names == {"weather.get_current", "weather.forecast"}
+        assert names == {"weather_get_current", "weather_forecast"}
 
     def test_search_preserves_capability_references(self) -> None:
         """Test that search returns actual capability references."""
@@ -891,13 +891,13 @@ class TestCapabilityRegistrySearch:
     def test_search_finds_exact_name_match(self) -> None:
         """Test that search finds exact name matches."""
         registry = CapabilityRegistry.get_instance()
-        registry.register(MockCapability(name="weather.get_current"))
-        registry.register(MockCapability(name="database.query"))
+        registry.register(MockCapability(name="weather_get_current"))
+        registry.register(MockCapability(name="database_query"))
 
         results = registry.search("weather")
 
         assert len(results) > 0
-        assert results[0][0] == "weather.get_current"
+        assert results[0][0] == "weather_get_current"
 
     def test_search_finds_description_match(self) -> None:
         """Test that search finds matches in descriptions."""
@@ -953,7 +953,7 @@ class TestCapabilityRegistrySearch:
     def test_search_case_insensitive(self) -> None:
         """Test that search is case-insensitive."""
         registry = CapabilityRegistry.get_instance()
-        registry.register(MockCapability(name="Weather.GetCurrent"))
+        registry.register(MockCapability(name="Weather_GetCurrent"))
 
         results_lower = registry.search("weather")
         results_upper = registry.search("WEATHER")
@@ -985,16 +985,16 @@ class TestCapabilityRegistrySearch:
         registry = CapabilityRegistry.get_instance()
         registry.register(
             MockCapability(
-                name="weather.get_current",
+                name="weather_get_current",
                 description="Some other description",
             )
         )
-        registry.register(MockCapability(name="database.query"))
+        registry.register(MockCapability(name="database_query"))
 
         results = registry.search_by_name("weather")
 
         assert len(results) > 0
-        assert results[0][0] == "weather.get_current"
+        assert results[0][0] == "weather_get_current"
 
     def test_search_by_name_ignores_description(self) -> None:
         """Test that search_by_name ignores descriptions."""
@@ -1022,9 +1022,9 @@ class TestCapabilityRegistrySearch:
     def test_search_with_namespace(self) -> None:
         """Test search with namespaced capability names."""
         registry = CapabilityRegistry.get_instance()
-        registry.register(MockCapability(name="weather.get_current"))
-        registry.register(MockCapability(name="weather.forecast"))
-        registry.register(MockCapability(name="database.query"))
+        registry.register(MockCapability(name="weather_get_current"))
+        registry.register(MockCapability(name="weather_forecast"))
+        registry.register(MockCapability(name="database_query"))
 
         results = registry.search("weather")
 

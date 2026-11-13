@@ -1,0 +1,47 @@
+[
+  {
+    "language": "Python",
+    "input": "Parse an ISO 8601 date string and return the weekday name",
+    "constraints": [
+      "Use only the standard library",
+      "Raise ValueError on bad input"
+    ],
+    "examples": [
+      {
+        "input": "Weekday of 2026-11-08",
+        "output": "weekday('2026-11-08')  # 'Sunday'"
+      }
+    ],
+    "input_format": "a string such as '2026-11-08'",
+    "result_format": "the English weekday name",
+    "include_tests": true,
+    "include_comments": true
+  },
+  {
+    "language": "SQL",
+    "input": "Which customers placed more than three orders in 2026?",
+    "environment": "PostgreSQL 16",
+    "references": [
+      {
+        "name": "customers",
+        "description": "One row per customer",
+        "content": "Columns:\n- id (integer) - Primary key\n- name (text)"
+      },
+      {
+        "name": "orders",
+        "content": "Columns:\n- id (integer)\n- customer_id (integer) - References customers.id\n- placed_at (date)"
+      }
+    ],
+    "constraints": [
+      "Read-only queries",
+      "No SELECT *"
+    ],
+    "examples": [
+      {
+        "input": "How many customers are there?",
+        "output": "SELECT count(*) FROM customers;"
+      }
+    ],
+    "detailed": true
+  }
+]

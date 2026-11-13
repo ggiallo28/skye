@@ -1,3 +1,4 @@
+# decision D62
 """Front matter of a ``.skye`` file: metadata between two ``---`` lines at the top, written in TOML.
 
 ```text
@@ -10,7 +11,7 @@ router "support" { ... }
 ```
 
 The content is TOML (``key = value``, read with the standard library's ``tomllib``), the same
-``key = value`` form as the attributes of a block. YAML is not read (decision D62): a ``key: value``
+``key = value`` form as the attributes of a block. YAML is not read: a ``key: value``
 line is reported with the fix. The front matter is replaced by empty lines before the text is
 tokenized, so every line number of the rest of the file stays the same.
 """

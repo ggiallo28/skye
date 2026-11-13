@@ -1,15 +1,16 @@
 """Unit tests for the Google embedding provider (REST, no SDK)."""
 
 import ast
+import asyncio
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-import skye.models.embeddings.google_embeddings as mod
-from skye.auth.google import GoogleBearerAuth
-from skye.models.embeddings.google_embeddings import GoogleEmbeddingProvider
-from skye.models.transport.rest import JsonObject
+import skye.models.plugins.google.embeddings as mod
+from skye.auth.plugins.google.source import GoogleBearerAuth
+from skye.models.plugins.google.embeddings import GoogleEmbeddingProvider
+from skye.models.utilities.rest import JsonObject
 
 
 def make(**kw: object) -> GoogleEmbeddingProvider:
@@ -35,7 +36,7 @@ def test_client_is_none_and_no_sdk() -> None:
 
 def test_encode_batch_rest_call() -> None:
     resp = JsonObject({"predictions": [{"embeddings": {"values": [0.1, 0.2]}}, {"embeddings": {"values": [0.3, 0.4]}}]})
-    with patch("skye.models.transport.rest.post_json", return_value=resp) as post:
+    with patch("skye.models.utilities.rest.post_json", return_value=resp) as post:
         out = make().encode_batch(["a", "b"])
     assert out == [[0.1, 0.2], [0.3, 0.4]]
     url, body = post.call_args[0]
@@ -49,14 +50,14 @@ def test_encode_batch_rest_call() -> None:
 
 def test_encode_single() -> None:
     resp = JsonObject({"predictions": [{"embeddings": {"values": [1.0]}}]})
-    with patch("skye.models.transport.rest.post_json", return_value=resp):
+    with patch("skye.models.utilities.rest.post_json", return_value=resp):
         assert make().encode("x") == [1.0]
 
 
 def test_chunks_over_250() -> None:
     resp = JsonObject({"predictions": [{"embeddings": {"values": [0.0]}}] * 250})
-    with patch("skye.models.transport.rest.post_json", return_value=resp) as post:
-        out = make()._encode_batch_impl(["t"] * 250 + ["u"])
+    with patch("skye.models.utilities.rest.post_json", return_value=resp) as post:
+        out = asyncio.run(make()._aencode_batch_impl(["t"] * 250 + ["u"]))
     assert post.call_count == 2 and len(out) == 500
 
 

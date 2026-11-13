@@ -1,0 +1,56 @@
+{
+  "transcript": [
+    {
+      "speaker": "user",
+      "content": "From now on, please answer in Italian."
+    },
+    {
+      "speaker": "assistant",
+      "content": "Va bene, rispondero in italiano."
+    }
+  ],
+  "timestamp": "2026-11-08T10:00",
+  "user_name": "Anna",
+  "agent_name": "helper",
+  "persona_memory": [
+    {
+      "id": "p1",
+      "content": "The user prefers answers in English."
+    }
+  ],
+  "semantic_memory": [
+    {
+      "id": "s1",
+      "content": "The user lives in Milan.",
+      "source": "profile"
+    }
+  ],
+  "episodic_memory": [
+    {
+      "id": "e1",
+      "content": "Asked for train times to Rome.",
+      "timestamp": "2026-11-01"
+    }
+  ],
+  "procedural_memory": [
+    {
+      "id": "r1",
+      "name": "deploy_docs",
+      "steps": [
+        "run the build",
+        "upload the output folder"
+      ]
+    }
+  ],
+  "working_memory": [
+    {
+      "id": "w1",
+      "content": "Draft the report outline."
+    }
+  ],
+  "kinds": [
+    "persona",
+    "semantic"
+  ],
+  "max_operations": 5
+}

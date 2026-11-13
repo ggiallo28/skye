@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import skye
-from skye.models.transport.rest import wrap
+from skye.models.utilities.rest import wrap
 
 
 def _provider():

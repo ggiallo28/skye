@@ -36,7 +36,7 @@ class AddNumbers(CapabilityInterface):
 
     def get_schema(self) -> CapabilitySchema:
         return CapabilitySchema(
-            name="math.add",
+            name="math_add",
             description="Add two numbers",
             parameters={
                 "type": "object",
@@ -54,10 +54,12 @@ class AddNumbers(CapabilityInterface):
 ```
 
 - `parameters` is a JSON Schema object: the model sees it as is. Write a description for each property when the name is not enough.
-- The name must be unique where the capability is used; a dotted name (`math.add`) groups capabilities by namespace.
+- The name must be unique where the capability is used, and it must be one a model provider accepts: letters, digits, `_` and `-`, 64 characters
+  at most (a dot or a space is refused with a message that suggests a valid name). An underscore groups capabilities by namespace
+  (`math_add`, `math_subtract`), and `registry.get_by_namespace("math")` lists them.
 - `aexecute` must not block the event loop: await an async client, or run blocking work with `asyncio.to_thread`.
 - Raise when the call fails. The response methods turn the exception into a `CapabilityMessage` with the status `error`, which goes back
-  to the model; raise `CapabilityExecutionError(message, capability_name="math.add")` (from `skye.exceptions`) to say it is the capability that
+  to the model; raise `CapabilityExecutionError(message, capability_name="math_add")` (from `skye.exceptions`) to say it is the capability that
   failed.
 - Return any value: a string stays as it is, a dictionary or a list becomes JSON in the message for the model.
 
@@ -73,7 +75,7 @@ response = client.complete(messages=question, model="gpt-4o-mini", capabilities=
 results = response.execute_capability_calls()
 
 registry = CapabilityRegistry(capabilities=[add])
-print(registry.execute("math.add", {"a": 2, "b": 3}).content)  # 5
+print(registry.execute("math_add", {"a": 2, "b": 3}).content)  # 5
 ```
 
 When you only need a schema the signature cannot express (an enum, a minimum, a nested object) for a plain function, wrap the function
@@ -90,7 +92,7 @@ def search(query: str, top_k: int = 5) -> list[str]:
 search_docs = LocalFunctionCapability(
     search,
     schema_override=CapabilitySchema(
-        name="docs.search",
+        name="docs_search",
         description="Search the documentation",
         parameters={
             "type": "object",
@@ -101,7 +103,7 @@ search_docs = LocalFunctionCapability(
 )
 ```
 
-With `schema_override`, the capability takes the overridden name (`docs.search`): the registry and the errors use it, not the name of
+With `schema_override`, the capability takes the overridden name (`docs_search`): the registry and the errors use it, not the name of
 the function.
 
 ## 3. Offer a toolset: the `ToolProvider` Port
@@ -146,10 +148,42 @@ The promises of the Port:
 No released component takes a `ToolProvider` yet: the agent loop will (see [Status and roadmap](../../project/roadmap.md)). Until then,
 call `list_schemas` and `run` from your own loop.
 
+## A toolkit: a named set of tools
+
+A toolkit is a set of tools that several agents share or that needs a setup (a connection, a folder, a key). You add it as a plugin and
+an agent takes it apart from its own `tools=`, in `toolkits=[...]`. The class extends `skye.Toolkit`, takes its options in `__init__`, and
+writes one method for each tool with the `@capability` you already know (`self` is not part of the schema):
+
+```python
+--8<-- "examples/plugins/custom_toolkit.py:21:60"
+```
+
+The name of a tool is the toolkit and the method: `create_issue` of `"jira"` is `jira_create_issue`, so a toolkit never clashes with your own
+tools. Build one with `skye.toolkit("jira", base_url=...)`; to use the same toolkit twice, give each an `alias`
+(`skye.toolkit("jira", alias="jira-eu", ...)`). Functions with no state need no class: `plugins.toolkit("text", tools=[slugify])`.
+`async close()` releases what the toolkit holds. The name of a tool is `<toolkit>_<method>` with letters, digits, `_` and `-` only and 64 characters at most, the names that every provider accepts; a longer or other name raises a `ConfigurationError` that tells you to give the toolkit another alias or the tool another `name=`. A function marked with `@capability` stays callable: `slugify("A B")` calls the function itself, and `slugify.execute(...)` runs it with the checks.
+
+Skye ships four toolkits, each built by name:
+
+| Name | Tools | Options |
+|---|---|---|
+| `files` | `list`, `read`: read-only, nothing outside the folder, hidden names left out | `root` (required), or `roots` for several folders; `max_bytes`, `include_hidden` |
+| `openapi` | one tool for each operation of an OpenAPI document (JSON); GET only unless you allow more | `spec` (path, address or the document), `base_url`, `headers`, `allow`, `timeout`, `max_bytes` |
+| `human` | `ask`, `escalate`, `check_escalation`: the agent asks a person, or hands a case over | `channel` (`"file"` or `"console"`), `timeout`, `poll_interval`, and the options of the channel |
+| `shell` | `run_command`: runs one program from a list you give, with no shell | `allow` (required), `cwd`, `timeout`, `max_bytes`, `env` |
+
+`shell` is opt-in and is not a sandbox: it runs the programs you list with the permissions of your process, so list only what the agent may
+run. A built-in toolkit is a plugin like yours, so you can build on it (a subclass of `plugins.get("toolkit", "openapi")` with the document and
+the key already set), as
+[`builtin_toolkit.py`](https://github.com/ggiallo28/skye/blob/main/examples/plugins/builtin_toolkit.py) shows. An agent that is given a
+`SKILL.md` (`skills=[...]`) also gets `files`, limited to the folder of that skill.
+
 ## See also
 
 - [Local functions](../tools/local-functions.md): `@capability`, the registry, and how results go back to the model.
 - [Which Port to implement](index.md): every Port of Skye.
-- Reference: [`skye.tools`](../../reference/api/tools.md), [`skye.interfaces`](../../reference/api/interfaces.md).
-- Examples: [`registry.py`](https://github.com/ggiallo28/skye/blob/main/examples/tools/registry.py),
+- Reference: [`skye.tools`](../../reference/api/tools.md), [`skye.plugins`](../../reference/api/plugins.md),
+  [`skye.interfaces`](../../reference/api/interfaces.md).
+- Examples: [`custom_toolkit.py`](https://github.com/ggiallo28/skye/blob/main/examples/plugins/custom_toolkit.py),
+  [`registry.py`](https://github.com/ggiallo28/skye/blob/main/examples/tools/registry.py),
   [`capability_agent.py`](https://github.com/ggiallo28/skye/blob/main/examples/capabilities/capability_agent.py).

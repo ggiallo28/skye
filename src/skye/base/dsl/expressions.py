@@ -1,7 +1,8 @@
+# decision D55, Requirement 54.5
 """Expressions of the ``.skye`` language: a checker over ``ast`` and a small evaluator.
 
 An expression is Python-compatible text, parsed with ``ast.parse(mode="eval")`` and checked
-against a whitelist of nodes and of functions (decision D55, Requirement 54.5). It is never
+against a whitelist of nodes and of functions. It is never
 passed to ``eval`` or ``exec``: :func:`evaluate` walks the checked tree itself.
 
 Allowed: comparison, ``and``/``or``/``not``, ``+ - * / // %``, ``in``/``not in``, ``is``/``is not``,

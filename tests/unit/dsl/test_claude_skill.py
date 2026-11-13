@@ -39,9 +39,9 @@ from skye.utils.skill import (
     skill_text,
     skills_dir,
 )
+from tests.unit.dsl.doc_examples import resolver, split
 
 ROOT = Path(__file__).resolve().parents[3]
-FENCE = re.compile(r"^```skye\n(.*?)^```", re.DOTALL | re.MULTILINE)
 LINK = re.compile(r"\]\((references/[\w.-]+\.md)\)")
 SKILL_DIR = resources.files("skye.utils").joinpath("claude_skill", "skye")
 
@@ -191,13 +191,18 @@ def test_the_references_cover_kinds_functions_strategies_and_prefixes() -> None:
 
 
 def test_every_skye_example_in_the_skill_passes_the_checker() -> None:
-    examples = [
-        (name, block) for name, text in skill_files().items() for block in FENCE.findall(text)
-    ]
-    assert len(examples) >= 4
+    examples, sets = [], []
+    for name, text in skill_files().items():
+        plain, titled = split(text)
+        examples += [(name, block) for block in plain]
+        sets += [(name, title, titled) for title in titled]  # the titled fences of a file are one example
+    assert len(examples) >= 4 and sets
     for name, example in examples:
         problems = check_text(example, name)
         assert not problems, (name, [p.message for p in problems])
+    for name, title, files in sets:
+        problems = check_text(files[title], f"{name}:{title}", resolver=resolver(files), key=title)
+        assert not problems, (name, title, [p.message for p in problems])
 
 
 def test_the_skill_does_not_promise_what_is_not_built() -> None:

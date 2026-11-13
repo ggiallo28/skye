@@ -16,7 +16,7 @@ from skye.base.interfaces.event_handler import EventHandlerInterface
 from skye.base.interfaces.memory import MemoryInterface
 from skye.base.interfaces.model import ModelInterface
 from skye.base.interfaces.observer import EventType, ObserverInterface
-from skye.base.interfaces.plugin import PluginInterface
+from skye.base.interfaces.plugin import RegistrarInterface
 from skye.base.interfaces.prompt import PromptBuilderInterface
 from skye.base.interfaces.router import ModelRouterInterface, RoutingStrategy
 from skye.base.interfaces.safety import SafetyFilterInterface, SafetyResult
@@ -984,35 +984,41 @@ class TestObserverInterface:
         assert observer is not None
 
 
-class TestPluginInterface:
-    """Tests for PluginInterface."""
+class TestRegistrarInterface:
+    """Tests for RegistrarInterface (plugins:2.2); the Port PluginInterface is gone (task 13.4, D111)."""
 
-    def test_plugin_interface_is_abstract(self):
-        """Test that PluginInterface cannot be instantiated directly."""
-        with pytest.raises(TypeError, match="Can't instantiate abstract class"):
-            PluginInterface()
+    def test_registrar_has_the_nine_methods_of_the_final_kinds(self):
+        methods = {n for n, m in vars(RegistrarInterface).items() if not n.startswith("_") and callable(m)}
+        assert methods == {
+            "provider",
+            "backend",
+            "credential_source",
+            "routing_strategy",
+            "mcp_client",
+            "tokenizer",
+            "template_filter",
+            "agent",
+            "toolkit",
+            "profile",  # the call that merges a change into the profile of an existing provider (task 17.1)
+        }
+        assert not {"model_provider", "embedding_provider", "decision_model"} & methods
 
-    def test_plugin_interface_abstract_methods(self):
-        """Test that PluginInterface defines all required abstract methods."""
-        abstract_methods = PluginInterface.__abstractmethods__
-        expected_methods = {"initialize", "shutdown", "get_metadata"}
-        assert abstract_methods == expected_methods
+    def test_registrar_methods_take_name_target_and_a_keyword_only_replace(self):
+        import inspect
 
-    def test_complete_implementation_works(self):
-        """Test that a complete implementation can be instantiated."""
+        for name in ("provider", "backend", "agent", "toolkit"):
+            params = inspect.signature(getattr(RegistrarInterface, name)).parameters
+            assert list(params)[:3] == ["self", "name", "target"]
+            assert params["replace"].kind is inspect.Parameter.KEYWORD_ONLY
+            assert params["replace"].default is False
 
-        class CompletePlugin(PluginInterface):
-            def initialize(self) -> None:
-                pass
+    def test_only_the_provider_method_takes_a_profile(self):
+        import inspect
 
-            def shutdown(self) -> None:
-                pass
-
-            def get_metadata(self) -> dict:
-                return {"name": "test", "version": "1.0"}
-
-        plugin = CompletePlugin()
-        assert plugin is not None
+        with_profile = {
+            n for n, m in vars(RegistrarInterface).items() if not n.startswith("_") and "profile" in inspect.signature(m).parameters
+        }
+        assert with_profile == {"provider"}
 
 
 class TestEventHandlerInterface:
@@ -1082,13 +1088,11 @@ class TestVectorEncoderInterface:
         """Test that VectorEncoderInterface defines all required abstract methods."""
         abstract_methods = VectorEncoderInterface.__abstractmethods__
         expected_methods = {
-            "encode",
-            "encode_batch",
             "aencode",
             "aencode_batch",
             "get_vector_dimension",
         }
-        assert abstract_methods == expected_methods
+        assert abstract_methods == expected_methods  # ``encode`` and ``encode_batch`` are derived (20.3)
 
     def test_complete_implementation_works(self):
         """Test that a complete implementation can be instantiated."""

@@ -17,7 +17,6 @@ REMOVED = [
     "default_routing_strategy",
     "enable_fallbacks",
     "enable_rate_limiting",
-    "plugins",
     "models",
 ]
 
@@ -32,6 +31,7 @@ def test_the_fields_left() -> None:
         "log_level",
         "correlation_id_header",
         "component_log_levels",
+        "plugins",  # came back with the code that reads it: the plugin scan (plugins:4.3, D106)
     ]
 
 

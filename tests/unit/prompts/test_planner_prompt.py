@@ -1,25 +1,17 @@
-"""Tests for the bundled ``planner_agent.skye`` prompt (plan, execute and replan phases)."""
+"""Tests for the bundled ``agent_planner.skye`` prompt (plan, execute and replan phases)."""
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 import pytest
 
 from skye.base.dsl import PromptSpec, build
 from skye.base.messages import SkyeMessage
-from skye.prompts.messages import BasePromptBuilder
 from skye.prompts.skye_prompts import load_prompt, render_prompt
+from tests.unit.prompts.bundled import GALLERY_DIR, build_template, gallery_builder, load_template
 
-TEMPLATE = (
-    Path(__file__).resolve().parents[3]
-    / "src"
-    / "skye"
-    / "prompts"
-    / "templates"
-    / "planner_agent.skye"
-)
+TEMPLATE = GALLERY_DIR / "agent_planner.skye"
 
 TOOLS = [
     {
@@ -68,7 +60,7 @@ PLAN = [
 
 @pytest.fixture(scope="module")
 def spec() -> PromptSpec:
-    return load_prompt(TEMPLATE.read_text(encoding="utf-8"), "planner_agent")
+    return load_template(TEMPLATE, "agent_planner")
 
 
 def _render(spec: PromptSpec, **variables: Any) -> list[SkyeMessage]:
@@ -84,14 +76,14 @@ def _user(messages: list[SkyeMessage]) -> str:
 
 
 def test_has_front_matter() -> None:
-    metadata = build(TEMPLATE.read_text(encoding="utf-8")).metadata
+    metadata = build_template(TEMPLATE).metadata
     assert metadata["title"] and metadata["description"]
     assert metadata["version"] == "1.0"
     assert isinstance(metadata["tags"], list) and metadata["tags"]
 
 
 def test_loads_with_expected_name(spec: PromptSpec) -> None:
-    assert spec.name == "planner_agent"
+    assert spec.name == "agent_planner"
 
 
 def test_task_is_required(spec: PromptSpec) -> None:
@@ -244,8 +236,8 @@ def test_replan_without_observation_or_error(spec: PromptSpec) -> None:
 
 
 def test_renders_via_builder() -> None:
-    messages = BasePromptBuilder().render(
-        "planner_agent",
+    messages = gallery_builder().render(
+        "agent_planner",
         {
             "task": "Plan a trip to Rome",
             "phase": "replan",

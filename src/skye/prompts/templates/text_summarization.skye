@@ -1,0 +1,54 @@
+---
+title       = "Text summarization"
+description = "Summarize a text, with an optional maximum length, style, examples and layout."
+version     = "1.0"
+tags        = ["summarization", "nlp"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+
+prompt "text_summarization" {
+  variables = {
+    use system_prompt
+    description   = string("")  "Extra task description, shown before the request"
+    max_length    = number(0)   "Maximum summary length in words; 0 for no limit"
+    style         = string("")  "Summary style, e.g. formal or casual; empty for any"
+    examples      = string("")  "Examples, as free text"
+    text          = string("")  "The text to summarize"
+    output_format = string("")  "bullet_points, paragraph, structured, or empty for free form"
+  }
+
+  when system_prompt {
+    message "system" { text = "{{ system_prompt }}" }
+  }
+
+  message "user" {
+    when description { text = "{{ description }}" }
+
+    when max_length and style         { text = "Please summarize the following text in no more than {{ max_length }} words using a {{ style }} style." }
+    when max_length and not style     { text = "Please summarize the following text in no more than {{ max_length }} words." }
+    when not max_length and style     { text = "Please summarize the following text using a {{ style }} style." }
+    when not max_length and not style { text = "Please summarize the following text." }
+
+    when examples {
+      text = "Examples:"
+      text = "{{ examples }}"
+    }
+
+    text = "Text to summarize:"
+    text = "{{ text }}"
+
+    when output_format == "bullet_points" { text = "Please format your summary as bullet points." }
+    when output_format == "paragraph"     { text = "Please format your summary as a single paragraph." }
+    when output_format == "structured" {
+      text = """
+        Please format your summary with the following structure:
+        - Main topic:
+        - Key points:
+        - Conclusion:
+        """
+    }
+
+    text = "Summary:"
+  }
+}

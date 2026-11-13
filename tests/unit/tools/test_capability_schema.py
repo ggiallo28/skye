@@ -15,7 +15,7 @@ class TestCapabilitySchemaCreation:
     def test_create_valid_schema(self) -> None:
         """Test creating a valid capability schema."""
         schema = CapabilitySchema(
-            name="weather.get_current",
+            name="weather_get_current",
             description="Get current weather for a location",
             parameters={
                 "type": "object",
@@ -25,7 +25,7 @@ class TestCapabilitySchemaCreation:
             returns={"type": "string"},
         )
 
-        assert schema.name == "weather.get_current"
+        assert schema.name == "weather_get_current"
         assert schema.description == "Get current weather for a location"
         assert schema.parameters["type"] == "object"
         assert schema.returns["type"] == "string"

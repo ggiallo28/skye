@@ -1,0 +1,21 @@
+---
+title   = "Support, formal"
+version = "1.0"
+---
+
+include "shared/tone.skye" as tone
+
+prompt "support_formal" {
+  variables = {
+    use tone
+    override tone = string("formal")  "How the assistant sounds"
+    question      = string            "The customer's question"
+  }
+
+  message "system" {
+    text = "You answer the questions of a software company's customers."
+    use tone
+  }
+
+  message "user" { text = "{{ question }}" }
+}

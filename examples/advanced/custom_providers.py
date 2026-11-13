@@ -1,8 +1,8 @@
-"""A custom provider: extend the base model provider, register it, and use it like any other.
+"""A custom provider: extend the base model provider, add it as a plugin, and use it like any other.
 
 ``BaseModelProvider`` keeps what is common to every provider (the ``complete``/``stream``/``acomplete`` entry points, health tracking, retry)
 and leaves the transformation to the subclass: how a request becomes the wire format, how the answer becomes a ``CompleteResponse``.
-Once registered, ``skye.provider("shout")`` returns it, and a router can balance it with the others.
+Once added with ``@plugins.provider("shout")``, ``skye.provider("shout")`` returns it, and a router can balance it with the others.
 
 If you only need to wrap an SDK or a function, a ``Runnable`` is lighter: see ``examples/providers/bring_your_own_adapter.py``.
 """
@@ -10,13 +10,13 @@ If you only need to wrap an SDK or a function, a ``Runnable`` is lighter: see ``
 from typing import Any
 
 import skye
-from skye import CompleteResponse, StreamChunk, TokenUsage
-from skye import SkyeError
-from skye import UserMessage
+from skye import CompleteResponse, SkyeError, StreamChunk, TokenUsage, UserMessage
 from skye.models import BaseModelProvider
-from skye.models import ProviderRegistry
+
+plugins = skye.Plugins()
 
 
+@plugins.provider("shout", replace=True)  # from now on "shout" is a provider like "openai"
 class ShoutProvider(BaseModelProvider):
     """A toy 'model' that answers by shouting the last message. The 'service' is a local function, so nothing leaves the process."""
 
@@ -35,12 +35,13 @@ class ShoutProvider(BaseModelProvider):
     def _transform_request(self, request) -> dict[str, Any]:
         return {"model": request.model, "messages": self._transform_messages(request.messages)}
 
-    # The call itself (here a local function; in a real provider `skye.models.post_json(url, body, headers=...)`)
-    def _call_provider(self, request: dict[str, Any]) -> Any:
+    # The call itself (async, the only form a provider writes; here a local function, in a real provider
+    # `await asyncio.to_thread(skye.models.post_json, url, body, headers=...)`)
+    async def _acall_provider(self, request: dict[str, Any]) -> Any:
         text = request["messages"][-1]["text"]
         return {"id": "shout-1", "model": request["model"], "text": text.upper(), "tokens": len(text.split())}
 
-    def _call_provider_stream(self, request: dict[str, Any]):
+    async def _acall_provider_stream(self, request: dict[str, Any]):
         for word in request["messages"][-1]["text"].upper().split():
             yield {"id": "shout-1", "delta": word + " "}
 
@@ -70,9 +71,6 @@ class ShoutProvider(BaseModelProvider):
 
 
 def main() -> None:
-    # Registration: from now on the name "shout" is a provider like "openai"
-    ProviderRegistry.register_model_provider("shout", ShoutProvider)
-
     client = skye.provider("shout")
     response = client.complete(messages=[UserMessage(content="hello from a custom provider")], model="shout-1")
     print(response.content, f"({response.usage.total_tokens} tokens)")

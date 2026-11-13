@@ -1,14 +1,18 @@
-"""Group chat: three agents share one conversation through the bundled group chat prompts.
+"""Group chat: three agents share one conversation through the group chat prompts of the gallery.
 
-``group_chat_participant`` tells each agent when to speak (an @mention or one of its topics) and to
-answer ``[PASS]`` otherwise; ``group_chat_manager`` asks for the next speakers as JSON. A scripted
-fake model stands in for a real one, so the round runs offline, no key.
+``agent_groupchat_participant`` tells each agent when to speak (an @mention or one of its topics) and to
+answer ``[PASS]`` otherwise; ``agent_groupchat_manager`` asks for the next speakers as JSON. A scripted
+fake model stands in for a real one, so the round runs offline, no key. Both prompts are read from
+``examples/prompts/catalogue/`` with ``register_template``.
 """
 
 import json
 import re
+from pathlib import Path
 
 from skye.prompts import BasePromptBuilder
+
+GALLERY = Path(__file__).parent / "catalogue"
 
 GOAL = "Agree on a launch plan."
 TOPICS = {"planner": ["plan", "schedule"], "finance": ["budget", "cost"], "legal": ["contract"]}
@@ -35,7 +39,7 @@ def round_of(builder: BasePromptBuilder, transcript: list[dict]) -> None:
     replies = []
     for name, words in TOPICS.items():
         variables = {"agent_name": name, "goal": GOAL, "triggers": words, "transcript": transcript}
-        reply = fake_model(builder.render("group_chat_participant", {**variables, **SHARED}))
+        reply = fake_model(builder.render("agent_groupchat_participant", {**variables, **SHARED}))
         print(f"  {name:<9} {reply}")
         if reply != "[PASS]":
             replies.append({"speaker": name, "content": reply})
@@ -44,6 +48,8 @@ def round_of(builder: BasePromptBuilder, transcript: list[dict]) -> None:
 
 def main() -> None:
     builder = BasePromptBuilder()
+    for name in ("agent_groupchat_participant", "agent_groupchat_manager"):
+        builder.register_template(name, str(GALLERY / f"{name}.skye"), from_string=False)
     transcript = [{"speaker": "user", "content": "What will the launch cost?"}]
 
     print("Round 1: user asks about cost")
@@ -55,7 +61,7 @@ def main() -> None:
 
     print("Manager on the last user message")
     variables = {"goal": GOAL, "transcript": transcript[:3], **SHARED}
-    manager = builder.render("group_chat_manager", variables)
+    manager = builder.render("agent_groupchat_manager", variables)
     print(f"  reply:    {fake_model(manager)}")
     print(f"  messages: {len(transcript)} in the transcript")
 

@@ -1,0 +1,34 @@
+{
+  "task": "What do three notebooks and two pens cost altogether?",
+  "tools": [
+    {
+      "name": "unit_price",
+      "description": "Gives the unit price of an item in EUR.",
+      "parameters": {
+        "item": "Name of the item"
+      },
+      "returns": "The price as a number"
+    }
+  ],
+  "managed_agents": [
+    {
+      "name": "researcher",
+      "description": "Searches the web and reports what it finds."
+    }
+  ],
+  "authorized_imports": [
+    "math",
+    "datetime"
+  ],
+  "semantic_memory": [
+    {
+      "content": "Prices are in EUR, VAT included.",
+      "source": "shop policy"
+    }
+  ],
+  "working_memory": [
+    {
+      "content": "The user wants the total rounded to two decimals."
+    }
+  ]
+}

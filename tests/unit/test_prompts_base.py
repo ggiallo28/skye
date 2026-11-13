@@ -39,7 +39,7 @@ class TestBasePromptBuilder:
         assert len(template_names) > 0
 
         # Check that common templates exist (these should be in the templates folder)
-        expected_templates = ["ner", "classification", "chat", "question_answering"]
+        expected_templates = ["extraction_generic", "text_explanation", "text_summarization", "text_question_answering"]
         found_templates = [
             name
             for name in expected_templates
@@ -346,12 +346,12 @@ class TestBasePromptBuilder:
             {
                 "input": "Write a function to sort a list",
                 "programming_language": "Python",
-                "task_type": "code_generation",
+                "task_type": "generation_code",
             },
         )
         assert [m.role for m in messages] == ["system", "user"]
         assert "Python" in messages[0].content
-        assert "code_generation" in messages[0].content
+        assert "generation_code" in messages[0].content
 
     def test_role_based_messages(self):
         """Test role-based message creation."""
@@ -419,8 +419,8 @@ class TestBasePromptBuilder:
         """An agent prompt with memories and tools, written in .skye."""
         builder = BasePromptBuilder()
         builder.register_template(
-            "memory_agent",
-            """prompt "memory_agent" {
+            "agent_memory_recall",
+            """prompt "agent_memory_recall" {
   variables = {
     input = string
     episodic_memory = list({ content = string, timestamp = string("") }, [])
@@ -444,7 +444,7 @@ class TestBasePromptBuilder:
 }""",
         )
         messages = builder.render(
-            "memory_agent",
+            "agent_memory_recall",
             {
                 "input": "What did we discuss before?",
                 "episodic_memory": [

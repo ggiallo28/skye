@@ -1,0 +1,31 @@
+{
+  "task": "Find the cheapest train from Milan to Rome next Friday.",
+  "phase": "update",
+  "previous_plan": "1. Search the train operators' sites.\n2. Compare the prices.",
+  "remaining_steps": 4,
+  "tools": [
+    {
+      "name": "web_search",
+      "description": "Searches the web and returns the top results.",
+      "parameters": {
+        "query": "What to search for"
+      },
+      "returns": "A list of titles and links"
+    }
+  ],
+  "managed_agents": [
+    {
+      "name": "researcher",
+      "description": "Searches the web and reports what it finds."
+    }
+  ],
+  "procedural_memory": [
+    {
+      "name": "price_check",
+      "steps": [
+        "search the official site",
+        "note the price with its date"
+      ]
+    }
+  ]
+}

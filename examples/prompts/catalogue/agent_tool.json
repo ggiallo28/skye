@@ -1,0 +1,44 @@
+{
+  "input": "What's the weather in Rome tomorrow?",
+  "tools": [
+    {
+      "name": "weather",
+      "description": "Gives the forecast for a city",
+      "parameters": {
+        "city": "city name"
+      }
+    },
+    {
+      "name": "calculator",
+      "description": "Evaluates an arithmetic expression"
+    }
+  ],
+  "examples": [
+    {
+      "question": "How much is 12 * 7?",
+      "action": "calculator",
+      "action_input": "12 * 7"
+    }
+  ],
+  "semantic_memory": [
+    {
+      "content": "The user lives in Rome",
+      "source": "profile"
+    }
+  ],
+  "working_memory": [
+    {
+      "content": "The user plans a picnic"
+    }
+  ],
+  "history": [
+    {
+      "role": "user",
+      "content": "Hi!"
+    },
+    {
+      "role": "assistant",
+      "content": "Hello, how can I help?"
+    }
+  ]
+}

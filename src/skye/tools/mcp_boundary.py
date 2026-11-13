@@ -1,4 +1,5 @@
-"""The single conversion point from MCP protocol shapes to Skye types (Requirement 15).
+# Requirement 15
+"""The single conversion point from MCP protocol shapes to Skye types.
 
 Both MCP clients (built-in JSON-RPC and fastmcp) hand their raw payload to the ``to_*``
 functions here: a plain ``dict`` (JSON-RPC) or an ``mcp.types``/``fastmcp`` object. Nothing
@@ -19,7 +20,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from skye.base.exceptions import ValidationError
-from skye.base.interfaces.capability import CapabilitySchema
+from skye.base.interfaces.capability import CapabilitySchema, wire_name
 from skye.base.interfaces.resource import Resource
 
 # the message types live in `base`; `tools` never imports `prompts`
@@ -118,8 +119,17 @@ def _items(d: dict[str, Any], type_name: str, *names: str, required: bool) -> li
 # --- tools -------------------------------------------------------------------------------
 
 
+def tool_name(raw: Any) -> str:
+    """The name that the MCP server gave to ``raw``, as the server expects it in a call."""
+    return _required_str(_as_dict(raw, "Tool"), "Tool", "name")
+
+
 def to_tool_schema(raw: Any) -> CapabilitySchema:
-    """``mcp.types.Tool`` -> :class:`CapabilitySchema` (name, description, inputSchema)."""
+    """``mcp.types.Tool`` -> :class:`CapabilitySchema` (name, description, inputSchema).
+
+    A server may name a tool with a character that a model provider refuses (a dot, a space): the schema
+    carries the name made valid by ``wire_name``; ``tool_name`` gives the original for the call.
+    """
     d = _as_dict(raw, "Tool")
     name = _required_str(d, "Tool", "name")
     schema = _get(d, "inputSchema", "input_schema")
@@ -131,7 +141,7 @@ def to_tool_schema(raw: Any) -> CapabilitySchema:
         _optional_str(d, "Tool", "description") or _optional_str(d, "Tool", "title") or name
     )
     return CapabilitySchema(
-        name=name,
+        name=wire_name(name),
         description=description,
         parameters=schema,
         returns={"type": "object", "description": "Tool execution result"},

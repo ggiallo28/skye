@@ -35,13 +35,13 @@ class CapabilityResult(Validated):
     Example:
         >>> result = CapabilityResult(
         ...     capability_call_id="call_123",
-        ...     name="weather.get_current",
+        ...     name="weather_get_current",
         ...     result={"temperature": 72, "condition": "sunny"}
         ... )
 
         >>> error_result = CapabilityResult(
         ...     capability_call_id="call_124",
-        ...     name="weather.get_current",
+        ...     name="weather_get_current",
         ...     result=None,
         ...     error="Location not found"
         ... )

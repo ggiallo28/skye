@@ -18,6 +18,7 @@ import pytest
 import skye
 import skye.interfaces as interfaces
 from skye.base.exceptions import ValidationError
+from skye.base.plugins import Registrar
 from skye.interfaces import (
     AuthenticationInterface,
     AuthorizerInterface,
@@ -31,7 +32,7 @@ from skye.interfaces import (
     EventHandlerInterface,
     MemoryInterface,
     ObserverInterface,
-    PluginInterface,
+    RegistrarInterface,
     Runnable,
     SafetyFilterInterface,
     TokenCounterInterface,
@@ -238,13 +239,6 @@ class RefObserver(ObserverInterface):
     def record_metric(self, name: str, value: float, tags: dict[str, str] | None = None) -> None: ...
 
 
-class RefPlugin(PluginInterface):
-    def initialize(self) -> None: ...
-    def shutdown(self) -> None: ...
-    def get_metadata(self) -> dict[str, Any]:
-        return {}
-
-
 class RefRunnable:
     async def invoke(self, input: Any) -> Any:
         return input
@@ -291,7 +285,7 @@ REFERENCES: dict[type, type] = {
     EventHandlerInterface: RefEventHandler,
     MemoryInterface: RefMemory,
     ObserverInterface: RefObserver,
-    PluginInterface: RefPlugin,
+    RegistrarInterface: Registrar,  # the built-in implementation (plugins:2.6)
     Runnable: RefRunnable,
     SafetyFilterInterface: RefSafetyFilter,
     TokenCounterInterface: RefTokenCounter,

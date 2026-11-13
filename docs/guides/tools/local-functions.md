@@ -65,14 +65,15 @@ forecast.get_schema().parameters["properties"]["days"]
 # {'type': 'array', 'items': {'type': 'integer'}, 'description': 'Days from today, 0 is today.'}
 ```
 
-To choose the name and the description yourself, pass them to the decorator. A dotted name (`weather.current`) groups capabilities by
-namespace in a registry.
+To choose the name and the description yourself, pass them to the decorator. The name must be one a model provider accepts: letters, digits, `_` and `-`, 64 characters at most
+(`weather.current` is refused, and the message suggests `weather_current`). A common prefix with an underscore (`weather_current`,
+`weather_forecast`) groups capabilities by namespace in a registry.
 
 ```python
 from skye.tools import capability
 
 
-@capability(name="weather.current", description="Current weather for a city")
+@capability(name="weather_current", description="Current weather for a city")
 def current_weather(city: str) -> str:
     return f"Sunny in {city}"
 ```

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -10,8 +9,7 @@ import pytest
 from skye.base.dsl import PromptSpec
 from skye.base.messages import SkyeMessage, SystemMessage
 from skye.prompts.skye_prompts import load_prompt, render_prompt
-
-TEMPLATES = Path(__file__).resolve().parents[3] / "src" / "skye" / "prompts" / "templates"
+from tests.unit.prompts.bundled import BUNDLED_DIR, GALLERY_DIR, load_template, template_path
 
 AGENT_VARIABLES = (
     "tools",
@@ -23,29 +21,17 @@ AGENT_VARIABLES = (
 )
 
 # The converted agent templates that gained the tools and memory inputs.
-CONVERTED = ("code_agent", "main_agent", "memory_agent", "procedure_agent", "reasoning_agent")
+CONVERTED = ("agent_code", "agent_memory_assistant", "agent_memory_recall", "agent_procedure", "agent_reasoning")
 
-# Templates that already rendered ``episodic_memory`` in their own section before.
-OWN_EPISODIC = {
-    "main_agent": "## Context of things the Human said in the past:",
-    "memory_agent": "## Context of things the Human said in the past:",
-}
-
-# Templates that render ``semantic_memory`` (formerly ``declarative_memory``) in their own section.
-OWN_SEMANTIC = {
-    "main_agent": "## Context of documents containing relevant information:",
-    "memory_agent": "## Context of documents containing relevant information:",
-}
+# Templates that render ``episodic_memory`` or ``semantic_memory`` in a section of their own: none since
+# task 24.6, every template takes the standard section of common/memories.skye.
+OWN_EPISODIC: dict[str, str] = {}
+OWN_SEMANTIC: dict[str, str] = {}
 
 # Templates that render ``procedural_memory`` (formerly ``procedural_memories`` / ``procedures``)
 # in their own section: the heading and the lines of the two procedures of MEMORY.
 OWN_PROCEDURAL = {
-    "main_agent": (
-        "## Available procedures:",
-        "- report_procedure\n  * collect sources\n  * draft\n  * review",
-        "- style_check: Read the draft aloud.",
-    ),
-    "procedure_agent": (
+    "agent_procedure": (
         "You have access to the following procedures:",
         '- "report_procedure": \n  * collect sources\n  * draft\n  * review',
         '- "style_check": Read the draft aloud.',
@@ -75,16 +61,12 @@ MEMORY: dict[str, list[dict[str, Any]]] = {
 
 
 def _all_agent_templates() -> list[str]:
-    names = []
-    for path in sorted(TEMPLATES.glob("*.skye")):
-        name = path.stem
-        if name.endswith("_agent") or name.startswith(("smol_", "supervisor_", "group_chat_")):
-            names.append(name)
-    return names
+    paths = [*BUNDLED_DIR.glob("*.skye"), *GALLERY_DIR.glob("*.skye")]
+    return sorted(path.stem for path in paths if path.stem.startswith("agent_"))
 
 
 def _spec(name: str) -> PromptSpec:
-    return load_prompt((TEMPLATES / f"{name}.skye").read_text(encoding="utf-8"), name)
+    return load_template(template_path(name), name)
 
 
 def _system(messages: list[SkyeMessage]) -> str:
@@ -95,7 +77,7 @@ def _system(messages: list[SkyeMessage]) -> str:
 def test_tools_and_every_memory_kind_render(name: str) -> None:
     system = _system(render_prompt(_spec(name), {"input": "Hi", "tools": TOOLS, **MEMORY}))
     assert "## Tools" in system
-    assert "You can call these tools:" in system
+    assert "You may call these tools when they help; when a tool would not help, answer without it." in system
     assert "- **web_search**: Searches the web." in system
     assert 'Parameters: {"query": {"type": "string"}}' in system
     assert "Returns: a list of links" in system

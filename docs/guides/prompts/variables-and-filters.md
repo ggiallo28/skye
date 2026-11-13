@@ -137,9 +137,10 @@ spec = load_prompt(Path("invoices.skye").read_text(encoding="utf-8"), "invoice")
 messages = render_prompt(spec, {"total": 1234.5}, filters={"money": money})
 ```
 
-In the prompt you write `{{ total | money }}` or `{{ total | money('USD') }}`. On a `BasePromptBuilder`, register the filter once
-for every prompt of the builder with `builder.register_filter("money", money)`; it applies to text templates too.
-`PromptRunnable(spec, filters={...})` takes them too.
+In the prompt you write `{{ total | money }}` or `{{ total | money('USD') }}`. To use a filter in every prompt of every builder, add it
+as a plugin with the decorator `@plugins.template_filter("money")` on the function (after `plugins = skye.Plugins()`): it is there as
+soon as the decorator runs, with no line of setup, and it applies to text templates too. To keep a filter local, register it on one
+`BasePromptBuilder` with `builder.register_filter("money", money)`. `PromptRunnable(spec, filters={...})` takes them too.
 
 `skye check` does not know your filters, so it accepts any name after `|`. An unknown filter fails at render time with
 `Unknown filter: 'money'`: render your prompts in a test.
@@ -154,6 +155,7 @@ or malformed variable before a request reaches the model.
 - [Write a prompt in .skye](write-a-prompt.md), [Few-shot examples](few-shot.md), [Output schema](output-schema.md)
 - [The `prompt` block in the .skye language reference](../../reference/skye-language.md#prompt)
 - [`skye.prompts` API reference](../../reference/api/prompts.md)
-- Examples: [control_flow.py](https://github.com/ggiallo28/skye/blob/main/examples/prompts/control_flow.py) with
+- Examples: [plugins/template_filter.py](https://github.com/ggiallo28/skye/blob/main/examples/plugins/template_filter.py) (filters as plugins),
+  [control_flow.py](https://github.com/ggiallo28/skye/blob/main/examples/prompts/control_flow.py) with
   [control_flow.skye](https://github.com/ggiallo28/skye/blob/main/examples/prompts/control_flow.skye) (`when`, `each`, filters) and
   [basic_rendering.py](https://github.com/ggiallo28/skye/blob/main/examples/prompts/basic_rendering.py) (defaults and partials)

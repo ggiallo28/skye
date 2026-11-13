@@ -17,7 +17,7 @@ provider-agnostic.
 
 ## MCP (`tools`)
 MCP is **client-only**: Skye consumes MCP tools, resources and prompts; the server-side role belongs to `gateway`.
-- The built-in stdlib client is the **default**: `create_mcp_client(target, impl="builtin")`. `fastmcp` is an optional substitute chosen
+- The built-in stdlib client is the **default**: `create_mcp_client(target, impl="skyemcp")`. `fastmcp` is an optional substitute chosen
   only by `impl="fastmcp"` (extra `mcp`, its own budget). There is **no** environment variable, config entry or fallback for it.
 - The **tools** facet reuses the interfaces in `tools`. The **prompts** facet reuses the `PromptBuilderInterface` Port and the message
   types in `base`. **`tools` never imports the `prompts` component.**

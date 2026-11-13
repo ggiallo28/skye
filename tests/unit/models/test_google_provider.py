@@ -8,15 +8,15 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import skye.models.embeddings.google_embeddings as emb_mod
-import skye.models.embeddings.google_multimodal_embeddings as mm_mod
-import skye.models.llm.google as prov_mod
-from skye.auth.google import GoogleBearerAuth
+import skye.models.plugins.google.embeddings as emb_mod
+import skye.models.plugins.google.multimodal_embeddings as mm_mod
+import skye.models.plugins.google.provider as prov_mod
+from skye.auth.plugins.google.source import GoogleBearerAuth
 from skye.base.completion import CapabilityCall, CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.exceptions import ProviderError
 from skye.base.messages import AssistantMessage, CapabilityMessage, SystemMessage, UserMessage
-from skye.models.llm.google import GoogleProvider
-from skye.models.transport.rest import JsonObject
+from skye.models.plugins.google.provider import GoogleProvider
+from skye.models.utilities.rest import JsonObject
 
 URL = (
     "https://us-central1-aiplatform.googleapis.com/v1/projects/my-project/locations/us-central1"
@@ -65,11 +65,11 @@ class TestInit:
 
     def test_credentials_and_registration(self) -> None:
         import skye.models  # noqa: F401
-        from skye.models.registry import ProviderRegistry
+        from skye.base.plugins import get_registrar
 
         p = GoogleProvider(project_id="p", location="europe-west1", credentials="token")
         assert p.credentials == "token"
-        assert ProviderRegistry._model_providers["google"] is GoogleProvider
+        assert get_registrar().get("provider", "google", "model") is GoogleProvider
 
     def test_str_credentials_become_bearer(self) -> None:
         auth = GoogleProvider(project_id="p", credentials="abc").authenticator
@@ -214,7 +214,7 @@ class TestResponseTransformation:
 class TestCalls:
     def test_complete_rest_call(self) -> None:
         r = gen_response([{"text": "Hello!"}], usage={"promptTokenCount": 1, "candidatesTokenCount": 2, "totalTokenCount": 3})
-        with patch("skye.models.transport.rest.post_json", return_value=r) as post:
+        with patch("skye.models.utilities.rest.post_json", return_value=r) as post:
             resp = make().complete(req(messages=[SystemMessage(content="s"), UserMessage(content="Hello")], temperature=0.5))
         assert resp.content == "Hello!"
         url, body = post.call_args[0]
@@ -227,13 +227,13 @@ class TestCalls:
         assert auth.apply("POST", url, {})["Authorization"] == "Bearer tok"
 
     def test_complete_error(self) -> None:
-        with patch("skye.models.transport.rest.post_json", side_effect=Exception("boom")):
+        with patch("skye.models.utilities.rest.post_json", side_effect=Exception("boom")):
             with pytest.raises(ProviderError):
                 make().complete(req())
 
     def test_stream_rest_call(self) -> None:
         events = iter([gen_response([{"text": "a"}]), gen_response([{"text": "b"}], "STOP")])
-        with patch("skye.models.transport.rest.stream_sse_json", return_value=events) as sse:
+        with patch("skye.models.utilities.rest.stream_sse_json", return_value=events) as sse:
             chunks = list(make().stream(req()))
         assert [c.delta for c in chunks] == ["a", "b"]
         assert chunks[-1].finish_reason == "stop"
@@ -241,7 +241,7 @@ class TestCalls:
         assert "model" not in sse.call_args[0][1]
 
     def test_acomplete(self) -> None:
-        with patch("skye.models.transport.rest.post_json", return_value=gen_response([{"text": "async"}])):
+        with patch("skye.models.utilities.rest.post_json", return_value=gen_response([{"text": "async"}])):
             resp = asyncio.run(make().acomplete(req()))
         assert resp.content == "async"
 
@@ -274,3 +274,20 @@ class TestMisc:
             results[i].name = n
         out = make().format_capability_results(results)
         assert [o["functionResponse"]["response"] for o in out] == [{"a": 1}, {"error": "bad"}, {"b": 2}, {"result": "plain"}]
+
+
+def test_get_model_info_carries_the_info_of_the_profile(monkeypatch):
+    import skye.base.plugins as plugins_module
+    from skye.base.plugins import Registrar
+    from skye.base.profile import ModelProfile, ProviderProfile
+
+    profile = ProviderProfile(
+        "google", ("GOOGLE_API_KEY",), models={"gemini-x": ModelProfile(info={"supports_audio": True})}
+    )
+    fresh = Registrar()
+    fresh.provider("google", prov_mod.GoogleProvider, profile=profile, function="model")
+    monkeypatch.setattr(plugins_module, "_default", fresh)
+    info = prov_mod.GoogleProvider(project_id="p", credentials=Mock(), model="gemini-x").get_model_info()
+    assert info["supports_audio"] is True and info["supports_streaming"] is True
+    other = prov_mod.GoogleProvider(project_id="p", credentials=Mock(), model="gemini-y")
+    assert "supports_audio" not in other.get_model_info()

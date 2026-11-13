@@ -1,0 +1,781 @@
+{
+ "before": {
+  "chain_of_thought_agent": {
+   "heads": "bbc850e7e6c091cc832614ecc96e5f9c8ab486e388a49af64484f0866cdc1531",
+   "empty": "1bfde476e4fde047d2ab26567cde528b71af236bbabfbc2bbb8d286bbd1c1512",
+   "full": "845b3d91914896920f7103ac5788f080889ac8d8906cde1aea632059a10e38c4",
+   "system": "1bfde476e4fde047d2ab26567cde528b71af236bbabfbc2bbb8d286bbd1c1512",
+   "ids": "845b3d91914896920f7103ac5788f080889ac8d8906cde1aea632059a10e38c4",
+   "only_system_prompt": "1bfde476e4fde047d2ab26567cde528b71af236bbabfbc2bbb8d286bbd1c1512",
+   "only_tools": "1bfde476e4fde047d2ab26567cde528b71af236bbabfbc2bbb8d286bbd1c1512",
+   "only_episodic_memory": "1bfde476e4fde047d2ab26567cde528b71af236bbabfbc2bbb8d286bbd1c1512",
+   "only_semantic_memory": "1bfde476e4fde047d2ab26567cde528b71af236bbabfbc2bbb8d286bbd1c1512",
+   "only_procedural_memory": "1bfde476e4fde047d2ab26567cde528b71af236bbabfbc2bbb8d286bbd1c1512",
+   "only_persona_memory": "1bfde476e4fde047d2ab26567cde528b71af236bbabfbc2bbb8d286bbd1c1512",
+   "only_working_memory": "1bfde476e4fde047d2ab26567cde528b71af236bbabfbc2bbb8d286bbd1c1512"
+  },
+  "chat": {
+   "heads": "42a44265726e5b7a76288e8e23baf6473934340e26fbad088d2c257f5240287a",
+   "empty": "dabd96abb655d32bef484d4ad58908f7851378348a090a8c3d9db5fa40f7aee8",
+   "full": "1033cfd20c2cb88310cad1d6990bf4c7afe54b77f80274b0dcad71e160710b34",
+   "system": "dabd96abb655d32bef484d4ad58908f7851378348a090a8c3d9db5fa40f7aee8",
+   "ids": "1033cfd20c2cb88310cad1d6990bf4c7afe54b77f80274b0dcad71e160710b34"
+  },
+  "classification": {
+   "heads": "c9037c841cad464d004f04f387586678cc4ca6ce86af158e25c4a81ac4b61380",
+   "empty": "8c4258cb3ebdeea9a86d6011e66618d248bc4a1e6936a0fd7f29ac1bc2c0680b",
+   "full": "89d524181f60cb1cf7588f96f6c558b30db0218ebd6d8c0e49e2c902a7f1ff75",
+   "system": "3b44712f53e1af1e7e0497dcd08f6169a50af20bb84a2f0a50694ff81a6bfeb3",
+   "ids": "89d524181f60cb1cf7588f96f6c558b30db0218ebd6d8c0e49e2c902a7f1ff75",
+   "only_system_prompt": "61913c3e8d05bfe0122fb952177e7966ef63052e06b542c3367b038511a7858f"
+  },
+  "code_agent": {
+   "heads": "19621caef8faa8e98669a6e49ba84f1d7e6025d3b3c284c77168ec8504a45b20",
+   "empty": "4c83523a665c044ebc6aa633cc62ee0f490b4db7d8cbc1853a35e6560454d8be",
+   "full": "28bceb6e29f30fde383354a3a38df33308b38f90b60e34e5555d9fe33de2bfd9",
+   "system": "4cc07e73803e6787b42158aa6ddfd4357a7b931e3afaefe6b0ece9869aa39436",
+   "ids": "28bceb6e29f30fde383354a3a38df33308b38f90b60e34e5555d9fe33de2bfd9",
+   "only_system_prompt": "165f2335ac18e0540a3bbd1755dbf911ab95dffa0154c3760c342a5069a18c68",
+   "only_tools": "20b663cd73a87a4c3da7d5a11b7c0f239a6e1fbd6afb9470e4f26b2e99ae2276",
+   "only_persona_memory": "cc4b7ce07a2c64c7fb1e29e6a879c4f47e727bc5cb6e1eb478f3db70bcfc8823",
+   "only_episodic_memory": "64efbbdc0b669a3e19d477fa812a4b0f3faa43b1e61e00f2ae3669431f19f64e",
+   "only_semantic_memory": "3e2f8ce6b848e4f7d94437aa1f49f6c8cb74d490ca567b5d7589cc325f6508f0",
+   "only_procedural_memory": "329fda6d92406fd0b2498e0356060ff9e31841ec2d9b7466c6fce26713a2bed8",
+   "only_working_memory": "3781e277fae64bf66bcdfef0f85b2e2cbb5edbff88797e158ef5f44d7afde1a6"
+  },
+  "code_generation": {
+   "heads": "2de589c10b9e62528c909b7bf8ba67f18b523c5352b401715377f28447cbd4fc",
+   "empty": "9d3ab9e034c600c8f3743db778fb3759e8f2feae663be6ef0da14947a5c00ae5",
+   "full": "18b0cb87fa363862e834020f68f5e9e8eb0ab294dff9a8503f3a60bc261295a9",
+   "system": "a0a38b6b235426381156fd7e4ca27e77a8fc6b535e8f1d649179a2786c1c2c10",
+   "ids": "18b0cb87fa363862e834020f68f5e9e8eb0ab294dff9a8503f3a60bc261295a9",
+   "only_system_prompt": "9eaf8a700a00f47476a9649542207435194d84d1f7522bebd6ac86b666fc083d"
+  },
+  "explanation": {
+   "heads": "81e321d6da40fc9ad48a97caebb32369c35185bce0091f821d66cd10dac1c4fc",
+   "empty": "118d04681ac8aa7b23b3964ada21e594dd6ff7068692883788e6de8a44b31028",
+   "full": "133999042e76c70ca04c18617305063b980cc0cb47506a61b1a11fa825d91d11",
+   "system": "118d04681ac8aa7b23b3964ada21e594dd6ff7068692883788e6de8a44b31028",
+   "ids": "133999042e76c70ca04c18617305063b980cc0cb47506a61b1a11fa825d91d11",
+   "only_system_prompt": "118d04681ac8aa7b23b3964ada21e594dd6ff7068692883788e6de8a44b31028"
+  },
+  "form_agent": {
+   "heads": "298710614d26aa34407b32d03188822091def620475a5eb4d2fa5e1ed05707de",
+   "empty": "d441b9c247f6709ff80017980e75c48264a81a8f70b275455b31bcffe30827cb",
+   "full": "4b15b4a1d85cfdb8aee69cdca8c844ea8553174170f9539cd5f563c871983011",
+   "system": "c18d31299759888e19d049ecbf88fb6ff56a940d11005d04064d878772c5e165",
+   "ids": "4b15b4a1d85cfdb8aee69cdca8c844ea8553174170f9539cd5f563c871983011",
+   "only_system_prompt": "4a4428a5529a9aa7e951262366961e441579cb135c1f7aa76eb86df5da938d99",
+   "only_tools": "90ef758df1bac7f53a69f5f527b3714ead4c7b252eb77778a8abf7f7bfe07fd3",
+   "only_persona_memory": "672d8e8a0fc628404a15c4157d7331fc45c950a159b9a033866e9cb1f1124900",
+   "only_episodic_memory": "4e3ac9fe5d0581d22d80fa600e70c141b511c16833dbbdf24b7e85468c4e7b0b",
+   "only_semantic_memory": "8d3a4372ede448375eaeee2a9b627d9d8bd052e87c5c673ccd21e7e4f74895f5",
+   "only_procedural_memory": "a8556fe400d20a4c951e33d65cb00d451f5242cee46eeac6859f4946d61aa039",
+   "only_working_memory": "715ed8de36b39d14afb36de64751eb068d4e87fa4b1390aa1b9f9fa988a9b86a"
+  },
+  "group_chat_manager": {
+   "heads": "f3fa04924cf24aefc943dc0548ab069c061650ebc8ee282dd33fb9ee0b8844b9",
+   "empty": "6dfbe81861bc4f27bc13e10377f0c098642cadaa5cf5c9df1d0fa14eabb38fd7",
+   "full": "d66f79eae98f9f21ff19842f75c3642c8104de0ee635f5b0a156bca691fe6c26",
+   "system": "6dfbe81861bc4f27bc13e10377f0c098642cadaa5cf5c9df1d0fa14eabb38fd7",
+   "ids": "d66f79eae98f9f21ff19842f75c3642c8104de0ee635f5b0a156bca691fe6c26",
+   "only_system_prompt": "6dfbe81861bc4f27bc13e10377f0c098642cadaa5cf5c9df1d0fa14eabb38fd7",
+   "only_tools": "6dfbe81861bc4f27bc13e10377f0c098642cadaa5cf5c9df1d0fa14eabb38fd7",
+   "only_episodic_memory": "6dfbe81861bc4f27bc13e10377f0c098642cadaa5cf5c9df1d0fa14eabb38fd7",
+   "only_semantic_memory": "6dfbe81861bc4f27bc13e10377f0c098642cadaa5cf5c9df1d0fa14eabb38fd7",
+   "only_procedural_memory": "6dfbe81861bc4f27bc13e10377f0c098642cadaa5cf5c9df1d0fa14eabb38fd7",
+   "only_persona_memory": "6dfbe81861bc4f27bc13e10377f0c098642cadaa5cf5c9df1d0fa14eabb38fd7",
+   "only_working_memory": "6dfbe81861bc4f27bc13e10377f0c098642cadaa5cf5c9df1d0fa14eabb38fd7"
+  },
+  "group_chat_participant": {
+   "heads": "a1ae957f92b0a4d59fcbd5000b83b9dc84ec4203c5a71adc65a200114f72b5e0",
+   "empty": "edf1d788eb61c97e2ff82105b65418c2a769dee14661d1bb780b41f18801e983",
+   "full": "59593aa2c80c92641bb00b90e4bce06e5f62818009009811699e45c3419e15b4",
+   "system": "edf1d788eb61c97e2ff82105b65418c2a769dee14661d1bb780b41f18801e983",
+   "ids": "59593aa2c80c92641bb00b90e4bce06e5f62818009009811699e45c3419e15b4",
+   "only_system_prompt": "edf1d788eb61c97e2ff82105b65418c2a769dee14661d1bb780b41f18801e983",
+   "only_tools": "edf1d788eb61c97e2ff82105b65418c2a769dee14661d1bb780b41f18801e983",
+   "only_episodic_memory": "edf1d788eb61c97e2ff82105b65418c2a769dee14661d1bb780b41f18801e983",
+   "only_semantic_memory": "edf1d788eb61c97e2ff82105b65418c2a769dee14661d1bb780b41f18801e983",
+   "only_procedural_memory": "edf1d788eb61c97e2ff82105b65418c2a769dee14661d1bb780b41f18801e983",
+   "only_persona_memory": "edf1d788eb61c97e2ff82105b65418c2a769dee14661d1bb780b41f18801e983",
+   "only_working_memory": "edf1d788eb61c97e2ff82105b65418c2a769dee14661d1bb780b41f18801e983"
+  },
+  "group_chat_summarizer": {
+   "heads": "cdd17a322899db6f05e4f05b04435d05d5c70975de1b2cf7db47cd777d852193",
+   "empty": "cefa82b47d80fa879a4f3b640b0fc6b2323d3e0b4f587c4441f960fcad92a7e0",
+   "full": "78227bdba3208c19932d00506b41ec0433d92a32c96e92a5034bc3023f879907",
+   "system": "cefa82b47d80fa879a4f3b640b0fc6b2323d3e0b4f587c4441f960fcad92a7e0",
+   "ids": "78227bdba3208c19932d00506b41ec0433d92a32c96e92a5034bc3023f879907",
+   "only_system_prompt": "cefa82b47d80fa879a4f3b640b0fc6b2323d3e0b4f587c4441f960fcad92a7e0",
+   "only_tools": "cefa82b47d80fa879a4f3b640b0fc6b2323d3e0b4f587c4441f960fcad92a7e0",
+   "only_episodic_memory": "cefa82b47d80fa879a4f3b640b0fc6b2323d3e0b4f587c4441f960fcad92a7e0",
+   "only_semantic_memory": "cefa82b47d80fa879a4f3b640b0fc6b2323d3e0b4f587c4441f960fcad92a7e0",
+   "only_procedural_memory": "cefa82b47d80fa879a4f3b640b0fc6b2323d3e0b4f587c4441f960fcad92a7e0",
+   "only_persona_memory": "cefa82b47d80fa879a4f3b640b0fc6b2323d3e0b4f587c4441f960fcad92a7e0",
+   "only_working_memory": "cefa82b47d80fa879a4f3b640b0fc6b2323d3e0b4f587c4441f960fcad92a7e0"
+  },
+  "main_agent": {
+   "heads": "308533cd7343d6d9877270411ff7863f441091d8336ec6596144abf65090a255",
+   "empty": "5e319ab5ad8e5a3648ab17fc5c767fcfba6ec0d01a3b7e423620b03fab31df8a",
+   "full": "dfb61bb03b9cc2d763915e53f3ec6d578fcff763e0f628f9efab734eabc901b9",
+   "system": "4374f9574e89f5437f32cd8b331b4083262e6b03373667a005ba0de7c729b378",
+   "ids": "dfb61bb03b9cc2d763915e53f3ec6d578fcff763e0f628f9efab734eabc901b9",
+   "only_system_prompt": "66380700174aa3329fa2d1b07a09ba5cd0bd40a884f3ce724dc34d0fc5aa9880",
+   "only_tools": "d557647f2184fbd98586bf25bb1aedb7fd68445397b33394867a71d1f6aac2b0",
+   "only_persona_memory": "c598d1f1d9f0a1139650128dd591cdeb9603ef63a65e1cd92e1bc68359cb5b82",
+   "only_episodic_memory": "a8592d289e887ff62f98d235126c6d05bd568743f1d67db6d9f378d3b69588a2",
+   "only_semantic_memory": "6e43bebea345d9ed7d25e28382efea11519b2aa557675c4c63d2587c7d781b59",
+   "only_procedural_memory": "de1b3997d42d323c06829e80197250d02e8ea4d54d79ed3a167068a9d109b33d",
+   "only_working_memory": "eb9371aecb80a2428f98cc78d71493c54f4875b6964b4a50eb7652567f3309b8"
+  },
+  "memory_agent": {
+   "heads": "5ac5d968407352864bbab2d425a2f66d85f74194cb1bff84f52190c537477f11",
+   "empty": "78c039a4d26fdfdd72c666d7b9b2b2ee91d12ffe904791a8b66ea22bd2d471cf",
+   "full": "3b368096c32330273d147427c08809c0683ca977f0c93594153461a238e8ff79",
+   "system": "4374f9574e89f5437f32cd8b331b4083262e6b03373667a005ba0de7c729b378",
+   "ids": "3b368096c32330273d147427c08809c0683ca977f0c93594153461a238e8ff79",
+   "only_system_prompt": "66380700174aa3329fa2d1b07a09ba5cd0bd40a884f3ce724dc34d0fc5aa9880",
+   "only_tools": "1b5fe3d9c9d85c71487e7f3a8a0ceacb2e87f61d023bd5294aaf99dd6df07f14",
+   "only_persona_memory": "0499cb398c3eeb4df0b1385368fc99324b5da6379d93cf9f7cadf978a4c0d1b3",
+   "only_episodic_memory": "dc407c17ef715acb7441e842b30b34a2e365b3bdb63d5fa4e599859257a580cc",
+   "only_semantic_memory": "87f2368256c2f6b1a2966f5a5e9988df35aeba68b20bda4727bc4379ea68dfe2",
+   "only_procedural_memory": "5d2681891b29e75f6e6594d54b7b254af04eb1e779fcfebe189da1922384b9cf",
+   "only_working_memory": "126d386c77ae123d0898d6ea359a9323925c2f3acc85a1768db04bd1e1fadbe4"
+  },
+  "memory_consolidation_agent": {
+   "heads": "4644e7ffc8d753ecfa3db10d5847a76960a4cc29a0a24772621ec43ae46aef15",
+   "empty": "1d4fceea0ff1fab07f8304dd77fa2fa5a001ca8edfe844ca5254324d5a07cbe5",
+   "full": "97cbd069747d684f22d84416bdb8bfbd98d61b20c82da768a56b4cac909984ab",
+   "system": "4d16d15de341305da92aa49cfaea38e064faf3afa1750a059f6e432e37f60650",
+   "ids": "8062b27218f83b480fc991b7dc0fb8ba969f0372ce6ab62f376f4a6c97071ed7",
+   "only_system_prompt": "99ef67dce0e81a388511de8c3c37eb34d29f6d162af4cb43a5ad8182390c52c2",
+   "only_tools": "4c62e4141acf7583f8d20e171b6bedaa68a3dc75c74fed1efad98b6bd73cdf6f",
+   "only_episodic_memory": "177fca11989eab68086c390aa04033507215b0fe8f983b66fcc9c9e2690cfd11",
+   "only_semantic_memory": "6441669a4b29a1e6f5cbef62a1f7abf98a180782da92ce9e435929b887e4a8c3",
+   "only_procedural_memory": "2c903f74906db32748042d48aa0117bd2b7023a2a9e4a118d585d9fb3d2f4f65",
+   "only_persona_memory": "56740e5cc69a626b98d504d4c2e75691f92e1f79628936b5b38c4f3381aa63ba",
+   "only_working_memory": "e649da13e12b3ab06c165583bda157463669e915233fac8faf3396f70fc058d3"
+  },
+  "memory_update_agent": {
+   "heads": "851a7833a1036ba35419a755ae79176c1001e03aded6e60ee908bcb15104cf41",
+   "empty": "191357f5534fff785a0e008f20b61e00e0a4dd1725be19c20d50e3fed588fd77",
+   "full": "807546b23e1e46e9ef7efee9b58fea0660dcd90da9dbcd09100b9913a97ab8a3",
+   "system": "b28e638043bce50d76fe34d62701d539514b1c716c3e103c98f6b156dd9a76b2",
+   "ids": "0541ec0a0708f9f83e13e73c2fcbbcee84392298139747160e020ccb0a414097",
+   "only_system_prompt": "05fc48337af0634e3d732d7daafeaf7009330c4530c88e9893b8a5dddd905f99",
+   "only_tools": "8f081001980e82f5610b65b8dced30e4a9f76ec80041defac2de8b71b5647ebc",
+   "only_episodic_memory": "3f7eb630481759bba8033ff8e2122bf9b789c37f30177db4d85e8a47d0e6506c",
+   "only_semantic_memory": "ed3621e4208fd22758ec41d3007c70392e727344989e8bb46b0d21408abf871c",
+   "only_procedural_memory": "cdfcc755dec09a3c8ce5307c331165017f7825fdf257ca59f89fcecd34153cdb",
+   "only_persona_memory": "338d2369fd36b83947b0e44ae8d944a4a224a86cc3e8eb85f49c36ffbc0b7b36",
+   "only_working_memory": "060e90aff7eb66c522af6f0b7c30685a569e49cba6e3b9e3987f51ccd615c4e3"
+  },
+  "multimodal_agent": {
+   "heads": "63c1f39009bdecfd89dcc4135de266f5f076060115e11759b1474483fea04f12",
+   "empty": "5c6edf26e029496c740f04eeaddb119976fc8c9f36011905cd0093f049aad030",
+   "full": "461af403673c597cf84c55c4d6e6301671fdb2f45e2686b27545aab61017291b",
+   "system": "11f7461c70f2cfabb717346bb80d091e8fab0931b50d9abf2466631466625fb8",
+   "ids": "461af403673c597cf84c55c4d6e6301671fdb2f45e2686b27545aab61017291b",
+   "only_system_prompt": "5a608517d6e5e45f8cf0c37b23d2916f9cfacd108e7b572238c3b4870c01637b",
+   "only_tools": "2f77b96df4793abb51fc23f6fbd035e08c52aac2cc7612a7e3681bf90612cf46",
+   "only_persona_memory": "c7d7ff8f6a7ed641734aa8911b933a3c16aa494ba36740e8523719bc01fbffe7",
+   "only_episodic_memory": "7ba65ca1f203bacd6cf82f99519a5e376920b9f1a402f283480bbc07dad3f40a",
+   "only_semantic_memory": "843632c4d174952819de220dfda30c32d3812f2c488998c87700fdd49143c6d5",
+   "only_procedural_memory": "ea9b3adbaaafb288c796f291f3d79d004667b459ca8397fbe6841bd50bcc13b4",
+   "only_working_memory": "902113902dc48373b1935e9267fcd6ce83a2d1ebb73d8328868e1a442783d176"
+  },
+  "ner": {
+   "heads": "c7feee4bea69fc4eb30067529ed719a65a6f7ed63588acd6421e55f16efbf3b7",
+   "empty": "4a76d8878dd39c3413bf0bfa9547af785a92677f4592f189503744deadb74e20",
+   "full": "e7880627f9c3d9d8a6e77ba644a6dd095d12b796effbbcfbf3d8b52a39fa1c21",
+   "system": "3cb22162ba27077f88fa977ad611f52281387bfcbe359375773cd1bc9ee6b0cb",
+   "ids": "e7880627f9c3d9d8a6e77ba644a6dd095d12b796effbbcfbf3d8b52a39fa1c21",
+   "only_system_prompt": "8f8266f1b7b4c4fdff91877a0b408bd73b8dd68333046fdecc4bc47c76a398ed"
+  },
+  "planner_agent": {
+   "heads": "f749e96902e7953977548d61a3bdf4b7d361b681f6ff7ea6b2da00631e7506a7",
+   "empty": "ceae9a38b3a2267cbda2dc31d08442fd7b0fe6d03517c745e4562cc7d461a0e6",
+   "full": "a75aa4c59c959274d039ced3df765318274f16741124e8797e52822171ff9eb8",
+   "system": "ceae9a38b3a2267cbda2dc31d08442fd7b0fe6d03517c745e4562cc7d461a0e6",
+   "ids": "77bc791b60b7ad8cd3fd0be7169d187c7edbf4dbde1b0305920386658fc5f3d0",
+   "only_system_prompt": "ceae9a38b3a2267cbda2dc31d08442fd7b0fe6d03517c745e4562cc7d461a0e6",
+   "only_tools": "ceae9a38b3a2267cbda2dc31d08442fd7b0fe6d03517c745e4562cc7d461a0e6",
+   "only_episodic_memory": "ceae9a38b3a2267cbda2dc31d08442fd7b0fe6d03517c745e4562cc7d461a0e6",
+   "only_semantic_memory": "ceae9a38b3a2267cbda2dc31d08442fd7b0fe6d03517c745e4562cc7d461a0e6",
+   "only_procedural_memory": "ceae9a38b3a2267cbda2dc31d08442fd7b0fe6d03517c745e4562cc7d461a0e6",
+   "only_persona_memory": "ceae9a38b3a2267cbda2dc31d08442fd7b0fe6d03517c745e4562cc7d461a0e6",
+   "only_working_memory": "ceae9a38b3a2267cbda2dc31d08442fd7b0fe6d03517c745e4562cc7d461a0e6"
+  },
+  "procedure_agent": {
+   "heads": "9b7e34aab88f13f31be254502f6616b6879f3dceeaf5cf4cf629460a55a7c72e",
+   "empty": "b9690d11acf4837ff455294591dd4d1802da17592084f7e7cc78f0e68229dfda",
+   "full": "c140a4c7c6e986cfb95cbc256654655c65e45384786a18a2c9c107e7ca7df2e8",
+   "system": "ba7bbc93b0ec0ad3d0748c76a632abd5edb11e988eb3741fa0252abcbf1f8d84",
+   "ids": "c140a4c7c6e986cfb95cbc256654655c65e45384786a18a2c9c107e7ca7df2e8",
+   "only_system_prompt": "3b8164efe988e00cb342c73f5d0e297673d41a125dde5268c38d728a83ad6323",
+   "only_tools": "43e10509f2038522578d9c8f2865e5a66f879cfb1e04d604cb84eb1af9924a09",
+   "only_persona_memory": "a04679145af2ad2c68dadf0dd35aa93039f2833abb69bc9b49f44c4ef109641b",
+   "only_episodic_memory": "4ebb9c7a35d96875949cdd11bf36776d3130975167ecd42903359e63644f6254",
+   "only_semantic_memory": "aa9505d6c8089f6da817498cc8f03208e937ff6757107827453e8ed0b6fadde2",
+   "only_procedural_memory": "f522ed6d6f52b42e0f7d2c4da06c996f98a76713256f87b3798d23df7a25a36d",
+   "only_working_memory": "7dc420dfcf2710cd7dff71217413b8b25eef684f51d55971d156a74216023b30"
+  },
+  "question_answering": {
+   "heads": "9bd635f81e2e8323c6f4db3f15b49df6a9de207e8c02e125792a04d0353de678",
+   "empty": "c680588016e01e456c55a91ceef492558226d1c1f5d31e6a9161be05e30fcd70",
+   "full": "27632917a00d8d3f3dda9fa3f6b7af6796a3b7910991d9eec4e6997ff1202fee",
+   "system": "9af73928a206143e17e66996888e73bb65dce3951d0a8c74e301a8bd18215598",
+   "ids": "27632917a00d8d3f3dda9fa3f6b7af6796a3b7910991d9eec4e6997ff1202fee",
+   "only_system_prompt": "d3204d142294a6d747b35fc5f4448b5f6931b7df0fc4427328ec06d98ed67105"
+  },
+  "reasoning_agent": {
+   "heads": "c9f5e3fa303e555908dce219dcf6e06650c4cb5981c6635ea04cac653138a49a",
+   "empty": "8a099d8dfc2278453a025e02048f87d6fe8235724764aa7c0783e62a9c54d35e",
+   "full": "c5fc25af448ba7459ce64c7624798996b52f08a3e7998bd11cbb213deb9ee62d",
+   "system": "ec3c24b3cd7ea5a894b4f607373809d788234945f04171daf6627786c1087ad3",
+   "ids": "c5fc25af448ba7459ce64c7624798996b52f08a3e7998bd11cbb213deb9ee62d",
+   "only_system_prompt": "608da0380cfbd7b0ad48343ae7f7aaf97fcd33f249df21870f69dd0c91776da0",
+   "only_tools": "5f19e06f35539ebda2f762571369e6c59e93bc67925ef84b8f4b7aecaa3b3808",
+   "only_persona_memory": "5f9edcf6443ed101172e77422cb2343634a4f6357c47d0730270b1a67b588da0",
+   "only_episodic_memory": "46e52752bfe5660c0f9bad20cf388b73e51e548911fec21e47daa38cb65dd484",
+   "only_semantic_memory": "cfe49daabc4382ba49f97f453684d8ce10cb453378f552bd529a99d5fb87c4ab",
+   "only_procedural_memory": "6912d44275b696f4ac037f0158251eb5547b13ec3816bc26f199e038c4b5125a",
+   "only_working_memory": "a1ad57e6d771370714816398c86022da8c296c86396a7083e0105c87b379d8df"
+  },
+  "relation_extraction": {
+   "heads": "aaf73338fb19e0afa4198838e5cd21b68f9b4d2f0f43114f1edfbbd2f4a5feba",
+   "empty": "e2a1b534dfa4439c2cf9f4c7b0f545cebd3efea8b016f14f59d36ed18095cd89",
+   "full": "c9ac2bc2ba741bffebadf49c4cadb715b6e14494586ab651121501509b0e6cc9",
+   "system": "c9af866fa51f27e903d87c0f7a865e7ef6a13fef4ff7a183b5ad4b02b13221bd",
+   "ids": "c9ac2bc2ba741bffebadf49c4cadb715b6e14494586ab651121501509b0e6cc9",
+   "only_system_prompt": "89ff65f810937ffdc4232db29b29c3ca4c406104762f6d29f64016c5deb8d187"
+  },
+  "self_reflection_agent": {
+   "heads": "f17f759ab3e09d6e96deed89ea59713f72f5aa5e7ea170caa4d789cedafba249",
+   "empty": "6f23d7b463edca35b2202a69be0c98ed1baa489febdfe24c8947e5f7cb49ac71",
+   "full": "1ea425cb18cd79c18c40e890ccd3f11bf92319521dae3254e6046cecc379efcf",
+   "system": "6f23d7b463edca35b2202a69be0c98ed1baa489febdfe24c8947e5f7cb49ac71",
+   "ids": "1ea425cb18cd79c18c40e890ccd3f11bf92319521dae3254e6046cecc379efcf",
+   "only_system_prompt": "6f23d7b463edca35b2202a69be0c98ed1baa489febdfe24c8947e5f7cb49ac71",
+   "only_tools": "6f23d7b463edca35b2202a69be0c98ed1baa489febdfe24c8947e5f7cb49ac71",
+   "only_episodic_memory": "6f23d7b463edca35b2202a69be0c98ed1baa489febdfe24c8947e5f7cb49ac71",
+   "only_semantic_memory": "6f23d7b463edca35b2202a69be0c98ed1baa489febdfe24c8947e5f7cb49ac71",
+   "only_procedural_memory": "6f23d7b463edca35b2202a69be0c98ed1baa489febdfe24c8947e5f7cb49ac71",
+   "only_persona_memory": "6f23d7b463edca35b2202a69be0c98ed1baa489febdfe24c8947e5f7cb49ac71",
+   "only_working_memory": "6f23d7b463edca35b2202a69be0c98ed1baa489febdfe24c8947e5f7cb49ac71"
+  },
+  "smol_code_agent": {
+   "heads": "a5d836a0f027d4fc16dec18c4d585a07985cc58b4e43e51a5908abfc3b8b2acf",
+   "empty": "363fcf264b5a5abca36f5ae3e4c21932d7038722beb880baa0f34f46dbc8851c",
+   "full": "5263ef14ed76a5d2a24c76d6bd76596a49d12ce68a5df302318baf645d59715b",
+   "system": "363fcf264b5a5abca36f5ae3e4c21932d7038722beb880baa0f34f46dbc8851c",
+   "ids": "5263ef14ed76a5d2a24c76d6bd76596a49d12ce68a5df302318baf645d59715b",
+   "only_system_prompt": "363fcf264b5a5abca36f5ae3e4c21932d7038722beb880baa0f34f46dbc8851c",
+   "only_tools": "363fcf264b5a5abca36f5ae3e4c21932d7038722beb880baa0f34f46dbc8851c",
+   "only_episodic_memory": "363fcf264b5a5abca36f5ae3e4c21932d7038722beb880baa0f34f46dbc8851c",
+   "only_semantic_memory": "363fcf264b5a5abca36f5ae3e4c21932d7038722beb880baa0f34f46dbc8851c",
+   "only_procedural_memory": "363fcf264b5a5abca36f5ae3e4c21932d7038722beb880baa0f34f46dbc8851c",
+   "only_persona_memory": "363fcf264b5a5abca36f5ae3e4c21932d7038722beb880baa0f34f46dbc8851c",
+   "only_working_memory": "363fcf264b5a5abca36f5ae3e4c21932d7038722beb880baa0f34f46dbc8851c"
+  },
+  "smol_managed_agent": {
+   "heads": "72d319528b0777074ad448988b53d0d8391f185803ba26e9ea734326420af167",
+   "empty": "222ee076a1598057c552bdf22911ad2a767763333afab31c4e907dd6e6a0345c",
+   "full": "a9fbac60cec99d9a7dfd963772f49d82e52d743fe3e6ca972a4f8039bcbcd579",
+   "system": "222ee076a1598057c552bdf22911ad2a767763333afab31c4e907dd6e6a0345c",
+   "ids": "a9fbac60cec99d9a7dfd963772f49d82e52d743fe3e6ca972a4f8039bcbcd579",
+   "only_system_prompt": "222ee076a1598057c552bdf22911ad2a767763333afab31c4e907dd6e6a0345c",
+   "only_tools": "222ee076a1598057c552bdf22911ad2a767763333afab31c4e907dd6e6a0345c",
+   "only_episodic_memory": "222ee076a1598057c552bdf22911ad2a767763333afab31c4e907dd6e6a0345c",
+   "only_semantic_memory": "222ee076a1598057c552bdf22911ad2a767763333afab31c4e907dd6e6a0345c",
+   "only_procedural_memory": "222ee076a1598057c552bdf22911ad2a767763333afab31c4e907dd6e6a0345c",
+   "only_persona_memory": "222ee076a1598057c552bdf22911ad2a767763333afab31c4e907dd6e6a0345c",
+   "only_working_memory": "222ee076a1598057c552bdf22911ad2a767763333afab31c4e907dd6e6a0345c"
+  },
+  "smol_planning": {
+   "heads": "5c0f58de89243499172be4f3635615891651d21012cdb7ed9ffd90d6a474e3f8",
+   "empty": "7b070a60e64b33bbacb6dc0189c56603a0254689fb36230740087fbea226ef83",
+   "full": "04a20c1b4c8f41de06fe5038ca59a0aeff6c1df7600a498b1c1760a1d97e2429",
+   "system": "7b070a60e64b33bbacb6dc0189c56603a0254689fb36230740087fbea226ef83",
+   "ids": "04a20c1b4c8f41de06fe5038ca59a0aeff6c1df7600a498b1c1760a1d97e2429",
+   "only_system_prompt": "7b070a60e64b33bbacb6dc0189c56603a0254689fb36230740087fbea226ef83",
+   "only_tools": "7b070a60e64b33bbacb6dc0189c56603a0254689fb36230740087fbea226ef83",
+   "only_episodic_memory": "7b070a60e64b33bbacb6dc0189c56603a0254689fb36230740087fbea226ef83",
+   "only_semantic_memory": "7b070a60e64b33bbacb6dc0189c56603a0254689fb36230740087fbea226ef83",
+   "only_procedural_memory": "7b070a60e64b33bbacb6dc0189c56603a0254689fb36230740087fbea226ef83",
+   "only_persona_memory": "7b070a60e64b33bbacb6dc0189c56603a0254689fb36230740087fbea226ef83",
+   "only_working_memory": "7b070a60e64b33bbacb6dc0189c56603a0254689fb36230740087fbea226ef83"
+  },
+  "smol_tool_calling_agent": {
+   "heads": "6369180bb2168070c2c7a4a3efacac1eebf4651e69931892f3b9be80f6f41ae8",
+   "empty": "42f2bc93a3f08d869552c5c655662d7a72f2c006fc168cd82e3681a3fa61132f",
+   "full": "07301131da19494d9c8f7be670b9241de4fb4387bd3125eb52ab8c67e53f0983",
+   "system": "42f2bc93a3f08d869552c5c655662d7a72f2c006fc168cd82e3681a3fa61132f",
+   "ids": "07301131da19494d9c8f7be670b9241de4fb4387bd3125eb52ab8c67e53f0983",
+   "only_system_prompt": "42f2bc93a3f08d869552c5c655662d7a72f2c006fc168cd82e3681a3fa61132f",
+   "only_tools": "42f2bc93a3f08d869552c5c655662d7a72f2c006fc168cd82e3681a3fa61132f",
+   "only_episodic_memory": "42f2bc93a3f08d869552c5c655662d7a72f2c006fc168cd82e3681a3fa61132f",
+   "only_semantic_memory": "42f2bc93a3f08d869552c5c655662d7a72f2c006fc168cd82e3681a3fa61132f",
+   "only_procedural_memory": "42f2bc93a3f08d869552c5c655662d7a72f2c006fc168cd82e3681a3fa61132f",
+   "only_persona_memory": "42f2bc93a3f08d869552c5c655662d7a72f2c006fc168cd82e3681a3fa61132f",
+   "only_working_memory": "42f2bc93a3f08d869552c5c655662d7a72f2c006fc168cd82e3681a3fa61132f"
+  },
+  "sql_generation": {
+   "heads": "004b92a16376cbd8866b0e06941d70d5ceb7e887418ee95bc7ae2c7cb653aca2",
+   "empty": "0ce6720ff0a0401f9f53a1cf479b96af24842330274cb94aa88cbdcf7ab9ece8",
+   "full": "2c587be47abbd8cc27a93249920f9f4eafb90b54c671497ec0642a6cbc426f5c",
+   "system": "e0d9120af2723cbba97e44dea105d52a14797b3102c315f0156791e000fe77ed",
+   "ids": "2c587be47abbd8cc27a93249920f9f4eafb90b54c671497ec0642a6cbc426f5c",
+   "only_system_prompt": "624f2114543000eaf5c677e6c2352c6c6478ab1c913b37f9a4df4ce95e1af899"
+  },
+  "structured_output": {
+   "heads": "74648475a70ba7b410be90f72b3bb262de0a96d89632027b05ec15b51958729f",
+   "empty": "31566dc3b8554d0f0985a183f4ae54c332f8edfe1ccc6b186529ebc6f168e4e1",
+   "full": "49b39220235d471f65eaf001a6ac5e9a8d7a8d87da717663170ef6c63104b9af",
+   "system": "31566dc3b8554d0f0985a183f4ae54c332f8edfe1ccc6b186529ebc6f168e4e1",
+   "ids": "49b39220235d471f65eaf001a6ac5e9a8d7a8d87da717663170ef6c63104b9af",
+   "only_system_prompt": "31566dc3b8554d0f0985a183f4ae54c332f8edfe1ccc6b186529ebc6f168e4e1"
+  },
+  "structured_output_json": {
+   "heads": "5e4f9d37f4aada7281acbdbbd0b487bad0ef46f97448ee3574e0efcf8d8d3c70",
+   "empty": "21dcfb99468e7130cdf2e16d8858f172f9c0c44a659eb994059edd5a5f0285b5",
+   "full": "01a7fbefd7c01bbd5661e03021bd919f4e33d3757fd57bd3b3fe7d1c1f8fbbaa",
+   "system": "21dcfb99468e7130cdf2e16d8858f172f9c0c44a659eb994059edd5a5f0285b5",
+   "ids": "01a7fbefd7c01bbd5661e03021bd919f4e33d3757fd57bd3b3fe7d1c1f8fbbaa",
+   "only_system_prompt": "21dcfb99468e7130cdf2e16d8858f172f9c0c44a659eb994059edd5a5f0285b5"
+  },
+  "structured_output_table": {
+   "heads": "880a1c704251e6b37bb6d3d4d6c105316b9619f6f2b2a9c0690fefdb08fc76f3",
+   "empty": "f4d262a839db040e438b266d292be4dbc9a57e23897f106c12b8e1a7c5734d0b",
+   "full": "e70f8110ecb0748bd9b58ca0edc3ac89ab135de67e5b72d209d47eb741013ccf",
+   "system": "f4d262a839db040e438b266d292be4dbc9a57e23897f106c12b8e1a7c5734d0b",
+   "ids": "e70f8110ecb0748bd9b58ca0edc3ac89ab135de67e5b72d209d47eb741013ccf",
+   "only_system_prompt": "f4d262a839db040e438b266d292be4dbc9a57e23897f106c12b8e1a7c5734d0b"
+  },
+  "structured_output_xml": {
+   "heads": "4480ace7785a5f9989ddf679f913b16cfe426a1a2e537a30390c5644f94b2aa2",
+   "empty": "91281a19d95f4f49550054fee0206d3e52c445259d17c8ad036bb5973fc2d46f",
+   "full": "962d11061d3a5e4eb1a08d50382f5fe50cc931a77c8605164eb73d3b14517010",
+   "system": "91281a19d95f4f49550054fee0206d3e52c445259d17c8ad036bb5973fc2d46f",
+   "ids": "962d11061d3a5e4eb1a08d50382f5fe50cc931a77c8605164eb73d3b14517010",
+   "only_system_prompt": "91281a19d95f4f49550054fee0206d3e52c445259d17c8ad036bb5973fc2d46f"
+  },
+  "summarization": {
+   "heads": "2a37be6124969a2fbaea50d137e286b133f7de5852d5b42a73bd2531e9aa6798",
+   "empty": "37a05360c70be3698fcb724629e9f81e3497a5fbddcb2165a68da191ac4cfde3",
+   "full": "2da747441c7a87c527819ed01e5da78415cfe4c21723fe30d7e15a592520fb6c",
+   "system": "249720393d3a3e4a8cbbfa3f34e710f87f8aebd573cceff072180cb89f84a803",
+   "ids": "2da747441c7a87c527819ed01e5da78415cfe4c21723fe30d7e15a592520fb6c",
+   "only_system_prompt": "cba49a20120501bd30bcc4d7423ac0f6bc2e12fe7b858e3ad8e74dfa990971ae"
+  },
+  "supervisor_hierarchical": {
+   "heads": "14a22b75f175f23166f4506b13522b8bacd94f9a61bb7a72698f12561a65afb2",
+   "empty": "cb7d84109417b9ccc7576d5fe926aa1b3c376d49ac2ea664c5cdf64d0e5cb6b5",
+   "full": "8ace3a3718bb6391ba88075ddfa309a0c3e9418c24e0f2a44c33aa1508c37896",
+   "system": "cb7d84109417b9ccc7576d5fe926aa1b3c376d49ac2ea664c5cdf64d0e5cb6b5",
+   "ids": "8ace3a3718bb6391ba88075ddfa309a0c3e9418c24e0f2a44c33aa1508c37896",
+   "only_system_prompt": "cb7d84109417b9ccc7576d5fe926aa1b3c376d49ac2ea664c5cdf64d0e5cb6b5",
+   "only_tools": "cb7d84109417b9ccc7576d5fe926aa1b3c376d49ac2ea664c5cdf64d0e5cb6b5",
+   "only_episodic_memory": "cb7d84109417b9ccc7576d5fe926aa1b3c376d49ac2ea664c5cdf64d0e5cb6b5",
+   "only_semantic_memory": "cb7d84109417b9ccc7576d5fe926aa1b3c376d49ac2ea664c5cdf64d0e5cb6b5",
+   "only_procedural_memory": "cb7d84109417b9ccc7576d5fe926aa1b3c376d49ac2ea664c5cdf64d0e5cb6b5",
+   "only_persona_memory": "cb7d84109417b9ccc7576d5fe926aa1b3c376d49ac2ea664c5cdf64d0e5cb6b5",
+   "only_working_memory": "cb7d84109417b9ccc7576d5fe926aa1b3c376d49ac2ea664c5cdf64d0e5cb6b5"
+  },
+  "supervisor_planner": {
+   "heads": "9832aa5a7b942b22e94c3b0ae59eaa5afb8c84d4e3520c3837264ff5234aa8a8",
+   "empty": "982fbbc4967ffe9d2548afd4af462ea9ca039aac70f55ae5607b1d8947485cf1",
+   "full": "3e67d5bdf207923c4ebd84fd08b16a76f96e74acaa973e4142df61bf25989f65",
+   "system": "982fbbc4967ffe9d2548afd4af462ea9ca039aac70f55ae5607b1d8947485cf1",
+   "ids": "3e67d5bdf207923c4ebd84fd08b16a76f96e74acaa973e4142df61bf25989f65",
+   "only_system_prompt": "982fbbc4967ffe9d2548afd4af462ea9ca039aac70f55ae5607b1d8947485cf1",
+   "only_tools": "982fbbc4967ffe9d2548afd4af462ea9ca039aac70f55ae5607b1d8947485cf1",
+   "only_episodic_memory": "982fbbc4967ffe9d2548afd4af462ea9ca039aac70f55ae5607b1d8947485cf1",
+   "only_semantic_memory": "982fbbc4967ffe9d2548afd4af462ea9ca039aac70f55ae5607b1d8947485cf1",
+   "only_procedural_memory": "982fbbc4967ffe9d2548afd4af462ea9ca039aac70f55ae5607b1d8947485cf1",
+   "only_persona_memory": "982fbbc4967ffe9d2548afd4af462ea9ca039aac70f55ae5607b1d8947485cf1",
+   "only_working_memory": "982fbbc4967ffe9d2548afd4af462ea9ca039aac70f55ae5607b1d8947485cf1"
+  },
+  "supervisor_reviewer": {
+   "heads": "117c1f9b1d28fb4837439986238a8b56087ce9f0a35bd3c374d8ccd2c187337f",
+   "empty": "2ed4adcb55c3be506579593ceb4edf11f0131f2bdb81d1fd043f2d6ea76d286d",
+   "full": "5cd2fc1db364cb93dd133c1ec4c802077bdfbaa38028e001673ea4e724eb4b10",
+   "system": "2ed4adcb55c3be506579593ceb4edf11f0131f2bdb81d1fd043f2d6ea76d286d",
+   "ids": "5cd2fc1db364cb93dd133c1ec4c802077bdfbaa38028e001673ea4e724eb4b10",
+   "only_system_prompt": "2ed4adcb55c3be506579593ceb4edf11f0131f2bdb81d1fd043f2d6ea76d286d",
+   "only_tools": "2ed4adcb55c3be506579593ceb4edf11f0131f2bdb81d1fd043f2d6ea76d286d",
+   "only_episodic_memory": "2ed4adcb55c3be506579593ceb4edf11f0131f2bdb81d1fd043f2d6ea76d286d",
+   "only_semantic_memory": "2ed4adcb55c3be506579593ceb4edf11f0131f2bdb81d1fd043f2d6ea76d286d",
+   "only_procedural_memory": "2ed4adcb55c3be506579593ceb4edf11f0131f2bdb81d1fd043f2d6ea76d286d",
+   "only_persona_memory": "2ed4adcb55c3be506579593ceb4edf11f0131f2bdb81d1fd043f2d6ea76d286d",
+   "only_working_memory": "2ed4adcb55c3be506579593ceb4edf11f0131f2bdb81d1fd043f2d6ea76d286d"
+  },
+  "supervisor_router": {
+   "heads": "903659e30ea58c38ae1bef215e7f13f43ab5012cc434ab6b92a1c652fde3cb57",
+   "empty": "2ffa8105cd99cdb52b4fe01d8335eb21744e8898b89936d62965eb04b3145194",
+   "full": "70c5a1eb93eb4765de75cb1fb1ecbf4bdb47254ee7b5b1f8e294174ec12a04f2",
+   "system": "2ffa8105cd99cdb52b4fe01d8335eb21744e8898b89936d62965eb04b3145194",
+   "ids": "70c5a1eb93eb4765de75cb1fb1ecbf4bdb47254ee7b5b1f8e294174ec12a04f2",
+   "only_system_prompt": "2ffa8105cd99cdb52b4fe01d8335eb21744e8898b89936d62965eb04b3145194",
+   "only_tools": "2ffa8105cd99cdb52b4fe01d8335eb21744e8898b89936d62965eb04b3145194",
+   "only_episodic_memory": "2ffa8105cd99cdb52b4fe01d8335eb21744e8898b89936d62965eb04b3145194",
+   "only_semantic_memory": "2ffa8105cd99cdb52b4fe01d8335eb21744e8898b89936d62965eb04b3145194",
+   "only_procedural_memory": "2ffa8105cd99cdb52b4fe01d8335eb21744e8898b89936d62965eb04b3145194",
+   "only_persona_memory": "2ffa8105cd99cdb52b4fe01d8335eb21744e8898b89936d62965eb04b3145194",
+   "only_working_memory": "2ffa8105cd99cdb52b4fe01d8335eb21744e8898b89936d62965eb04b3145194"
+  },
+  "tabular_extraction": {
+   "heads": "1380df5aed8060aba65a76e0ea4d9a11d8379ee4f25bd5b815d38de5b840dd26",
+   "empty": "e66fa733c4fc318d8fc14c0a05d1dd359da6db6311a0b7fdb86c6c11b0115e94",
+   "full": "bada3b8ad9b3be11c420d74ecadcd1099c904e2d4fb6cfe0b5dddae5086f8e39",
+   "system": "cabdd7eb7455de14e0e0ccef0fd568bdcff5acac110aabdd003fe3c82205966c",
+   "ids": "bada3b8ad9b3be11c420d74ecadcd1099c904e2d4fb6cfe0b5dddae5086f8e39",
+   "only_system_prompt": "c58f9274efbf8ec8604edc1fd456c14f15d16faa7c5a1b7eabb498fdaabd1bb1"
+  },
+  "tool_agent": {
+   "heads": "38dfd76f9c0842854f8f9cc268ca31b29d35fc875e4d9e6fa3a3ff1b82117133",
+   "empty": "382dc9b68b9d8cd6b9ce4e250a31f1e647831a44bf98ec6b9e979a5de93558b3",
+   "full": "8bab70bdfabdf41523ae0287153c1813373aaa32339eb718aeebd49bda0835db",
+   "system": "485a6243759c6c6bf5d1de1ba4317767495bc49d465ec6f5bad460514d1686b5",
+   "ids": "8bab70bdfabdf41523ae0287153c1813373aaa32339eb718aeebd49bda0835db",
+   "only_system_prompt": "3bf60d32253b5576493c4c1567b7ba6735c4fd7dde738d6993ec99be26679fa5",
+   "only_tools": "7bce1db70a7b4284a717f99598b039ade7a9c042f48be6ff4b3ef528527cdb76",
+   "only_persona_memory": "ba54580eb845ec4c87726db123e83ccc3e9ac8ca2d30202a19dffdc6005feeea",
+   "only_episodic_memory": "dfe4f1a2f370d5521ef5d398e43af04ea937324923420b5b9f85f45667a67867",
+   "only_semantic_memory": "eb232a48663bc566891e95c428473f497f555c1e1d128dfb045227010f74d81c",
+   "only_procedural_memory": "e44658615140cb1774801cfcb4e76989a78d8962f5e5febc6055189fec6f3637",
+   "only_working_memory": "3382d4d08e84013e0fc59dc4237f45d306da2670509050b37c91f03dbc0168ff"
+  },
+  "tree_of_thoughts_agent": {
+   "heads": "fb9ac2c2a2fecba31a5190d948bc857d4aef16f25e03761f0e64d4495ca2cb9f",
+   "empty": "20824301de1d15e6321c8195ff4df14a58a8a2132dd09c75b96a293d63ae8564",
+   "full": "67d1ffc4404377b88b8e8608c11b74913a05e91e8b9f570c2ac506dc5a2849cc",
+   "system": "20824301de1d15e6321c8195ff4df14a58a8a2132dd09c75b96a293d63ae8564",
+   "ids": "67d1ffc4404377b88b8e8608c11b74913a05e91e8b9f570c2ac506dc5a2849cc",
+   "only_system_prompt": "20824301de1d15e6321c8195ff4df14a58a8a2132dd09c75b96a293d63ae8564",
+   "only_tools": "20824301de1d15e6321c8195ff4df14a58a8a2132dd09c75b96a293d63ae8564",
+   "only_episodic_memory": "20824301de1d15e6321c8195ff4df14a58a8a2132dd09c75b96a293d63ae8564",
+   "only_semantic_memory": "20824301de1d15e6321c8195ff4df14a58a8a2132dd09c75b96a293d63ae8564",
+   "only_procedural_memory": "20824301de1d15e6321c8195ff4df14a58a8a2132dd09c75b96a293d63ae8564",
+   "only_persona_memory": "20824301de1d15e6321c8195ff4df14a58a8a2132dd09c75b96a293d63ae8564",
+   "only_working_memory": "20824301de1d15e6321c8195ff4df14a58a8a2132dd09c75b96a293d63ae8564"
+  },
+  "working_memory_agent": {
+   "heads": "c01248b0b831626dd69a7546b19dd452dc37360cba75852ed02624a6143fc89d",
+   "empty": "c40e1556ddada3ef8488ff171b6348ef7aa3e56dca662616004797afc2898fee",
+   "full": "13eab3d63ee7c177cfe95231681d9c0958cccb37cd13656e8dc63423e040d6ce",
+   "system": "c40e1556ddada3ef8488ff171b6348ef7aa3e56dca662616004797afc2898fee",
+   "ids": "6d6db5aabefd78687995414f037a05d9acd51c4eef2881ff459bb1d9130a4143",
+   "only_system_prompt": "c40e1556ddada3ef8488ff171b6348ef7aa3e56dca662616004797afc2898fee",
+   "only_tools": "c40e1556ddada3ef8488ff171b6348ef7aa3e56dca662616004797afc2898fee",
+   "only_episodic_memory": "c40e1556ddada3ef8488ff171b6348ef7aa3e56dca662616004797afc2898fee",
+   "only_semantic_memory": "c40e1556ddada3ef8488ff171b6348ef7aa3e56dca662616004797afc2898fee",
+   "only_procedural_memory": "c40e1556ddada3ef8488ff171b6348ef7aa3e56dca662616004797afc2898fee",
+   "only_persona_memory": "c40e1556ddada3ef8488ff171b6348ef7aa3e56dca662616004797afc2898fee",
+   "only_working_memory": "c40e1556ddada3ef8488ff171b6348ef7aa3e56dca662616004797afc2898fee"
+  }
+ },
+ "after": {
+  "code_agent/full": {
+   "digest": "6dbc8a3ec9b7aa080dad750fe51b172857d71dce6acd0704a9e1b98b6b5e9752"
+  },
+  "code_agent/only_tools": {
+   "digest": "625b229357f8dcec8298a578cf7c4673af1ea4bc6f2dfe6134ac1e128556e22a",
+   "text": [
+    [
+     "system",
+     "You are an intelligent code assistant that can help with programming tasks, code analysis, debugging, and software development. You understand multiple programming languages and can provide accurate, helpful code solutions.\n## Tools\nYou may call these tools when they help; when a tool would not help, answer without it.\n- **sample**: sample\n  Returns: sample\n- **sample**: sample\n  Returns: sample"
+    ],
+    [
+     "user",
+     "Please provide the code solution with appropriate explanation."
+    ]
+   ]
+  },
+  "form_agent/full": {
+   "digest": "8ba30dc251a20db9ad25b598d9cc55c02037eb7ee13fec16c20717f9f56f9fa0"
+  },
+  "form_agent/only_tools": {
+   "digest": "2055c0ee9a606bbaf1178c5dabfa0537a768700cdac5426aabeef6bf14f20efa",
+   "text": [
+    [
+     "system",
+     "You are an intelligent form assistant that helps users complete structured forms and data collection tasks. You guide users through form completion step by step.\n## Tools\nYou may call these tools when they help; when a tool would not help, answer without it.\n- **sample**: sample\n  Returns: sample\n- **sample**: sample\n  Returns: sample"
+    ],
+    [
+     "user",
+     "Let's start filling out the form. I'll guide you through each field."
+    ]
+   ]
+  },
+  "main_agent/full": {
+   "digest": "56f78a1d22b4163c3e57dc4b88991ec09c3d931cac389578631f55f51f4c9a51"
+  },
+  "main_agent/only_tools": {
+   "digest": "e29fa3c24045d1c9c681c56f1d5006a3997c4bdf78c40741b75bb3649874fe12",
+   "text": [
+    [
+     "system",
+     "You are an intelligent AI assistant with comprehensive capabilities. You can help with various tasks including answering questions, analyzing information, generating content, and solving problems. You have access to memory, tools, and specialized knowledge.\n## Tools\nYou may call these tools when they help; when a tool would not help, answer without it.\n- **sample**: sample\n  Returns: sample\n- **sample**: sample\n  Returns: sample"
+    ]
+   ]
+  },
+  "main_agent/only_episodic_memory": {
+   "digest": "6ab91ff0f9d9d3549fd548d09ade1fab44c6999336e2504eba55ccbe763d5ab3",
+   "text": [
+    [
+     "system",
+     "You are an intelligent AI assistant with comprehensive capabilities. You can help with various tasks including answering questions, analyzing information, generating content, and solving problems. You have access to memory, tools, and specialized knowledge.\n## Memory\n### Past events\n- [sample] sample\n- [sample] sample"
+    ]
+   ]
+  },
+  "main_agent/only_semantic_memory": {
+   "digest": "8fcdb0b030c8790cc8760c9079df8789de1282642ffaecbb2b0d02c9968a53fe",
+   "text": [
+    [
+     "system",
+     "You are an intelligent AI assistant with comprehensive capabilities. You can help with various tasks including answering questions, analyzing information, generating content, and solving problems. You have access to memory, tools, and specialized knowledge.\n## Memory\n### Known facts\n- sample (source: sample)\n- sample (source: sample)"
+    ]
+   ]
+  },
+  "main_agent/only_procedural_memory": {
+   "digest": "9740e4fa233fcd887744fd5631d257c86f72aaa8ec81377c933362057f8ed2b1",
+   "text": [
+    [
+     "system",
+     "You are an intelligent AI assistant with comprehensive capabilities. You can help with various tasks including answering questions, analyzing information, generating content, and solving problems. You have access to memory, tools, and specialized knowledge.\n## Memory\n### Procedures\n- sample\n  sample\n  * a\n  * a\n- sample\n  sample\n  * a\n  * a"
+    ]
+   ]
+  },
+  "memory_agent/full": {
+   "digest": "80e776e4348d539541baaa916213cac57338dc2d233849ca7b465c76363bddab"
+  },
+  "memory_agent/only_tools": {
+   "digest": "bbed7f1ff577b2e9c2bac8572a7d8b7bae9a09a1f01211a83a6fe2228863a2a6",
+   "text": [
+    [
+     "system",
+     "You are an intelligent AI assistant with access to memory and context. You can recall past conversations and relevant information to provide helpful responses.\n## Tools\nYou may call these tools when they help; when a tool would not help, answer without it.\n- **sample**: sample\n  Returns: sample\n- **sample**: sample\n  Returns: sample"
+    ]
+   ]
+  },
+  "memory_agent/only_episodic_memory": {
+   "digest": "29505e434e969e71058967f9e50fab8eb7b0cc73c48509949cecc5e60e211049",
+   "text": [
+    [
+     "system",
+     "You are an intelligent AI assistant with access to memory and context. You can recall past conversations and relevant information to provide helpful responses.\n## Memory\n### Past events\n- [sample] sample\n- [sample] sample"
+    ]
+   ]
+  },
+  "memory_agent/only_semantic_memory": {
+   "digest": "4c1720720ee888ec86df2a6364490571f3adcbe83ab3fef0e56c77e7c97ee942",
+   "text": [
+    [
+     "system",
+     "You are an intelligent AI assistant with access to memory and context. You can recall past conversations and relevant information to provide helpful responses.\n## Memory\n### Known facts\n- sample (source: sample)\n- sample (source: sample)"
+    ]
+   ]
+  },
+  "multimodal_agent/full": {
+   "digest": "30aaf6eeb48aaed53cc44d582a1dd2470bb63690a4d0a3ab18df8f5cad4b6533"
+  },
+  "multimodal_agent/only_tools": {
+   "digest": "98c9d77923f6a63fb11e627109e3bf71f141d9c4dc7093d2600850cf9ecb3209",
+   "text": [
+    [
+     "system",
+     "You are an intelligent multimodal AI assistant that can process and understand text, images, audio, and other media types. You can analyze, describe, and reason about multimodal content.\n## Tools\nYou may call these tools when they help; when a tool would not help, answer without it.\n- **sample**: sample\n  Returns: sample\n- **sample**: sample\n  Returns: sample"
+    ],
+    [
+     "user",
+     "Please analyze the provided content and respond to the user's request."
+    ]
+   ]
+  },
+  "procedure_agent/full": {
+   "digest": "1498e6dce3ec33c079a51f9f9699c5647da604b7cf80b3755f4d893682b5a58e"
+  },
+  "procedure_agent/only_tools": {
+   "digest": "9bc1c2e9aa1c168f6b739c6738688419983e4bfadd3540969b5cdd33add6cd30",
+   "text": [
+    [
+     "system",
+     "You are an intelligent AI assistant that can execute procedures and forms to help users complete complex tasks. You have access to various procedures and should select the most appropriate one based on the user's request.\nYou have access to the following procedures:\n## Tools\nYou may call these tools when they help; when a tool would not help, answer without it.\n- **sample**: sample\n  Returns: sample\n- **sample**: sample\n  Returns: sample\n## Response Format\n\nPlease respond with a JSON object containing the procedure to execute:\n\n```json\n{\n    \"action\": \"procedure_name\",\n    \"action_input\": \"input_for_procedure\"\n}\n```\n\nIf no procedure is needed, respond with:\n```json\n{\n    \"action\": \"no_action\",\n    \"action_input\": null\n}\n```"
+    ],
+    [
+     "user",
+     "Please select the most appropriate procedure to help with this request."
+    ]
+   ]
+  },
+  "reasoning_agent/full": {
+   "digest": "725974ce22b8c9c1b1527bbde6196e2a13bf7b49cc379ad1b7802572620927cb"
+  },
+  "reasoning_agent/only_tools": {
+   "digest": "c309c29d630c9b8321a9d4750ce641cd0ea14a5a57496102a23c44b702d15c79",
+   "text": [
+    [
+     "system",
+     "You are an intelligent reasoning assistant that can break down complex problems, analyze information, and provide step-by-step solutions. You think through problems methodically and explain your reasoning clearly.\n## Tools\nYou may call these tools when they help; when a tool would not help, answer without it.\n- **sample**: sample\n  Returns: sample\n- **sample**: sample\n  Returns: sample"
+    ],
+    [
+     "user",
+     "Please think through this carefully and explain your reasoning."
+    ]
+   ]
+  },
+  "smol_code_agent/full": {
+   "digest": "18e09c28143b75dd78a825a2cbd9c15fc59942ab066c0784f1a4c48461a33129"
+  },
+  "smol_managed_agent/full": {
+   "digest": "da40b1f26ac187825f1f7acb1d864b3a7862539b011c75e830d1a16e2346181a"
+  },
+  "smol_planning/full": {
+   "digest": "abcd8c65d09cd402db9894c889bf6c6ec95bb1e7de94d9b80c0d3f4306d3ac46"
+  },
+  "smol_tool_calling_agent/full": {
+   "digest": "984e08bc06aba1a3e273d4a244bc26ada30a236e6bd20cb790c3059cc0bc4919"
+  },
+  "memory_consolidation_agent/full": {
+   "digest": "0d1933b7a2d92775b2b143c7fe4a17517e8b45c904597122832f2e3f337315a5"
+  },
+  "memory_consolidation_agent/only_persona_memory": {
+   "digest": "b62300a241d399e7bfbfe04ae8f20fa40c1c3602164e1f9ca06a5f99e6fc4ec0",
+   "text": [
+    [
+     "system",
+     "You maintain the long-term memory of an agent. Over time it collects copies, contradictions and notes that no longer matter; your job is to clean it up so that what is left is short, correct and easy to find.\n## Memory\n### Persona\n- sample (source: sample)\n- sample (source: sample)\nAn item that has an id shows it first, in square brackets; refer to the item by that id.\n## How to consolidate\n- Merge memories that say the same thing, or parts of the same thing, into one item: list every merged id and write the combined text.\n- When two memories contradict each other, keep the newer one (look at the times and at the order of the list) unless one of them says it should win; update or delete the other.\n- When several past events show the same fact or the same way of working, distil them into a semantic fact or a procedure, and delete the events that add nothing more.\n- Delete working notes that belong to a task that is finished or abandoned.\n- Keep each memory atomic and understandable on its own; remove any secret (password, key, token) you find.\n- Do not invent anything: every new text must come from the memories listed above.\n- Leave alone what is already clean; do not rewrite a memory only to change its wording.\n## Answer format\nReply with one JSON object and nothing else. Each operation has:\n- \"op\": \"add\", \"update\", \"delete\", \"merge\" or \"none\"\n- \"kind\": \"persona\", \"episodic\", \"semantic\", \"procedural\" or \"working\" (for \"merge\", the kind of the merged item)\n- \"id\": the id of the existing memory, for \"update\" and \"delete\"\n- \"ids\": for \"merge\" only, the ids of every memory merged into one\n- \"content\": the full text of the memory after the change (not needed for \"delete\")\n- \"name\" and \"steps\": only for procedural memories, the name of the procedure and its steps as a list of strings\n- \"reason\": why, in one short sentence\nExample:\n{\"operations\": [{\"op\": \"merge\", \"kind\": \"semantic\", \"ids\": [\"s2\", \"s5\"], \"content\": \"The user's team ships a release every two weeks, on Thursday.\", \"reason\": \"Both facts describe the same release schedule.\"}, {\"op\": \"delete\", \"kind\": \"working\", \"id\": \"w1\", \"reason\": \"The task this note belonged to is done.\"}]}\nWhen the memory is already clean, reply {\"operations\": []}."
+    ],
+    [
+     "user",
+     "Consolidate the memories listed above."
+    ]
+   ]
+  },
+  "memory_consolidation_agent/only_episodic_memory": {
+   "digest": "ebc875156ffb8e4725980a64c6898a1f99e27274df7c2a2096d17a2c26a7d20c",
+   "text": [
+    [
+     "system",
+     "You maintain the long-term memory of an agent. Over time it collects copies, contradictions and notes that no longer matter; your job is to clean it up so that what is left is short, correct and easy to find.\n## Memory\n### Past events\n- [sample] sample\n- [sample] sample\nAn item that has an id shows it first, in square brackets; refer to the item by that id.\n## How to consolidate\n- Merge memories that say the same thing, or parts of the same thing, into one item: list every merged id and write the combined text.\n- When two memories contradict each other, keep the newer one (look at the times and at the order of the list) unless one of them says it should win; update or delete the other.\n- When several past events show the same fact or the same way of working, distil them into a semantic fact or a procedure, and delete the events that add nothing more.\n- Delete working notes that belong to a task that is finished or abandoned.\n- Keep each memory atomic and understandable on its own; remove any secret (password, key, token) you find.\n- Do not invent anything: every new text must come from the memories listed above.\n- Leave alone what is already clean; do not rewrite a memory only to change its wording.\n## Answer format\nReply with one JSON object and nothing else. Each operation has:\n- \"op\": \"add\", \"update\", \"delete\", \"merge\" or \"none\"\n- \"kind\": \"persona\", \"episodic\", \"semantic\", \"procedural\" or \"working\" (for \"merge\", the kind of the merged item)\n- \"id\": the id of the existing memory, for \"update\" and \"delete\"\n- \"ids\": for \"merge\" only, the ids of every memory merged into one\n- \"content\": the full text of the memory after the change (not needed for \"delete\")\n- \"name\" and \"steps\": only for procedural memories, the name of the procedure and its steps as a list of strings\n- \"reason\": why, in one short sentence\nExample:\n{\"operations\": [{\"op\": \"merge\", \"kind\": \"semantic\", \"ids\": [\"s2\", \"s5\"], \"content\": \"The user's team ships a release every two weeks, on Thursday.\", \"reason\": \"Both facts describe the same release schedule.\"}, {\"op\": \"delete\", \"kind\": \"working\", \"id\": \"w1\", \"reason\": \"The task this note belonged to is done.\"}]}\nWhen the memory is already clean, reply {\"operations\": []}."
+    ],
+    [
+     "user",
+     "Consolidate the memories listed above."
+    ]
+   ]
+  },
+  "memory_consolidation_agent/only_semantic_memory": {
+   "digest": "392f73b4a2452f8fcca9c8888ebfefba06ba30575212b6c8d0aae24425c5b6ad",
+   "text": [
+    [
+     "system",
+     "You maintain the long-term memory of an agent. Over time it collects copies, contradictions and notes that no longer matter; your job is to clean it up so that what is left is short, correct and easy to find.\n## Memory\n### Known facts\n- sample (source: sample)\n- sample (source: sample)\nAn item that has an id shows it first, in square brackets; refer to the item by that id.\n## How to consolidate\n- Merge memories that say the same thing, or parts of the same thing, into one item: list every merged id and write the combined text.\n- When two memories contradict each other, keep the newer one (look at the times and at the order of the list) unless one of them says it should win; update or delete the other.\n- When several past events show the same fact or the same way of working, distil them into a semantic fact or a procedure, and delete the events that add nothing more.\n- Delete working notes that belong to a task that is finished or abandoned.\n- Keep each memory atomic and understandable on its own; remove any secret (password, key, token) you find.\n- Do not invent anything: every new text must come from the memories listed above.\n- Leave alone what is already clean; do not rewrite a memory only to change its wording.\n## Answer format\nReply with one JSON object and nothing else. Each operation has:\n- \"op\": \"add\", \"update\", \"delete\", \"merge\" or \"none\"\n- \"kind\": \"persona\", \"episodic\", \"semantic\", \"procedural\" or \"working\" (for \"merge\", the kind of the merged item)\n- \"id\": the id of the existing memory, for \"update\" and \"delete\"\n- \"ids\": for \"merge\" only, the ids of every memory merged into one\n- \"content\": the full text of the memory after the change (not needed for \"delete\")\n- \"name\" and \"steps\": only for procedural memories, the name of the procedure and its steps as a list of strings\n- \"reason\": why, in one short sentence\nExample:\n{\"operations\": [{\"op\": \"merge\", \"kind\": \"semantic\", \"ids\": [\"s2\", \"s5\"], \"content\": \"The user's team ships a release every two weeks, on Thursday.\", \"reason\": \"Both facts describe the same release schedule.\"}, {\"op\": \"delete\", \"kind\": \"working\", \"id\": \"w1\", \"reason\": \"The task this note belonged to is done.\"}]}\nWhen the memory is already clean, reply {\"operations\": []}."
+    ],
+    [
+     "user",
+     "Consolidate the memories listed above."
+    ]
+   ]
+  },
+  "memory_consolidation_agent/only_procedural_memory": {
+   "digest": "1af3fea9b50356a80d92195cdc460a50ae595a701a5eebdf3f43906c6d340f52",
+   "text": [
+    [
+     "system",
+     "You maintain the long-term memory of an agent. Over time it collects copies, contradictions and notes that no longer matter; your job is to clean it up so that what is left is short, correct and easy to find.\n## Memory\n### Procedures\n- sample\n  sample\n  * a\n  * a\n- sample\n  sample\n  * a\n  * a\nAn item that has an id shows it first, in square brackets; refer to the item by that id.\n## How to consolidate\n- Merge memories that say the same thing, or parts of the same thing, into one item: list every merged id and write the combined text.\n- When two memories contradict each other, keep the newer one (look at the times and at the order of the list) unless one of them says it should win; update or delete the other.\n- When several past events show the same fact or the same way of working, distil them into a semantic fact or a procedure, and delete the events that add nothing more.\n- Delete working notes that belong to a task that is finished or abandoned.\n- Keep each memory atomic and understandable on its own; remove any secret (password, key, token) you find.\n- Do not invent anything: every new text must come from the memories listed above.\n- Leave alone what is already clean; do not rewrite a memory only to change its wording.\n## Answer format\nReply with one JSON object and nothing else. Each operation has:\n- \"op\": \"add\", \"update\", \"delete\", \"merge\" or \"none\"\n- \"kind\": \"persona\", \"episodic\", \"semantic\", \"procedural\" or \"working\" (for \"merge\", the kind of the merged item)\n- \"id\": the id of the existing memory, for \"update\" and \"delete\"\n- \"ids\": for \"merge\" only, the ids of every memory merged into one\n- \"content\": the full text of the memory after the change (not needed for \"delete\")\n- \"name\" and \"steps\": only for procedural memories, the name of the procedure and its steps as a list of strings\n- \"reason\": why, in one short sentence\nExample:\n{\"operations\": [{\"op\": \"merge\", \"kind\": \"semantic\", \"ids\": [\"s2\", \"s5\"], \"content\": \"The user's team ships a release every two weeks, on Thursday.\", \"reason\": \"Both facts describe the same release schedule.\"}, {\"op\": \"delete\", \"kind\": \"working\", \"id\": \"w1\", \"reason\": \"The task this note belonged to is done.\"}]}\nWhen the memory is already clean, reply {\"operations\": []}."
+    ],
+    [
+     "user",
+     "Consolidate the memories listed above."
+    ]
+   ]
+  },
+  "memory_consolidation_agent/only_working_memory": {
+   "digest": "1c17e2c81a4fe89664a7d3f2018370f26dbbbeb7d194146b50e8a4e8f50e6dfe",
+   "text": [
+    [
+     "system",
+     "You maintain the long-term memory of an agent. Over time it collects copies, contradictions and notes that no longer matter; your job is to clean it up so that what is left is short, correct and easy to find.\n## Memory\n### Current notes\n- sample\n- sample\nAn item that has an id shows it first, in square brackets; refer to the item by that id.\n## How to consolidate\n- Merge memories that say the same thing, or parts of the same thing, into one item: list every merged id and write the combined text.\n- When two memories contradict each other, keep the newer one (look at the times and at the order of the list) unless one of them says it should win; update or delete the other.\n- When several past events show the same fact or the same way of working, distil them into a semantic fact or a procedure, and delete the events that add nothing more.\n- Delete working notes that belong to a task that is finished or abandoned.\n- Keep each memory atomic and understandable on its own; remove any secret (password, key, token) you find.\n- Do not invent anything: every new text must come from the memories listed above.\n- Leave alone what is already clean; do not rewrite a memory only to change its wording.\n## Answer format\nReply with one JSON object and nothing else. Each operation has:\n- \"op\": \"add\", \"update\", \"delete\", \"merge\" or \"none\"\n- \"kind\": \"persona\", \"episodic\", \"semantic\", \"procedural\" or \"working\" (for \"merge\", the kind of the merged item)\n- \"id\": the id of the existing memory, for \"update\" and \"delete\"\n- \"ids\": for \"merge\" only, the ids of every memory merged into one\n- \"content\": the full text of the memory after the change (not needed for \"delete\")\n- \"name\" and \"steps\": only for procedural memories, the name of the procedure and its steps as a list of strings\n- \"reason\": why, in one short sentence\nExample:\n{\"operations\": [{\"op\": \"merge\", \"kind\": \"semantic\", \"ids\": [\"s2\", \"s5\"], \"content\": \"The user's team ships a release every two weeks, on Thursday.\", \"reason\": \"Both facts describe the same release schedule.\"}, {\"op\": \"delete\", \"kind\": \"working\", \"id\": \"w1\", \"reason\": \"The task this note belonged to is done.\"}]}\nWhen the memory is already clean, reply {\"operations\": []}."
+    ],
+    [
+     "user",
+     "Consolidate the memories listed above."
+    ]
+   ]
+  },
+  "memory_update_agent/full": {
+   "digest": "ae0027942d0ee0ebdd27ab76e2dd438fab4eee9bcaee70dd1697178abefcf8e9"
+  },
+  "memory_update_agent/only_persona_memory": {
+   "digest": "f2c8c08aaa4e85a61a6fb80d433365892626c91c742c0ba5d08a4d45563b2ede",
+   "text": [
+    [
+     "system",
+     "You look after the long-term memory of an agent. You do not answer the user: you read the conversation, compare it with what the agent already remembers, and decide which memories to add, change or remove so that the agent knows more next time.\n## Memory\n### Persona\n- sample (source: sample)\n- sample (source: sample)\nAn item that has an id shows it first, in square brackets; refer to the item by that id.\n## Kinds of memory\n- persona: who the user or the agent is, and lasting preferences (language, tone, likes and dislikes).\n- episodic: something that happened in the conversation, worth recalling later as an event; give it the current time when one is given.\n- semantic: a durable fact about the world, the user's situation or their projects, true beyond this conversation.\n- procedural: a way of doing something that worked; give it a short name and the steps in order.\n- working: a note that only matters for the task in progress and can be dropped once it is finished.\n\n## How to decide\n- Write each memory as one atomic fact that makes sense on its own, without the conversation around it: name people and things instead of saying \"he\" or \"it\".\n- When something new refines or changes a memory that already exists, update that memory by its id instead of adding a near-copy.\n- Delete a memory, by its id, when the conversation shows it is wrong or out of date, or when the user asks you to forget it.\n- Never store passwords, keys, tokens, card numbers or other secrets, and skip small talk and greetings that say nothing lasting.\n- Store only what the conversation actually says or clearly implies; do not guess.\n- Use \"none\" only when you want to explain why a tempting item was left out; otherwise just leave it out.\n## Answer format\nReply with one JSON object and nothing else. Each operation has:\n- \"op\": \"add\", \"update\", \"delete\" or \"none\"\n- \"kind\": \"persona\", \"episodic\", \"semantic\", \"procedural\" or \"working\"\n- \"id\": the id of the existing memory, for \"update\" and \"delete\" (leave it out for \"add\")\n- \"content\": the full text of the memory after the change (not needed for \"delete\")\n- \"name\" and \"steps\": only for procedural memories, the name of the procedure and its steps as a list of strings\n- \"reason\": why, in one short sentence\nExample:\n{\"operations\": [{\"op\": \"update\", \"kind\": \"persona\", \"id\": \"p1\", \"content\": \"The user prefers answers in Italian.\", \"reason\": \"The user asked to switch from English to Italian.\"}, {\"op\": \"add\", \"kind\": \"procedural\", \"content\": \"Deploying the docs site\", \"name\": \"deploy_docs\", \"steps\": [\"run the build\", \"upload the output folder\"], \"reason\": \"These steps worked in this conversation.\"}]}\nWhen there is nothing worth remembering, reply {\"operations\": []}."
+    ],
+    [
+     "user",
+     "The conversation is in the messages above.\nWhat should the agent remember from this conversation?"
+    ]
+   ]
+  },
+  "memory_update_agent/only_episodic_memory": {
+   "digest": "e9a38b53bd7450e8e9d2661ef92ae9f8e31ffc8351720ba3e4fc342f228080d2",
+   "text": [
+    [
+     "system",
+     "You look after the long-term memory of an agent. You do not answer the user: you read the conversation, compare it with what the agent already remembers, and decide which memories to add, change or remove so that the agent knows more next time.\n## Memory\n### Past events\n- [sample] sample\n- [sample] sample\nAn item that has an id shows it first, in square brackets; refer to the item by that id.\n## Kinds of memory\n- persona: who the user or the agent is, and lasting preferences (language, tone, likes and dislikes).\n- episodic: something that happened in the conversation, worth recalling later as an event; give it the current time when one is given.\n- semantic: a durable fact about the world, the user's situation or their projects, true beyond this conversation.\n- procedural: a way of doing something that worked; give it a short name and the steps in order.\n- working: a note that only matters for the task in progress and can be dropped once it is finished.\n\n## How to decide\n- Write each memory as one atomic fact that makes sense on its own, without the conversation around it: name people and things instead of saying \"he\" or \"it\".\n- When something new refines or changes a memory that already exists, update that memory by its id instead of adding a near-copy.\n- Delete a memory, by its id, when the conversation shows it is wrong or out of date, or when the user asks you to forget it.\n- Never store passwords, keys, tokens, card numbers or other secrets, and skip small talk and greetings that say nothing lasting.\n- Store only what the conversation actually says or clearly implies; do not guess.\n- Use \"none\" only when you want to explain why a tempting item was left out; otherwise just leave it out.\n## Answer format\nReply with one JSON object and nothing else. Each operation has:\n- \"op\": \"add\", \"update\", \"delete\" or \"none\"\n- \"kind\": \"persona\", \"episodic\", \"semantic\", \"procedural\" or \"working\"\n- \"id\": the id of the existing memory, for \"update\" and \"delete\" (leave it out for \"add\")\n- \"content\": the full text of the memory after the change (not needed for \"delete\")\n- \"name\" and \"steps\": only for procedural memories, the name of the procedure and its steps as a list of strings\n- \"reason\": why, in one short sentence\nExample:\n{\"operations\": [{\"op\": \"update\", \"kind\": \"persona\", \"id\": \"p1\", \"content\": \"The user prefers answers in Italian.\", \"reason\": \"The user asked to switch from English to Italian.\"}, {\"op\": \"add\", \"kind\": \"procedural\", \"content\": \"Deploying the docs site\", \"name\": \"deploy_docs\", \"steps\": [\"run the build\", \"upload the output folder\"], \"reason\": \"These steps worked in this conversation.\"}]}\nWhen there is nothing worth remembering, reply {\"operations\": []}."
+    ],
+    [
+     "user",
+     "The conversation is in the messages above.\nWhat should the agent remember from this conversation?"
+    ]
+   ]
+  },
+  "memory_update_agent/only_semantic_memory": {
+   "digest": "64e5a7b3409ba6b2a552864ac112b061f9b833163c0287a302ba6c351b327193",
+   "text": [
+    [
+     "system",
+     "You look after the long-term memory of an agent. You do not answer the user: you read the conversation, compare it with what the agent already remembers, and decide which memories to add, change or remove so that the agent knows more next time.\n## Memory\n### Known facts\n- sample (source: sample)\n- sample (source: sample)\nAn item that has an id shows it first, in square brackets; refer to the item by that id.\n## Kinds of memory\n- persona: who the user or the agent is, and lasting preferences (language, tone, likes and dislikes).\n- episodic: something that happened in the conversation, worth recalling later as an event; give it the current time when one is given.\n- semantic: a durable fact about the world, the user's situation or their projects, true beyond this conversation.\n- procedural: a way of doing something that worked; give it a short name and the steps in order.\n- working: a note that only matters for the task in progress and can be dropped once it is finished.\n\n## How to decide\n- Write each memory as one atomic fact that makes sense on its own, without the conversation around it: name people and things instead of saying \"he\" or \"it\".\n- When something new refines or changes a memory that already exists, update that memory by its id instead of adding a near-copy.\n- Delete a memory, by its id, when the conversation shows it is wrong or out of date, or when the user asks you to forget it.\n- Never store passwords, keys, tokens, card numbers or other secrets, and skip small talk and greetings that say nothing lasting.\n- Store only what the conversation actually says or clearly implies; do not guess.\n- Use \"none\" only when you want to explain why a tempting item was left out; otherwise just leave it out.\n## Answer format\nReply with one JSON object and nothing else. Each operation has:\n- \"op\": \"add\", \"update\", \"delete\" or \"none\"\n- \"kind\": \"persona\", \"episodic\", \"semantic\", \"procedural\" or \"working\"\n- \"id\": the id of the existing memory, for \"update\" and \"delete\" (leave it out for \"add\")\n- \"content\": the full text of the memory after the change (not needed for \"delete\")\n- \"name\" and \"steps\": only for procedural memories, the name of the procedure and its steps as a list of strings\n- \"reason\": why, in one short sentence\nExample:\n{\"operations\": [{\"op\": \"update\", \"kind\": \"persona\", \"id\": \"p1\", \"content\": \"The user prefers answers in Italian.\", \"reason\": \"The user asked to switch from English to Italian.\"}, {\"op\": \"add\", \"kind\": \"procedural\", \"content\": \"Deploying the docs site\", \"name\": \"deploy_docs\", \"steps\": [\"run the build\", \"upload the output folder\"], \"reason\": \"These steps worked in this conversation.\"}]}\nWhen there is nothing worth remembering, reply {\"operations\": []}."
+    ],
+    [
+     "user",
+     "The conversation is in the messages above.\nWhat should the agent remember from this conversation?"
+    ]
+   ]
+  },
+  "memory_update_agent/only_procedural_memory": {
+   "digest": "561bac7b3dad3374bb95c98b2dcc73df73ea30beca030cb292a8e981b69e3e63",
+   "text": [
+    [
+     "system",
+     "You look after the long-term memory of an agent. You do not answer the user: you read the conversation, compare it with what the agent already remembers, and decide which memories to add, change or remove so that the agent knows more next time.\n## Memory\n### Procedures\n- sample\n  sample\n  * a\n  * a\n- sample\n  sample\n  * a\n  * a\nAn item that has an id shows it first, in square brackets; refer to the item by that id.\n## Kinds of memory\n- persona: who the user or the agent is, and lasting preferences (language, tone, likes and dislikes).\n- episodic: something that happened in the conversation, worth recalling later as an event; give it the current time when one is given.\n- semantic: a durable fact about the world, the user's situation or their projects, true beyond this conversation.\n- procedural: a way of doing something that worked; give it a short name and the steps in order.\n- working: a note that only matters for the task in progress and can be dropped once it is finished.\n\n## How to decide\n- Write each memory as one atomic fact that makes sense on its own, without the conversation around it: name people and things instead of saying \"he\" or \"it\".\n- When something new refines or changes a memory that already exists, update that memory by its id instead of adding a near-copy.\n- Delete a memory, by its id, when the conversation shows it is wrong or out of date, or when the user asks you to forget it.\n- Never store passwords, keys, tokens, card numbers or other secrets, and skip small talk and greetings that say nothing lasting.\n- Store only what the conversation actually says or clearly implies; do not guess.\n- Use \"none\" only when you want to explain why a tempting item was left out; otherwise just leave it out.\n## Answer format\nReply with one JSON object and nothing else. Each operation has:\n- \"op\": \"add\", \"update\", \"delete\" or \"none\"\n- \"kind\": \"persona\", \"episodic\", \"semantic\", \"procedural\" or \"working\"\n- \"id\": the id of the existing memory, for \"update\" and \"delete\" (leave it out for \"add\")\n- \"content\": the full text of the memory after the change (not needed for \"delete\")\n- \"name\" and \"steps\": only for procedural memories, the name of the procedure and its steps as a list of strings\n- \"reason\": why, in one short sentence\nExample:\n{\"operations\": [{\"op\": \"update\", \"kind\": \"persona\", \"id\": \"p1\", \"content\": \"The user prefers answers in Italian.\", \"reason\": \"The user asked to switch from English to Italian.\"}, {\"op\": \"add\", \"kind\": \"procedural\", \"content\": \"Deploying the docs site\", \"name\": \"deploy_docs\", \"steps\": [\"run the build\", \"upload the output folder\"], \"reason\": \"These steps worked in this conversation.\"}]}\nWhen there is nothing worth remembering, reply {\"operations\": []}."
+    ],
+    [
+     "user",
+     "The conversation is in the messages above.\nWhat should the agent remember from this conversation?"
+    ]
+   ]
+  },
+  "memory_update_agent/only_working_memory": {
+   "digest": "1c8f16e35b6476d1f41788df56c3090599b759625ce7b8777402371878c66ca9",
+   "text": [
+    [
+     "system",
+     "You look after the long-term memory of an agent. You do not answer the user: you read the conversation, compare it with what the agent already remembers, and decide which memories to add, change or remove so that the agent knows more next time.\n## Memory\n### Current notes\n- sample\n- sample\nAn item that has an id shows it first, in square brackets; refer to the item by that id.\n## Kinds of memory\n- persona: who the user or the agent is, and lasting preferences (language, tone, likes and dislikes).\n- episodic: something that happened in the conversation, worth recalling later as an event; give it the current time when one is given.\n- semantic: a durable fact about the world, the user's situation or their projects, true beyond this conversation.\n- procedural: a way of doing something that worked; give it a short name and the steps in order.\n- working: a note that only matters for the task in progress and can be dropped once it is finished.\n\n## How to decide\n- Write each memory as one atomic fact that makes sense on its own, without the conversation around it: name people and things instead of saying \"he\" or \"it\".\n- When something new refines or changes a memory that already exists, update that memory by its id instead of adding a near-copy.\n- Delete a memory, by its id, when the conversation shows it is wrong or out of date, or when the user asks you to forget it.\n- Never store passwords, keys, tokens, card numbers or other secrets, and skip small talk and greetings that say nothing lasting.\n- Store only what the conversation actually says or clearly implies; do not guess.\n- Use \"none\" only when you want to explain why a tempting item was left out; otherwise just leave it out.\n## Answer format\nReply with one JSON object and nothing else. Each operation has:\n- \"op\": \"add\", \"update\", \"delete\" or \"none\"\n- \"kind\": \"persona\", \"episodic\", \"semantic\", \"procedural\" or \"working\"\n- \"id\": the id of the existing memory, for \"update\" and \"delete\" (leave it out for \"add\")\n- \"content\": the full text of the memory after the change (not needed for \"delete\")\n- \"name\" and \"steps\": only for procedural memories, the name of the procedure and its steps as a list of strings\n- \"reason\": why, in one short sentence\nExample:\n{\"operations\": [{\"op\": \"update\", \"kind\": \"persona\", \"id\": \"p1\", \"content\": \"The user prefers answers in Italian.\", \"reason\": \"The user asked to switch from English to Italian.\"}, {\"op\": \"add\", \"kind\": \"procedural\", \"content\": \"Deploying the docs site\", \"name\": \"deploy_docs\", \"steps\": [\"run the build\", \"upload the output folder\"], \"reason\": \"These steps worked in this conversation.\"}]}\nWhen there is nothing worth remembering, reply {\"operations\": []}."
+    ],
+    [
+     "user",
+     "The conversation is in the messages above.\nWhat should the agent remember from this conversation?"
+    ]
+   ]
+  },
+  "working_memory_agent/full": {
+   "digest": "6ccc7cee53b97aadc94be07c31b3b225031376a8c1562564b84bbef48e54d9fd"
+  }
+ }
+}

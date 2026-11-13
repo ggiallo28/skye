@@ -102,7 +102,7 @@ src/skye/
 │   ├── registry.py
 │   ├── local_function.py
 │   ├── remote_api.py           # HTTP via stdlib urllib transport; httpx/requests eliminated (Req 7)
-│   ├── mcp_client.py           # create_mcp_client(target, impl="builtin"): the one factory (Req 21)
+│   ├── mcp_client.py           # create_mcp_client(target, impl="skyemcp"): the one factory (Req 21)
 │   │                           # (removed 2026-11-08: the legacy MCPCapability and MCPServerClient probes; the built-in client is mcp_client.py)
 │   ├── mcp_fastmcp.py          # fastmcp-backed client (mcp extra) behind the same Port
 │   ├── mcp_boundary.py         # the single conversion point from official MCP types to Skye types (Req 15)

@@ -11,6 +11,10 @@ This page lets you see how the agent loop of Skye is designed, so you can plan f
     The agent loop, `AgentLoop`, `Agent`, the hooks, the checkpoints and everything else on this page are **not built yet**. Names
     and defaults can still change. Track progress on [Status and roadmap](../project/roadmap.md).
 
+    This page was written before the plugin interface. Today an agent is built with `skye.agent(name, **options)`, there is no `Agent`
+    class, and the built-in agent is `REACT` from `skye.agents` (its loop is not written yet). The hooks and the checkpoints below stay the
+    plan; the class names do not.
+
 ## Two classes
 
 - **`AgentLoop`** is the bare loop. It takes a model (or a router), a tool provider, optional memory and optional hook providers,

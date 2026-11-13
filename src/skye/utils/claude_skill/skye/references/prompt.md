@@ -33,13 +33,13 @@ prompt "chat" {
   A field with a default is optional. The variable is required; for an empty default put it after the shape: `list({ ... }, [])`
   (not `list([])`, which loses the shape). `render_prompt` checks the value (`categories[1].name: missing`) and fills field defaults.
   In Python a `VariableSpec` holds the shape in `item_type` and `fields`.
-- **Shared shapes** (every bundled prompt; reuse them, with a description on each field): `tools = list({ name = string, description = string,
+- **Shared shapes** (the prompts of the package and of the gallery; reuse them, with a description on each field): `tools = list({ name = string, description = string,
   parameters = map({}), returns = string("") }, [])`; `persona_memory` and `semantic_memory` = `list({ content = string, source = string("") }, [])`;
   `episodic_memory` adds `timestamp = string("")`; `procedural_memory = list({ name = string(""), content = string(""), steps = list(string, []) }, [])`;
   `working_memory = list({ content = string }, [])`. Conversation history is always `placeholder "history"`, never a variable: `chat_history`,
   `conversation_history`, `declarative_memory`, `procedural_memories` and `procedures` are removed (no aliases).
-- Comments: `/** ... **/` documents, `#` a short note, never a plain `/* */`. End every template you write with `/** Example: builder.render("name",
-  {...}) **/`, the dict in Python literals only and valid for the declared types (a test renders it in every bundled file).
+- Comments: `/** ... **/` documents, `#` a short note, never a plain `/* */`. End each teaching file `examples/prompts/*.skye` with `/** Example: builder.render("name",
+  {...}) **/`, the dict in Python literals only and valid for the declared types (a test renders it in every example file); the bundled and gallery prompts carry no comment and keep their sample variables in `examples/prompts/bundled/` and `examples/prompts/catalogue/`.
 - Before calling a prompt you did not write, run `skye prompt info NAME|FILE` (cli.md) or `BasePromptBuilder().help(name)` (python-api.md).
 - `message "role" { ... }`: the roles are `system`, `user` and `assistant`. A role can come from data: `message turn.role { ... }` inside `each`.
 - Inside a message, `text = "..."` may appear several times, interleaved with `when` and `each` blocks; the parts are joined in order, one per line.
@@ -69,7 +69,7 @@ messages = render_prompt(spec, {"user_message": "Hi"}, history={"history": past_
 
 `render_prompt` returns `SystemMessage` / `UserMessage` / `AssistantMessage` objects with real roles. A missing required variable
 raises `ValueError` naming every missing one. A `placeholder "name"` takes `history["name"]` (or the variable `name`). `PromptRunnable(spec)`
-wraps a prompt as a `Runnable` (`invoke(variables)` returns the messages). `BasePromptBuilder().render("chat", {...})` renders the bundled
+wraps a prompt as a `Runnable` (`invoke(variables)` returns the messages). `BasePromptBuilder().render("text_summarization", {...})` renders the bundled
 `.skye` templates the same way. `output_instructions(spec, variables)` (from `skye.prompts`) returns the text of the `output` block alone;
 `builder.set_output_schema(name, MyDataclass, output_format="table")` does the same for a dataclass or a JSON-schema dict (`"json"` by
 default). For a native provider call use `render_parts(spec, variables)` (or `builder.render_parts(name, variables)`): it returns a

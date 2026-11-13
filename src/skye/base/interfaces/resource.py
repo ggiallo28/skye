@@ -1,6 +1,7 @@
+# decision D26, Requirement 10.5
 """Resource Port: list resources and read one by URI (MIME type, text or bytes).
 
-Decision D26, Requirement 10.5. A resource is a named piece of content addressed by a URI. A
+A resource is a named piece of content addressed by a URI. A
 listed :class:`Resource` carries only its metadata (``uri``, ``name``, ``mime_type``,
 ``description``); a resource read by URI also carries its content, either ``text`` or ``data``
 (bytes), never both. The MCP clients in ``tools`` implement this Port, so ``prompts`` and

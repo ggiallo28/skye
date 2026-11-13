@@ -1,6 +1,7 @@
+# decision D83
 """Help for ``.skye`` blocks: what a prompt, a router or a flow takes and gives back.
 
-:func:`describe` reads any block (a prompt, a router or a flow, decision D83) into an info
+:func:`describe` reads any block (a prompt, a router or a flow) into an info
 object: :class:`PromptInfo`, :class:`RouterInfo` or :class:`FlowInfo`; ``skye.dsl`` is its public
 path. :func:`describe_prompt` reads a :class:`~skye.base.dsl.PromptSpec` (and, when given, the front
 matter of its file) into a :class:`PromptInfo`; :func:`prompt_help` prints it as aligned plain
@@ -98,7 +99,7 @@ class OutputInfo(Validated):
     """What the prompt asks the model to answer with."""
 
     format: str = field(
-        default="json", description='json, table, xml or "from variable X" (output X { ... })'
+        default="json", description='json, table, xml, text or "from variable X" (output X { ... })'
     )
     fields: list[OutputFieldInfo] = field(
         default_factory=list, description="The fields of the answer, in order"
@@ -204,10 +205,11 @@ class FlowInfo(Validated):
     steps: list[NodeInfo] = field(default_factory=list, description="The nodes, in file order")
 
 
+# D83
 def describe(
     spec: PromptSpec | RouterSpec | FlowSpec, metadata: Mapping[str, Any] | None = None
 ) -> PromptInfo | RouterInfo | FlowInfo:
-    """What a block of a ``.skye`` file takes and gives back, for every kind of block (D83).
+    """What a block of a ``.skye`` file takes and gives back, for every kind of block.
 
     Args:
         spec: A prompt, router or flow, from a ``Document`` (``document.prompt(name)``,
@@ -513,6 +515,8 @@ def prompt_help(spec: PromptSpec | PromptInfo, metadata: Mapping[str, Any] | Non
 
 
 def _output_lines(output: OutputInfo) -> list[str]:
+    if output.format == "text":
+        return [f"{_INDENT}plain text"]
     if output.fields_from is not None:
         return [f"{_INDENT}fields from variable {output.fields_from}"]
     rows = list(_field_rows(output.fields, 0))

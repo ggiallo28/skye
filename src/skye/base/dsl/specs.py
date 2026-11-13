@@ -18,7 +18,10 @@ from typing import Any, Literal
 
 from skye.base.validated import Validated, field, validated
 
-#: The routing strategies (the values of ``skye.base.interfaces.router.RoutingStrategy``).
+# : The built-in routing strategies (the values of ``skye.base.interfaces.router.RoutingStrategy``).
+# A name that a plugin registered is also valid
+# : in a ``strategy`` (the checker asks the registrar), which is why the fields below are ``Strategy
+# | str``.
 Strategy = Literal[
     "simple_shuffle",
     "round_robin",
@@ -121,7 +124,9 @@ class RouteSpec(Validated):
 
     alias: str = field(description="Alias name of the route")
     targets: list[TargetSpec] = field(default_factory=list, description="Targets of the route")
-    strategy: Strategy | None = field(default=None, description="Strategy that picks a target")
+    strategy: Strategy | str | None = field(
+        default=None, description="Strategy that picks a target"
+    )
     fallback_on_error: bool = field(default=True, description="Try the next target on error")
     fallback: list[str] = field(
         default_factory=list, description="Routes to try, in order, when this route fails"
@@ -155,7 +160,7 @@ class RouterSpec(Validated):
     """A ``router`` block."""
 
     name: str | None = field(default=None, description="The label of the block, if any")
-    strategy: Strategy | None = field(default=None, description="Default routing strategy")
+    strategy: Strategy | str | None = field(default=None, description="Default routing strategy")
     cooldown: str | None = field(default=None, description='Cooldown after failures, "60s"')
     enable_pre_call_checks: bool = field(
         default=True, description="Check rate limits before a call"
@@ -335,9 +340,10 @@ class VariableSpec(Validated):
         return self.item_type is not None or bool(self.fields)
 
 
-#: The formats of an ``output`` block (``output "json" { ... }``; no label means ``"json"``).
-OutputFormat = Literal["json", "table", "xml"]
-OUTPUT_FORMATS: tuple[str, ...] = ("json", "table", "xml")
+# : The formats of an ``output`` block (``output "json" { ... }``; no label means ``"json"``;
+# ``"text"`` is a plain answer).
+OutputFormat = Literal["json", "table", "xml", "text"]
+OUTPUT_FORMATS: tuple[str, ...] = ("json", "table", "xml", "text")
 
 
 @validated
@@ -378,7 +384,7 @@ class OutputSpec(Validated):
     """
 
     format: OutputFormat = field(
-        default="json", description="json, table or xml (not read when format_from is set)"
+        default="json", description="json, table, xml or text (not read when format_from is set)"
     )
     format_from: str | None = field(
         default=None,
@@ -390,6 +396,12 @@ class OutputSpec(Validated):
     schema_from: str | None = field(
         default=None,
         description="schema = VAR: the map variable that gives the fields at render time",
+    )
+    style: str | None = field(
+        default=None, description='output "text" { style = "..." }: the style'
+    )
+    style_from: str | None = field(
+        default=None, description="output text { style = VAR }: the string variable of the style"
     )
 
 

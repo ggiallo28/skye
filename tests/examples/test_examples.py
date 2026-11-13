@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pytest
 
-from skye.models.registry import ProviderRegistry
 from tests.budget.measure import ROOT, load_budgets
 from tests.examples.fake_network import patched
+from tests.unit.plugins.registrar_state import restored_default_registrar
 
 EXAMPLES = ROOT / "examples"
 SCRIPTS = sorted(p for p in EXAMPLES.rglob("*.py") if p.name != "__init__.py" and "__pycache__" not in p.parts)
@@ -37,15 +37,11 @@ def _id(path: Path) -> str:
     return str(path.relative_to(EXAMPLES))
 
 
-# The plugins example is written against the planned API (plugins:1.1) and fails until the discovery task (plugins:4.5, `skye.use`)
-# is done. strict: when it starts to pass, the test fails until this mark is removed, so the mark cannot be forgotten.
 EXPECTED_TO_FAIL = {
-    "plugins": "waits for plugins:4.5 (skye.use and the registrar); remove this entry when that task is done",
     # A single script is keyed by its path. These two are written against the planned hook API of the agents spec.
     "agents/hooks.py": "waits for the hooks of the agents spec (3-runtime-agents); remove this entry when they exist",
     "agents/hooks_memory.py": "waits for the hooks of the agents spec (3-runtime-agents); remove this entry when they exist",
 }
-NOT_EXPECTED_TO_FAIL: set[str] = set()  # scripts of those folders that already pass
 
 
 def with_expected_failures(scripts):
@@ -53,8 +49,6 @@ def with_expected_failures(scripts):
     params = []
     for script in scripts:
         reason = EXPECTED_TO_FAIL.get(_id(script)) or EXPECTED_TO_FAIL.get(script.relative_to(EXAMPLES).parts[0])
-        if _id(script) in NOT_EXPECTED_TO_FAIL:
-            reason = None
         marks = [pytest.mark.xfail(strict=True, reason=reason)] if reason else []
         params.append(pytest.param(script, marks=marks, id=_id(script)))
     return params
@@ -82,14 +76,11 @@ def run_offline(script, monkeypatch, capsys) -> str:
     monkeypatch.chdir(script.parent)
     monkeypatch.syspath_prepend(str(script.parent))
     before = set(sys.modules)
-    registry = ProviderRegistry
-    saved = (dict(registry._model_providers), dict(registry._embedding_providers))
     try:
-        with patched():
+        # An example may register a provider of its own (`custom_providers.py`): put the default registrar back as it was.
+        with restored_default_registrar(), patched():
             runpy.run_path(str(script), run_name="__main__")
     finally:
-        # An example may register a provider of its own (`custom_providers.py`): put the registry back as it was.
-        registry._model_providers, registry._embedding_providers = saved
         # An example may import an optional library (boto3 for DynamoDB, ...): do not leave it loaded for the tests that follow.
         for name in set(sys.modules) - before:
             if name.split(".")[0] in _optional_libraries():

@@ -126,15 +126,21 @@ function check(document) {
     }
     collection.set(
       document.uri,
-      items.map((item) => {
+      items.flatMap((item) => {
+        // A mistake in a partial file that this document includes is shown at the first use site (`via`) that is in this document.
+        const elsewhere = item.file && item.file !== document.fileName;
+        const site = elsewhere ? (item.via || []).find((s) => s.file === document.fileName) : null;
+        if (elsewhere && !site) return []; // that file's own check shows it
+        const where = site || item;
+        const prefix = site ? `in ${item.file}:${item.line}:${item.column}: ` : "";
         const message = item.fix ? `${item.reason}\n${item.fix}` : String(item.reason || item.message || "");
         const diagnostic = new vscode.Diagnostic(
-          rangeOf(document, item.line, item.column),
-          message,
+          rangeOf(document, where.line, where.column),
+          prefix + message,
           vscode.DiagnosticSeverity.Error
         );
         diagnostic.source = "skye";
-        return diagnostic;
+        return [diagnostic];
       })
     );
   });

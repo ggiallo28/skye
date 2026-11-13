@@ -1,0 +1,102 @@
+---
+title       = "Reasoning: tree of thoughts"
+description = "\"propose\" offers candidate next thoughts from the current path, \"evaluate\" scores candidates, \"solve\" writes the final solution along the chosen path."
+version     = "1.0"
+tags        = ["agent", "reasoning"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+include "common/tools.skye" as tools
+include "common/memories.skye" as memories
+
+prompt "agent_reasoning_tree_of_thoughts" {
+  variables = {
+    use system_prompt
+    task              = string             "The task to accomplish"
+    phase             = string("propose")  "\"propose\", \"evaluate\" or \"solve\""
+    breadth           = number(3)          "How many candidate next thoughts to propose"
+    path              = list(string, [])   "Thoughts chosen so far, in order"
+    candidates        = list(string, [])   "Candidate next thoughts to judge, for phase \"evaluate\""
+    scoring           = string("label")    "\"label\" (sure/likely/impossible) or \"number\" (1 to 10)"
+    use tools
+    use memories
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You solve hard problems by searching over partial solutions. A solution is built as a path of intermediate thoughts; at each point you consider several possible next thoughts, judge which ones are worth pursuing, and continue only along the promising ones."
+    }
+
+    use tools
+
+    use memories
+
+    when phase == "evaluate" {
+      text = "## Current phase: evaluate"
+      text = "Judge each candidate thought below as a next step after the current path. Ask whether it is correct, whether it moves toward a solution, and whether a solution can still be reached from it. Judge every candidate independently and in the order given; do not continue the solution."
+      when scoring == "number" {
+        text = """
+          Give each candidate a score from 1 (useless or wrong) to 10 (certainly leads to a solution), with a one-line justification.
+
+          ## Answer format
+          One line per candidate, in the given order:
+          Candidate <n>: <score from 1 to 10> - <one-line justification>
+          """
+      }
+      when scoring != "number" {
+        text = """
+          Label each candidate with one word: "sure" (it is correct and clearly leads to a solution), "likely" (it is plausible but not yet certain) or "impossible" (it is wrong or makes a solution unreachable), with a one-line justification.
+
+          ## Answer format
+          One line per candidate, in the given order:
+          Candidate <n>: <sure|likely|impossible> - <one-line justification>
+          """
+      }
+    }
+    when phase == "solve" {
+      text = """
+        ## Current phase: solve
+        The path below is the line of thought that was chosen. Follow it step by step, fill in whatever it leaves out, and write the complete final solution.
+        When a step of the path turns out to be wrong, correct it and say so briefly.
+
+        ## Answer format
+        Solution: <the worked solution along the path>
+        Final answer: <the answer only>
+        """
+    }
+    when phase != "evaluate" and phase != "solve" {
+      text = "## Current phase: propose"
+      text = "Suggest {{ breadth }} different candidates for the next thought after the current path. Each candidate is one concrete step that moves the solution forward; the candidates should explore genuinely different directions, not rephrase each other. Do not solve the whole problem in one candidate."
+      text = """
+
+        ## Answer format
+        One line per candidate:
+        Thought <n>: <the next step>
+        """
+    }
+  }
+
+  placeholder "history"
+
+  message "user" {
+    text = "## Problem"
+    text = "{{ task }}"
+
+    when path {
+      text = "## Current path"
+      each thought in path { text = "- {{ thought }}" }
+    }
+    when not path and phase == "solve" { text = "No path was selected: solve the problem directly." }
+    when not path and phase != "solve" { text = "The path is empty: this is the first step." }
+
+    when phase == "evaluate" {
+      text = "## Candidates"
+      each candidate in candidates { text = "- {{ candidate }}" }
+      when not candidates { text = "(no candidates were given)" }
+      text = "Evaluate the candidates."
+    }
+    when phase == "solve"                          { text = "Write the final solution." }
+    when phase != "evaluate" and phase != "solve" { text = "Propose exactly {{ breadth }} candidate next thoughts." }
+  }
+}

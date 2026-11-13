@@ -6,7 +6,6 @@ plugin, so you build it by name with `skye.toolkit(name, **options)`:
 * `"files"`: reads the files under a folder. The folder (`root`) is required and nothing outside it
   can be read.
 * `"openapi"`: one tool for each operation of an OpenAPI document (`spec`).
-* `"mcp"`: the tools of an MCP server, by its address (`target`).
 
 You do not always ask for one. Giving the agent a `SKILL.md` (`skills=[...]`) makes it add `files`
 by itself, limited to the folder of that skill.
@@ -17,6 +16,7 @@ the key, and never sees the address or the header.
 """
 
 import asyncio
+from pathlib import Path
 
 import skye
 from skye.agents import REACT
@@ -26,29 +26,36 @@ plugins = skye.Plugins()
 OpenApiToolkit = plugins.get("toolkit", "openapi")  # the class that ships with Skye
 
 
+HERE = Path(__file__).parent
+ACME = {  # the OpenAPI document of the API; a real one is a path or an address, `spec="https://.../openapi.json"`
+    "openapi": "3.0.0",
+    "servers": [{"url": "https://api.acme.example"}],
+    "paths": {"/orders/{id}": {"get": {"operationId": "get_order", "summary": "Read an order"}}},
+}
+
+
 @plugins.toolkit("acme-api")
 class AcmeApiToolkit(OpenApiToolkit):
     def __init__(self, *, api_key: str) -> None:
-        super().__init__(
-            spec="https://api.acme.example/openapi.json",
-            headers={"Authorization": f"Bearer {api_key}"},
-        )
+        super().__init__(spec=ACME, headers={"Authorization": f"Bearer {api_key}"})
 
 
 async def main() -> None:
-    files = skye.toolkit("files", root="docs")
+    files = skye.toolkit("files", root=HERE)
     print("files:", [schema.name for schema in await files.list_schemas()])
 
-    mcp = skye.toolkit("mcp", target="http://localhost:8000/mcp")
     acme = skye.toolkit("acme-api", api_key="not-a-real-key")  # built on `openapi`, see above
+    print("acme-api:", [schema.name for schema in await acme.list_schemas()])
 
+    # `skills=` makes the agent add its own `files`, limited to the folder of the skill, so `files`
+    # is not passed here again.
     agent = skye.agent(
         REACT,
         model="gpt-4o-mini",
-        toolkits=[files, mcp, acme],
-        skills=["examples/plugins/skills/refund-policy/SKILL.md"],  # adds `files` for this folder
+        toolkits=[acme],
+        skills=[str(HERE / "skills" / "refund-policy" / "SKILL.md")],
     )
-    print(await agent.invoke("What is the refund policy?"))
+    print("added for the skill:", [type(toolkit).__name__ for toolkit in agent.skill_toolkits])
 
 
 if __name__ == "__main__":

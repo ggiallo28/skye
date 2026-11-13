@@ -319,6 +319,9 @@ requirement or decision directly. A task that depended on an open decision names
     - Keep it current: when 8.4 (the loading API) and the flow runtime are built, remove the "not built yet" line of the skill and show `Flow.from_file` and `skye.load` with an example.
     - _Requirements: 54.14; D64_
 
+  - [ ] 8.9 `skye new plugin <kind> <name>` (O74, option a): writes the Python skeleton of a plugin of one of the nine kinds from the examples in `examples/plugins/`, with the `pyproject.toml` of its entry point; planned and not started (owner, 2026-11-13: not now)
+    - _Requirements: 19.1; D111_
+
 - [x] 9. Remove YAML (decision D62)
   - Note: the library reads no YAML. The router must read a `.skye` file first (8.4) so the YAML files can be rewritten; PyYAML leaves last, because the tests read YAML until they are converted.
   - [x] 9.1 The router reads a `.skye` block

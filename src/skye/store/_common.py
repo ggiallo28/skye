@@ -1,5 +1,5 @@
-"""What every backend of ``store`` shares: the clock, the expiry rule and the error wrapping
-(decisions D95, D98).
+# decisions D95, D98
+"""What every backend of ``store`` shares: the clock, the expiry rule and the error wrapping.
 
 Standard library only. Never logs or puts in an error message a stored value, a URL with a password
 or a credential.
@@ -7,6 +7,7 @@ or a credential.
 
 from __future__ import annotations
 
+import math
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -19,8 +20,9 @@ from skye.base.interfaces.storage import check_key, check_ttl
 Clock = Callable[[], float]
 
 
+# D95
 def expiry_of(ttl: int | None, clock: Clock) -> float | None:
-    """The absolute expiry of a value written now with ``ttl`` (validated, D95), or ``None``."""
+    """The absolute expiry of a value written now with ``ttl`` (validated), or ``None``."""
     checked = check_ttl(ttl)
     return None if checked is None else clock() + checked
 
@@ -28,6 +30,18 @@ def expiry_of(ttl: int | None, clock: Clock) -> float | None:
 def is_expired(expiry: float | None, clock: Clock) -> bool:
     """``True`` when ``expiry`` is set and not in the future."""
     return expiry is not None and expiry <= clock()
+
+
+def remaining_of(expiry: float | None, clock: Clock) -> int | None:
+    """The whole seconds left before ``expiry``, rounded up (at least 1), or ``None`` for no expiry or an expired one."""
+    if expiry is None or is_expired(expiry, clock):
+        return None
+    return max(1, math.ceil(expiry - clock()))
+
+
+def count_of(value: dict[str, Any] | None) -> int:
+    """The count held by a stored counter value ``{"count": n}``, ``0`` for no value (an absent or expired key)."""
+    return 0 if not value else int(value.get("count", 0))
 
 
 def check_data(data: object) -> dict[str, Any]:
@@ -103,4 +117,5 @@ __all__ = [
     "is_expired",
     "like_prefix",
     "provider_errors",
+    "remaining_of",
 ]

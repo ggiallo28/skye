@@ -1,0 +1,57 @@
+{
+  "input": "Does the receipt match the photo of the shelf price?",
+  "task_type": "multimodal_reasoning",
+  "content_types": [
+    "image",
+    "document"
+  ],
+  "images": [
+    {
+      "description": "Shelf label: olive oil 7.99 EUR",
+      "url": "https://example.com/shelf.jpg"
+    }
+  ],
+  "documents": [
+    {
+      "title": "Receipt",
+      "content": "Olive oil 1L ... 8.49 EUR"
+    }
+  ],
+  "audio": [
+    {
+      "description": "Voice note",
+      "transcript": "I think they overcharged me."
+    }
+  ],
+  "context": "Purchase made on 2026-11-07.",
+  "examples": [
+    {
+      "input": "Is the label price the same as the receipt?",
+      "output": "No: 7.99 vs 8.49 EUR."
+    }
+  ],
+  "output_format": "json",
+  "tools": [
+    {
+      "name": "ocr",
+      "description": "Reads the text in an image",
+      "returns": "the text"
+    }
+  ],
+  "semantic_memory": [
+    {
+      "content": "Shelf prices include VAT in Italy",
+      "source": "consumer guide"
+    }
+  ],
+  "history": [
+    {
+      "role": "user",
+      "content": "I'll send you a photo and a receipt."
+    },
+    {
+      "role": "assistant",
+      "content": "Ready when you are."
+    }
+  ]
+}

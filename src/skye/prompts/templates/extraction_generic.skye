@@ -1,0 +1,91 @@
+---
+title       = "Generic extraction"
+description = "Extracts entities, relations, a table or a classification from a text with one prompt: the fields of the `schema` variable and the allowed `labels` say what to extract or decide, the `format` variable (json by default, table, xml or text) how to write it."
+version     = "1.0"
+tags        = ["extraction", "classification", "structured-output"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+
+prompt "extraction_generic" {
+  variables = {
+    use system_prompt
+    task         = string("")       "What to extract or decide, e.g. \"List every product with its price\""
+    input        = string("")       "The text to work on"
+    schema       = map({})          "Output fields, optional (empty: the fields name and value): {name: \"string\"|\"number\"|\"bool\"|\"list\"|\"map\", [type], {nested} or {\"type\": ..., \"description\": ...}}"
+    labels       = list({
+      name        = string            "An allowed type or category, e.g. PERSON, WORKS_FOR or complaint"
+      description = string("")        "What it covers"
+      examples    = list(string, [])  "Example mentions"
+    }, [])                            "Allowed entity types, relation types or categories, optional; the answer uses only these"
+    format       = string("json")   "\"json\", \"table\" (scalar fields only), \"xml\" or \"text\""
+    instructions = list(string, []) "Extra rules for this task"
+    constraints  = list(string, []) "Limits to respect"
+    context      = string("")       "Background that helps to read the text, e.g. the domain"
+    examples     = list({
+      input  = string  "Example input"
+      output = string  "The expected answer for it"
+    }, [])              "Worked examples, sent as user/assistant turns"
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You are a precise data extractor. You turn the input you are given into structured data that follows the requested format exactly."
+    }
+    text = """
+      ## Rules
+      - Take every value from the input; never invent, guess or fill in a value that the input does not support.
+      - When a value is not in the input, leave it empty instead of making one up: null in JSON (an empty list for a list field), an empty cell in a table, an empty element in XML. A field that must hold one of the allowed types always holds one of them.
+      - Keep the field names and the types exactly as requested; do not add fields that were not asked for.
+      - Reply with the structured data only, with no explanation before or after it.
+      """
+    when instructions {
+      text = "## Instructions"
+      each rule in instructions { text = "- {{ rule }}" }
+    }
+    when labels {
+      text = "## Allowed types"
+      text = "Use only these; do not invent others."
+      each label in labels {
+        when label.description     { text = "- **{{ label.name }}**: {{ label.description }}" }
+        when not label.description { text = "- **{{ label.name }}**" }
+        when label.examples        { text = "  Examples: {{ label.examples | join(', ') }}" }
+      }
+    }
+    when constraints {
+      text = "## Constraints"
+      each constraint in constraints { text = "- {{ constraint }}" }
+    }
+    when context {
+      text = "## Context"
+      text = "{{ context }}"
+    }
+  }
+
+  each example in examples {
+    message "user"      { text = "{{ example.input }}" }
+    message "assistant" { text = "{{ example.output }}" }
+  }
+
+  placeholder "history"
+
+  message "user" {
+    when task {
+      text = "## Task"
+      text = "{{ task }}"
+    }
+    when input {
+      when task { text = "## Input" }
+      text = "{{ input }}"
+    }
+  }
+
+  when schema { output format { schema = schema } }
+  when not schema {
+    output format {
+      name  = string  "What the extracted item is"
+      value = string  "Its value, as written in the input"
+    }
+  }
+}

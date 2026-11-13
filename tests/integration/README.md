@@ -117,7 +117,7 @@ import os
 )
 def test_openai_provider_real_api():
     """Test OpenAI provider with real API call."""
-    from skye.models.llm.openai import OpenAIProvider
+    from skye.models.plugins.openai.provider import OpenAIProvider
     
     provider = OpenAIProvider(api_key=os.getenv("OPENAI_API_KEY"))
     

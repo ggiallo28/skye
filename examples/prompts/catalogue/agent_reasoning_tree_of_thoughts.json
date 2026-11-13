@@ -1,0 +1,22 @@
+{
+  "task": "Use 4, 9, 10 and 13 with + - * / to make 24.",
+  "phase": "evaluate",
+  "path": [
+    "13 - 9 = 4 (left: 4, 4, 10)"
+  ],
+  "candidates": [
+    "10 - 4 = 6 (left: 4, 6)",
+    "4 + 4 = 8 (left: 8, 10)"
+  ],
+  "scoring": "number",
+  "tools": [
+    {
+      "name": "calculator",
+      "description": "Evaluates an arithmetic expression.",
+      "parameters": {
+        "expression": "The expression, e.g. 3 * 4.5"
+      },
+      "returns": "The result as a number"
+    }
+  ]
+}

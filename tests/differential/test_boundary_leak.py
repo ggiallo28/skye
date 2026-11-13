@@ -10,8 +10,8 @@ import pytest
 
 pytest.importorskip("fastmcp", reason="fastmcp not installed (dev/test dependency group)")
 
-from skye.tools.mcp_client import BuiltinMCPClient  # noqa: E402
-from skye.tools.mcp_fastmcp import FastMCPClient  # noqa: E402
+from skye.tools.engines.skyemcp import SkyeMCPClient  # noqa: E402
+from skye.tools.engines.fastmcp import FastMCPClient  # noqa: E402
 from tests.budget.test_boundary_rule import _foreign_types  # noqa: E402
 
 
@@ -29,7 +29,7 @@ async def _surface(c):
 
 
 async def test_mcp_clients_expose_only_skye_types_and_same_types(mcp_server):
-    out = [await _surface(c) for c in (BuiltinMCPClient(mcp_server.url), FastMCPClient(mcp_server.url))]
+    out = [await _surface(c) for c in (SkyeMCPClient(mcp_server.url), FastMCPClient(mcp_server.url))]
     for surface in out:
         assert not _foreign_types(surface)
     for key in out[0]:

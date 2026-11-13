@@ -14,8 +14,8 @@ import pytest
 
 import skye
 from skye.base.exceptions import ServerError
-from skye.models.llm.openai import OpenAIProvider
-from skye.models.transport.rest import wrap
+from skye.models.plugins.openai.provider import OpenAIProvider
+from skye.models.utilities.rest import wrap
 
 SECRET = "mario.rossi@example.com wants the quarterly report"
 
@@ -42,6 +42,12 @@ REPLY = {
 
 def _client(**config: Any) -> OpenAIProvider:
     return OpenAIProvider(api_key="k", retry_sleep=lambda seconds: None, **config)
+
+
+async def _agen(items: Any) -> Any:
+    """The events as an async generator: what a provider's async stream transport returns."""
+    for item in items:
+        yield item
 
 
 def _events(caplog: pytest.LogCaptureFixture) -> list[logging.LogRecord]:
@@ -99,7 +105,7 @@ def test_a_failed_call_logs_one_error_after_the_retries(caplog: pytest.LogCaptur
 def test_a_stream_logs_its_end_with_the_last_running_count(caplog: pytest.LogCaptureFixture) -> None:
     usage_chunk = wrap({"id": "s", "choices": [], "usage": {"prompt_tokens": 7, "completion_tokens": 3, "total_tokens": 10}})
     client = _client()
-    client._call_provider_stream = lambda request: iter(  # type: ignore[method-assign]
+    client._acall_provider_stream = lambda request: _agen(  # type: ignore[method-assign]
         [_delta("Hello"), _delta(None, "stop"), usage_chunk]
     )
     with caplog.at_level(logging.DEBUG, logger="skye.models"):
@@ -114,7 +120,7 @@ def test_a_stream_logs_its_end_with_the_last_running_count(caplog: pytest.LogCap
 
 def test_a_stream_the_caller_abandons_is_still_logged(caplog: pytest.LogCaptureFixture) -> None:
     client = _client()
-    client._call_provider_stream = lambda request: iter([_delta("one"), _delta("two"), _delta("three")])  # type: ignore[method-assign]
+    client._acall_provider_stream = lambda request: _agen([_delta("one"), _delta("two"), _delta("three")])  # type: ignore[method-assign]
     with caplog.at_level(logging.DEBUG, logger="skye.models"):
         chunks = client.stream("hi", model="gpt-4")
         next(chunks)
@@ -125,12 +131,12 @@ def test_a_stream_the_caller_abandons_is_still_logged(caplog: pytest.LogCaptureF
 
 
 def test_a_stream_that_fails_logs_an_error(caplog: pytest.LogCaptureFixture) -> None:
-    def broken(request: Any) -> Any:
+    async def broken(request: Any) -> Any:
         yield _delta("partial")
         raise ServerError("dropped", provider="openai", status_code=503)
 
     client = _client()
-    client._call_provider_stream = broken  # type: ignore[method-assign]
+    client._acall_provider_stream = broken  # type: ignore[method-assign]
     with caplog.at_level(logging.DEBUG, logger="skye.models"):
         with pytest.raises(ServerError):
             list(client.stream("hi", model="gpt-4"))

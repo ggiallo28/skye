@@ -1,4 +1,5 @@
-"""Renderer for the ``prompt`` block of ``.skye`` files (version 1, decision D60).
+# decision D60, decision D70
+"""Renderer for the ``prompt`` block of ``.skye`` files (version 1).
 
 ``base`` parses and checks a ``prompt`` block into a :class:`~skye.base.dsl.PromptSpec`; this
 module turns that spec plus the caller's variables into a list of :class:`SkyeMessage` with real
@@ -37,8 +38,9 @@ Semantics:
       :meth:`SkyeMessage.from_dict`. Nothing is inserted when neither is present (or it is
       ``None``).
 
-    * ``output "json" | "table" | "xml" { ... }`` (decision D70): :func:`output_instructions`
-      writes the instructions that ask for an answer of that shape and format, and
+    * ``output "json" | "table" | "xml" { ... }`` (or ``output "text" { style = "..." }``):
+      :func:`output_instructions` writes the instructions that ask for an answer of that shape
+      and format, and
       :func:`render_prompt` appends them as the last text of the last user message (a new user
       message when the prompt has none). ``output { schema = VAR }`` reads the fields from the
       map variable ``VAR`` at render time, and ``output VAR { ... }`` the format from the string
@@ -152,6 +154,7 @@ def render_prompt(
     return messages
 
 
+# Requirement 33.9, decisions D81, D101
 def render_parts(
     spec: PromptSpec,
     variables: Mapping[str, Any],
@@ -159,7 +162,7 @@ def render_parts(
     history: History | None = None,
     filters: Filters | None = None,
 ) -> PromptParts:
-    """Render a prompt spec into provider-agnostic parts (Requirement 33.9, decisions D81, D101).
+    """Render a prompt spec into provider-agnostic parts.
 
     Give the result to ``client.complete(parts, model=...)``: the model adapter puts the system
     text and the output schema in the provider's own fields, or falls back to the text.
@@ -335,10 +338,6 @@ def _active_fields(
     output = active_output(spec, variables)
     if output is None:
         return None
-    fields = list(output.fields)
-    if output.schema_from is not None:
-        name = output.schema_from
-        fields = fields_from_value(_output_variable(spec, variables, name, "schema"), name)
     output_format: str = output.format
     if output.format_from is not None:
         name = output.format_from
@@ -346,12 +345,21 @@ def _active_fields(
         if output_format not in OUTPUT_FORMATS:
             raise ValidationError(
                 f"Prompt {spec.name!r}: the output format comes from the variable {name!r}, "
-                f"whose value {output_format!r} is not one of json, table or xml",
+                f"whose value {output_format!r} is not one of json, table, xml or text",
                 field=name,
                 value=output_format,
                 supported=list(OUTPUT_FORMATS),
                 prompt=spec.name,
             )
+    if output_format == "text":  # a plain answer: the fields (or the schema) are not read
+        style = output.style
+        if output.style_from is not None:
+            style = _output_variable(spec, variables, output.style_from, "style")
+        return output_format, {"style": style}
+    fields = list(output.fields)
+    if output.schema_from is not None:
+        name = output.schema_from
+        fields = fields_from_value(_output_variable(spec, variables, name, "schema"), name)
     return output_format, fields_schema(fields)
 
 

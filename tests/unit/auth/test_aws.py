@@ -1,4 +1,4 @@
-"""Tests for skye.auth.aws."""
+"""Tests for skye.auth.plugins.aws.source."""
 
 import datetime as dt
 import json
@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from skye.auth import aws
+from skye.auth.plugins.aws import source as aws
 from skye.base.exceptions import ConfigurationError
 from skye.base.interfaces.authentication import AuthenticationInterface
 

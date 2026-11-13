@@ -546,7 +546,7 @@ class TestRemoteAPICapabilityIntegration:
         )
 
         capability = RemoteAPICapability(
-            name="weather.get_current",
+            name="weather_get_current",
             description="Get current weather",
             url="https://api.example.com/weather",
             method="POST",
@@ -554,7 +554,7 @@ class TestRemoteAPICapabilityIntegration:
 
         # Get schema
         schema = capability.get_schema()
-        assert schema.name == "weather.get_current"
+        assert schema.name == "weather_get_current"
         assert schema.description == "Get current weather"
 
         # Execute

@@ -12,8 +12,8 @@ import os
 import sys
 from pathlib import Path
 
+import skye
 from skye import SkyeError, UserMessage
-from skye.tools import create_mcp_client
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # the shared offline helper lives in examples/
 from _offline import get_client  # noqa: E402
@@ -26,7 +26,7 @@ async def main() -> None:
         print("MCP_SERVER_URL not set: start an MCP server and set its address, then run again")
         return
 
-    mcp = create_mcp_client(SERVER_URL)  # impl="fastmcp" (extra `mcp`) only if you ask for it
+    mcp = skye.mcp_client(SERVER_URL)  # impl="fastmcp" (extra `mcp`) only if you ask for it
     try:
         capabilities = await mcp.list_tools()
     except (OSError, SkyeError) as error:

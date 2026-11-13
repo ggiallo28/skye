@@ -7,7 +7,7 @@ What you learn: a complete AWS Lambda function with Skye, packaged as a plain zi
 Build: `sh examples/serverless/lambda_zip/build.sh` (needs `python3` with `pip`, and `zip`; set `PYTHON` to use another interpreter). It installs `skyeai` into `build/`, adds
 `handler.py` and writes `function.zip`.
 
-What you get: a zip of **0.56 MB** (1.76 MB unzipped), measured on 2026-11-11 with skyeai 0.1.1. AWS allows 50 MB zipped
+What you get: a zip of **0.61 MB** (1.87 MB unzipped), measured with skyeai 0.3.0. AWS allows 50 MB zipped
 and 250 MB unzipped. The CI builds the same zip and fails above `[lambda] max_zip_mb` of `budgets.toml`.
 
 Deploy (Python 3.11 or later; the role needs `bedrock:InvokeModel`):

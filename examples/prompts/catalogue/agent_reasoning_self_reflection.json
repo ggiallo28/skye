@@ -1,0 +1,19 @@
+{
+  "task": "Write a Python function that returns the n-th Fibonacci number.",
+  "phase": "reflect",
+  "previous_attempt": "def fib(n):\n    return fib(n - 1) + fib(n - 2)",
+  "feedback": "It never stops.",
+  "test_results": [
+    "fib(0): RecursionError",
+    "fib(5): RecursionError"
+  ],
+  "reflections": [
+    "Check the base cases before the recursive step."
+  ],
+  "semantic_memory": [
+    {
+      "content": "fib(0) = 0 and fib(1) = 1.",
+      "source": "task statement"
+    }
+  ]
+}

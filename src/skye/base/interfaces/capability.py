@@ -21,6 +21,7 @@ Concurrency: ``execute`` is called from the calling thread, ``aexecute`` from th
 """
 
 import dataclasses
+import re
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -28,6 +29,40 @@ from skye.base.exceptions import ValidationError
 from skye.base.validated import Validated, field, validated
 
 
+# What a model provider accepts as the name of a tool: letters, digits, ``_`` and ``-``, 64 at most.
+WIRE_NAME = re.compile(r"[A-Za-z0-9_-]{1,64}")
+
+
+def wire_name(name: str) -> str:
+    """``name`` made valid for a provider: every other character becomes ``_`` and the result is cut to 64.
+
+    Example:
+        >>> wire_name("weather.current")
+        'weather_current'
+    """
+    return re.sub(r"[^A-Za-z0-9_-]", "_", name.strip())[:64]
+
+
+def check_wire_name(name: str) -> str:
+    """Return ``name`` when a provider accepts it as the name of a tool; ``ValidationError`` otherwise.
+
+    The message names the capability, the rule and a name that would do.
+
+    Example:
+        >>> check_wire_name("math_add")
+        'math_add'
+    """
+    if not WIRE_NAME.fullmatch(name):
+        raise ValidationError(
+            f"the name '{name}' is not valid for a tool: use letters, digits, '_' and '-' only, "
+            f"64 characters at most (for example '{wire_name(name) or 'tool'}')",
+            field="name",
+            value=name,
+        )
+    return name
+
+
+# Requirement 62.3
 @validated(frozen=True)
 class CapabilitySchema(Validated):
     """Schema defining a capability's signature.
@@ -42,6 +77,9 @@ class CapabilitySchema(Validated):
         description: Human-readable description of what the capability does.
         parameters: JSON Schema describing the capability's parameters.
         returns: JSON Schema describing the capability's return value.
+        return_direct: ``True`` when the result of the capability is the answer of the agent and the model
+            is not asked again. It is a flag for the agent, read through the
+            ``ToolProvider`` Port; no adapter sends it to a model. It must be a ``bool``.
 
     Example:
         >>> schema = CapabilitySchema(
@@ -66,9 +104,14 @@ class CapabilitySchema(Validated):
     description: str = field(min_length=1)
     parameters: dict[str, Any] = field(default_factory=dict)
     returns: dict[str, Any] = field(default_factory=dict)
+    return_direct: bool = False
 
     def __post_init__(self) -> None:
         """Validate the fields, then strip the name and the description, which must not be blank."""
+        if not isinstance(self.return_direct, bool):
+            raise ValidationError(
+                "return_direct must be a bool", field="return_direct", value=self.return_direct
+            )
         try:
             super().__post_init__()
         except dataclasses.FrozenInstanceError as error:
@@ -84,6 +127,7 @@ class CapabilitySchema(Validated):
                     f"{field_name} cannot be empty or whitespace", field=field_name, value=value
                 )
             object.__setattr__(self, field_name, value.strip())
+        check_wire_name(self.name)
 
 
 class CapabilityInterface(ABC):

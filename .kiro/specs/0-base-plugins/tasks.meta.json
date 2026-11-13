@@ -262,6 +262,985 @@
         "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
         "timestamp": 1794476626934
       }
+    ],
+    "13.1 Rename `store_backend` to `backend`, `agent_type` to `agent` and `prompt_filter` to `template_filter` in `KINDS`,": [
+      {
+        "executionId": "56925146-abcb-4dda-8193-91c420e3934d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794497378311
+      },
+      {
+        "executionId": "56925146-abcb-4dda-8193-91c420e3934d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794498278311
+      }
+    ],
+    "20.1 `run_sync(coroutine)` and `iterate_sync(async_generator)` in `base`: the first runs on a worker thread when a loop is already": [
+      {
+        "executionId": "c129e881-38ab-46df-a980-5dd676ef201a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794497378311
+      },
+      {
+        "executionId": "c129e881-38ab-46df-a980-5dd676ef201a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794498278311
+      }
+    ],
+    "8.2 `ExpiryStore` (`is_alive`, `remaining`) beside the Protocols of D98, in every backend that stores an expiry; the": [
+      {
+        "executionId": "30c9890c-18d6-48e9-9b12-05ec3294ab89",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794498089024
+      },
+      {
+        "executionId": "30c9890c-18d6-48e9-9b12-05ec3294ab89",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794499289024
+      }
+    ],
+    "13.2 Remove the kind `capability` and the default set of capabilities of the registrar (`default_set(\"capability\")`, and what": [
+      {
+        "executionId": "f3c22e20-2e32-481a-9f26-9f46e7e01f00",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794498089024
+      },
+      {
+        "executionId": "f3c22e20-2e32-481a-9f26-9f46e7e01f00",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794499289024
+      }
+    ],
+    "22.1 The built-in MCP client is called `skyemcp` and no longer `builtin`: the registered name, the default `impl` of": [
+      {
+        "executionId": "56548e4f-3291-426a-a35d-62c43267cbdf",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794498089024
+      },
+      {
+        "executionId": "56548e4f-3291-426a-a35d-62c43267cbdf",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794499289024
+      }
+    ],
+    "8.3 The router: counters through `count`, cooldown as a key with a `ttl` read through `ExpiryStore`, no `time.time()`": [
+      {
+        "executionId": "66e8e4a5-7434-4745-ab0c-b8d7ee59c6c8",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794498607103
+      },
+      {
+        "executionId": "66e8e4a5-7434-4745-ab0c-b8d7ee59c6c8",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794500107103
+      }
+    ],
+    "13.3 Add the kind `toolkit` to the registrar (the table and the method, no built-in yet); tests in `test_registrar.py` for the nine": [
+      {
+        "executionId": "f90a5a0b-6a32-4003-8672-2bb6f00587ce",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794498607103
+      },
+      {
+        "executionId": "f90a5a0b-6a32-4003-8672-2bb6f00587ce",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794500107103
+      }
+    ],
+    "18.1 `LocalFunctionCapability` as a descriptor (`__get__` binds it to the instance) and a schema that skips `self`, so that": [
+      {
+        "executionId": "e05c1b92-10bd-4b9d-92b7-80d27a7087b6",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794498607103
+      },
+      {
+        "executionId": "e05c1b92-10bd-4b9d-92b7-80d27a7087b6",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794500107103
+      }
+    ],
+    "13.4 Remove `PluginInterface` (the Protocol, its export from `skye.interfaces`, its docstring and tests) and the register-on-a-plugin": [
+      {
+        "executionId": "c8c273ea-b37b-4003-b5d9-588ea4b71949",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794499493817
+      },
+      {
+        "executionId": "c8c273ea-b37b-4003-b5d9-588ea4b71949",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794500693817
+      }
+    ],
+    "18.2 `skye.Toolkit` in `tools`: a `ToolProvider` that collects the methods of its class marked with `@capability`, adds the prefix": [
+      {
+        "executionId": "edbce8e7-426a-4cf9-9fac-71cce4f10c98",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794499493817
+      },
+      {
+        "executionId": "edbce8e7-426a-4cf9-9fac-71cce4f10c98",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794500693817
+      }
+    ],
+    "18.5 `@capability` takes `name`, `description` and `return_direct` (the name defaults to the function name and the description to its": [
+      {
+        "executionId": "6360550a-7066-4925-9f0f-82bb3a08c0cf",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794499493817
+      },
+      {
+        "executionId": "6360550a-7066-4925-9f0f-82bb3a08c0cf",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794500693817
+      }
+    ],
+    "8.5 `tests/budget/test_storage_knowledge.py`: the import of a concrete backend class outside `store` and its tests fails, and so": [
+      {
+        "executionId": "c4b5fc95-5a6f-47dd-93d4-043c620a59f2",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794500049948
+      },
+      {
+        "executionId": "c4b5fc95-5a6f-47dd-93d4-043c620a59f2",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794501249948
+      }
+    ],
+    "14.1 The class `Plugins` in `base/plugins.py`: a handle on the default registrar with no table of its own; one method for each kind that": [
+      {
+        "executionId": "1a33c41a-4280-4d27-9f3e-7fb7c8709771",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794500049948
+      },
+      {
+        "executionId": "1a33c41a-4280-4d27-9f3e-7fb7c8709771",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794501249948
+      }
+    ],
+    "4.5 An entry point is a module (D111): `discover` loads the entry point, which imports the module it names, and the decorators in the": [
+      {
+        "executionId": "b899e0f6-6ab3-4789-a1fa-cd2a296cc12f",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794500872416
+      },
+      {
+        "executionId": "b899e0f6-6ab3-4789-a1fa-cd2a296cc12f",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794502372416
+      }
+    ],
+    "14.2 Registration at once, from any part of the program: a write to a table takes a lock and a read does not; a test that registers from": [
+      {
+        "executionId": "69f6c754-c4d1-4b0d-991c-38bf51cf618f",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794500872416
+      },
+      {
+        "executionId": "69f6c754-c4d1-4b0d-991c-38bf51cf618f",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794502372416
+      }
+    ],
+    "14.3 `Plugins` as a lazy name of `skye/__init__.py` and in the `skye.plugins` facade; the exports count test and the public-imports test": [
+      {
+        "executionId": "da55de3e-07cc-4756-9863-374ffca71d89",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794500872416
+      },
+      {
+        "executionId": "da55de3e-07cc-4756-9863-374ffca71d89",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794502372416
+      }
+    ],
+    "9.1 Routing strategies by name through the registrar; the eight built-ins registered in `router/plugins/`; every": [
+      {
+        "executionId": "124f6a51-46ac-4947-8ddf-48f53594a181",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794501408394
+      },
+      {
+        "executionId": "124f6a51-46ac-4947-8ddf-48f53594a181",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794502908394
+      }
+    ],
+    "4.4 Failures: an entry point that fails to load or whose module raises is logged once at WARNING with `extra` (entry point,": [
+      {
+        "executionId": "6d9f288e-1287-484a-a510-22352fa49b72",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794501408394
+      },
+      {
+        "executionId": "6d9f288e-1287-484a-a510-22352fa49b72",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794502908394
+      }
+    ],
+    "14.4 Tests in `tests/unit/plugins/test_plugins_handle.py`: a decorator and a direct call for each kind, two handles see one table, a": [
+      {
+        "executionId": "396130d2-4a91-40e6-b57a-f0a98c513ada",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794501408394
+      },
+      {
+        "executionId": "396130d2-4a91-40e6-b57a-f0a98c513ada",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794502908394
+      }
+    ],
+    "15.1 The function of a `provider` from the method of the class (`generate`, `encode`, `decide`); the table keyed by name and function; a": [
+      {
+        "executionId": "fb78d19b-b7be-464d-a4c4-ce5d16f4d528",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794502563601
+      },
+      {
+        "executionId": "fb78d19b-b7be-464d-a4c4-ce5d16f4d528",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794504063601
+      }
+    ],
+    "4.6 `skye plugins [--format json]` in `utils/cli.py`: built-in registrations and each entry point (name, distribution, version,": [
+      {
+        "executionId": "238bfc1c-37b7-4ea4-a76c-f4436f56176c",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794502563601
+      },
+      {
+        "executionId": "238bfc1c-37b7-4ea4-a76c-f4436f56176c",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794504063601
+      }
+    ],
+    "23.1 `StrategyContext` in `router`: a frozen, read-only dataclass with the models, the alias, the token estimate, the request and the": [
+      {
+        "executionId": "f87af3e6-ef3d-444f-9b19-d769c7c2f455",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794502563601
+      },
+      {
+        "executionId": "f87af3e6-ef3d-444f-9b19-d769c7c2f455",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794504063601
+      }
+    ],
+    "23.2 The built-in strategy `lazy_complex`, deliberately naive: the models of a route are ordered from the cheap one to the strong one, a": [
+      {
+        "executionId": "19abccc4-b964-4d8e-9fca-cbfec773abf9",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794502563601
+      },
+      {
+        "executionId": "19abccc4-b964-4d8e-9fca-cbfec773abf9",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794504063601
+      }
+    ],
+    "4.7 Tests in `tests/unit/plugins/test_discovery.py` with a fake `entry_points`: an entry point that is a module, one scan per": [
+      {
+        "executionId": "da60e6a9-bb24-44cd-b790-dbbd61649f2e",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794504003601
+      },
+      {
+        "executionId": "da60e6a9-bb24-44cd-b790-dbbd61649f2e",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794504063601
+      }
+    ],
+    "16.2 `plugins.names(kind_word)` and `plugins.get(kind_word, name)` on `Plugins`, with the word of the kind (`plugins.names(\"agent\")`,": [
+      {
+        "executionId": "6d585bf7-a7d3-43be-838c-b3eb45131019",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794504003601
+      },
+      {
+        "executionId": "6d585bf7-a7d3-43be-838c-b3eb45131019",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794504063601
+      }
+    ],
+    "15.2 The tables `model_provider`, `embedding_provider` and `decision_model` become the kind `provider`; `ProviderRegistry`,": [
+      {
+        "executionId": "20248c9f-1998-48a9-a660-d8128f7925ca",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794503526528
+      },
+      {
+        "executionId": "20248c9f-1998-48a9-a660-d8128f7925ca",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794505326528
+      }
+    ],
+    "15.3 `skye.provider(name)` builds a model provider, and `provider_type=\"embedding\"` and `provider_type=\"decision\"` the others, from the": [
+      {
+        "executionId": "d1717800-2e53-4515-8d72-0ab4721fd4ad",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794505489459
+      },
+      {
+        "executionId": "d1717800-2e53-4515-8d72-0ab4721fd4ad",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794506989459
+      }
+    ],
+    "15.4 One profile for one provider name, kept under its own `name`, whatever the functions registered; the price of Jev in": [
+      {
+        "executionId": "db03c49b-7d79-4eb2-bafc-d7dd19aa0702",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794505489459
+      },
+      {
+        "executionId": "db03c49b-7d79-4eb2-bafc-d7dd19aa0702",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794506989459
+      }
+    ],
+    "15.5 Tests: a class of two functions is an error, one name with two classes, a text target with its function, a decision provider": [
+      {
+        "executionId": "370b4ce7-053d-4915-8144-6187c0aac420",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794505489459
+      },
+      {
+        "executionId": "370b4ce7-053d-4915-8144-6187c0aac420",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794506989459
+      }
+    ],
+    "24.1 A script that reports the size of the installed package by component and by kind (code, docstrings, comments, data files) against": [
+      {
+        "executionId": "067e501b-e7bb-4c69-956a-df6ff382f7c7",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794505489459
+      },
+      {
+        "executionId": "067e501b-e7bb-4c69-956a-df6ff382f7c7",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794506989459
+      }
+    ],
+    "24.8 A bundled template is compiled at its first use (the builder registers the names and the versions only): `BasePromptBuilder()` costs": [
+      {
+        "executionId": "59024a59-68b6-40dd-a37b-53bf33605cb4",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794505489459
+      },
+      {
+        "executionId": "59024a59-68b6-40dd-a37b-53bf33605cb4",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794506989459
+      }
+    ],
+    "16.1 The builders as lazy names of `skye/__init__.py`: `skye.agent` (a view of `create_agent`; `REACT` stays in `skye.agents`),": [
+      {
+        "executionId": "03c2c20e-35df-459d-9967-19045b185e6b",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794506445854
+      },
+      {
+        "executionId": "03c2c20e-35df-459d-9967-19045b185e6b",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794507945854
+      }
+    ],
+    "17.1 `plugins.profile(provider, models={model: ModelProfile(...)})` merges the given model entries into the profile of an existing": [
+      {
+        "executionId": "050a3174-a837-4334-a418-7c74336a5ddf",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794506445854
+      },
+      {
+        "executionId": "050a3174-a837-4334-a418-7c74336a5ddf",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794507945854
+      }
+    ],
+    "9.4 A test with a third-party strategy, MCP client and decision provider registered with `plugins` decorators": [
+      {
+        "executionId": "7821e13b-8c3e-4a37-9183-84761e6fe423",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794507956212
+      },
+      {
+        "executionId": "7821e13b-8c3e-4a37-9183-84761e6fe423",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794509756212
+      }
+    ],
+    "16.3 Tests: for each kind the word of the decorator is the word of the builder, and what a decorator registers is found by the builder and": [
+      {
+        "executionId": "23a17a65-9c4c-4999-bd40-c4b03338551d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794507956212
+      },
+      {
+        "executionId": "23a17a65-9c4c-4999-bd40-c4b03338551d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794509756212
+      }
+    ],
+    "17.2 A tokenizer is registered by name (`plugins.tokenizer`) and a model uses one only through `ModelProfile(tokenizer=...)`;": [
+      {
+        "executionId": "e85d2bef-cb56-4edc-81aa-d7b72a4ff3ae",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794507956212
+      },
+      {
+        "executionId": "e85d2bef-cb56-4edc-81aa-d7b72a4ff3ae",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794509756212
+      }
+    ],
+    "18.3 `tools=[...]` in the `toolkit` decorator and in the call with no class (`plugins.toolkit(\"text\", tools=[...])`), and a function that": [
+      {
+        "executionId": "eadf5448-3324-49dd-8bb7-659d79197e7d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794507956212
+      },
+      {
+        "executionId": "eadf5448-3324-49dd-8bb7-659d79197e7d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794509756212
+      }
+    ],
+    "24.3 The comments are removed from the wheel at build (a hook of the build backend, stdlib only): from the Python files with the standard-library": [
+      {
+        "executionId": "c993e733-37c5-468a-b704-a47291a061f2",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794507956212
+      },
+      {
+        "executionId": "c993e733-37c5-468a-b704-a47291a061f2",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794509756212
+      }
+    ],
+    "17.3 Tests: a change of the tokenizer of `gpt-4o` leaves `gpt-4o-mini`, the prices and the endpoint as they are; a new provider names its": [
+      {
+        "executionId": "26185eb9-5a01-4db8-8a38-a6282ad33db7",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794509802906
+      },
+      {
+        "executionId": "26185eb9-5a01-4db8-8a38-a6282ad33db7",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794511602906
+      }
+    ],
+    "7.4 A test that every call to a registry of today works as before (one case per registry)": [
+      {
+        "executionId": "a41143bb-c748-4b08-af9a-7c8c95bff7ba",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794509802906
+      },
+      {
+        "executionId": "a41143bb-c748-4b08-af9a-7c8c95bff7ba",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794511602906
+      }
+    ],
+    "18.4 `skye.toolkit(name, **options)` builds a toolkit; `replace=True` replaces a built-in one; `plugins.get(\"toolkit\", name)` returns its class so": [
+      {
+        "executionId": "a497ea33-d670-4c3e-b1fb-9e2acedb928b",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794509802906
+      },
+      {
+        "executionId": "a497ea33-d670-4c3e-b1fb-9e2acedb928b",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794511602906
+      }
+    ],
+    "6.3 One home for API-key variables: remove `STANDARD_ENV_VARS` (`auth`), `API_KEY_VARIABLES` (`router/skye_file.py`) and the": [
+      {
+        "executionId": "6d286a09-538e-4aaa-b1a0-2b6ffc1ffe27",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794509802906
+      },
+      {
+        "executionId": "6d286a09-538e-4aaa-b1a0-2b6ffc1ffe27",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794511602906
+      }
+    ],
+    "6.5 Error handlers into their adapter modules, referenced by `map_error`; `gemini_schema` into the Google adapter;": [
+      {
+        "executionId": "f2365121-b3bc-4570-8d2f-442da6e95a01",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794511367031
+      },
+      {
+        "executionId": "f2365121-b3bc-4570-8d2f-442da6e95a01",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794513167031
+      }
+    ],
+    "18.6 Tests in `tests/unit/tools/test_toolkit.py`: methods with `@capability`, the prefix, `alias`, `tools=[...]`, the function that returns a": [
+      {
+        "executionId": "b277f10a-8765-44dd-8b1c-5cfb87a7d51a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794511367031
+      },
+      {
+        "executionId": "b277f10a-8765-44dd-8b1c-5cfb87a7d51a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794513167031
+      }
+    ],
+    "19.1 `tools/plugins/files/`: registered by text as the toolkit `files`; the option `root` is required and nothing outside it can be read": [
+      {
+        "executionId": "d8e75802-ee46-4435-8045-a4eecd079f34",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794511367031
+      },
+      {
+        "executionId": "d8e75802-ee46-4435-8045-a4eecd079f34",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794513167031
+      }
+    ],
+    "6.6 The AWS region through `resolve_region` in `auth/plugins/aws/source.py`, `auth/plugins/aws/sts.py`, `models/utilities/credentials.py` and the store": [
+      {
+        "executionId": "4bf0dcce-805e-440c-b44f-d8ef2baf88b6",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794515797051
+      }
+    ],
+    "6.7 Bedrock reads its native-JSON-output capability from `get_model_info()`; `_native_json_output` goes": [
+      {
+        "executionId": "78d2d328-5758-40b0-810a-2c65a8384787",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794515797051
+      }
+    ],
+    "8.4 `store.namespaced(store, prefix)` and the router on the namespace `router` (depends on O63, part 1, option A)": [
+      {
+        "executionId": "57e49cd6-3ded-4698-abd1-161fa5780f60",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794515797051
+      }
+    ],
+    "19.2 `tools/plugins/openapi/`: registered as the toolkit `openapi` with the option `spec`": [
+      {
+        "executionId": "f51760b7-9ed8-4da5-ab96-57630ab3170a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794515797051
+      }
+    ],
+    "19.7 The toolkit `human` for escalations, the base only (the agent asks a person a question, or hands a case over; the way to reach the person is": [
+      {
+        "executionId": "37adb3ca-2597-42b4-a871-e9defd97b38b",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794515797051
+      }
+    ],
+    "24.7 The bundled templates are one `zipfile` archive made at build and read by name (opened at the first read, never at `import skye`); a": [
+      {
+        "executionId": "98bd0186-0e7f-4d8d-9c5d-c28f905ca0db",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794515797051
+      }
+    ],
+    "6.8 `tests/budget/test_provider_knowledge.py`: a built-in provider name, a key variable or a price as a literal outside the": [
+      {
+        "executionId": "f26110a7-178d-4ebf-8045-6dd6029bbfe5",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568022288
+      }
+    ],
+    "10.1 One public `check_<kind>` per kind, next to its owner, offline against fakes, returning the names of the checks passed and": [
+      {
+        "executionId": "0214a341-137d-4827-9183-cfc58c76b75e",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568022288
+      }
+    ],
+    "19.5 The seam for the skills: an agent that is given a `SKILL.md` asks the registrar for the toolkit `files`, limited to the folder of the": [
+      {
+        "executionId": "8637d117-5c12-49f1-a056-3bd1cece6853",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568022288
+      }
+    ],
+    "20.2 The model base classes derive `complete` and `stream` from `acomplete` and `astream`; the parallel sync paths go and the adapters": [
+      {
+        "executionId": "6497aca0-4bb5-4d46-a957-8d7f4884be4f",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568022288
+      }
+    ],
+    "10.2 One parametrized test runs every built-in registration of every kind through its function": [
+      {
+        "executionId": "aeec2887-8b34-4b9b-96ff-01236de8ce42",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568680810
+      }
+    ],
+    "20.3 The embedding base class derives `encode` and `encode_batch` from `aencode` and `aencode_batch`; the example embedding provider writes": [
+      {
+        "executionId": "f358ee5b-56fb-4fd4-9549-e1fb8372889a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794568680810
+      }
+    ],
+    "21.1 `examples/plugins/` runs offline: remove the entry `plugins` of `EXPECTED_TO_FAIL` in `tests/examples/test_examples.py` and": [
+      {
+        "executionId": "4a767933-24b5-4f94-b3aa-bbbebaa63705",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794570267528
+      }
+    ],
+    "21.3 The pages written before D111 are redone for the new interface: `docs/guides/extend/*`, `docs/reference/api/plugins.md`,": [
+      {
+        "executionId": "56bbf3b3-177f-4adf-9dbc-b1fabbd88892",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794570267528
+      }
+    ],
+    "24.4 The references to requirements, decisions and tasks move from the docstrings to comments (docstrings only say what the library does);": [
+      {
+        "executionId": "cfdabdcc-c68b-477e-88d1-e3e24dfb4f5c",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794570267528
+      }
+    ],
+    "21.2 The scope of `.github/workflows/lint.yml` (`LINTED`) grows to the code written by tasks 13 to 20 once it is clean": [
+      {
+        "executionId": "57eec10f-7c54-4ddc-a63b-b92a065d92a8",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794571338117
+      }
+    ],
+    "11.1 The guide \"Write a plugin\" and a reference of `ProviderProfile` in the wiki, with snippets from `examples/plugins/`; the extension": [
+      {
+        "executionId": "28b81b76-525d-4593-bbf1-12ac7b60431c",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794571766240
+      }
+    ],
+    "11.2 The Claude skill that ships with the package: `skye plugins`, `skye.Plugins`, the `plugins` key, the registrar and the profile;": [
+      {
+        "executionId": "462aea6d-91aa-4414-9075-045f941f7138",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794571766241
+      }
+    ],
+    "11.3 No third-party dependency and no extra added; size, import time and cold start of `budgets.toml` not higher": [
+      {
+        "executionId": "ae9285d3-a2e9-459b-a53f-70399303eea6",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794571766241
+      }
+    ],
+    "12.0 Validate the code against every criterion this spec points to (`requirements.md`: Requirements 56 to 62 of": [
+      {
+        "executionId": "9ad1f1d8-64c0-42ff-8660-bce993fe313c",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "12.1 Run `uv run pytest tests -q`, `make budget`, the doctests of the new modules and the strict docs build; record the numbers": [
+      {
+        "executionId": "7249463b-866d-4849-aea2-130a65bc44e8",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "12.2 Close in steering what the work settled: the open decisions of `12-decisions.md` that the code answered (O63, O65, O68 to O73)": [
+      {
+        "executionId": "1899ece7-b25a-4386-aa58-71f154c38bbb",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "4. Discovery and control": [
+      {
+        "executionId": "1c4ab193-6664-41c8-a756-6a6724599fe3",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "6. Provider knowledge in one place": [
+      {
+        "executionId": "4756fad7-102c-4ac9-ac30-517ce71adfbc",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "7. The other registries as views": [
+      {
+        "executionId": "c71dedbd-67e2-4618-99be-9497c7f8c5a6",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "8. Storage knowledge in one place": [
+      {
+        "executionId": "dcf14e2b-571e-4506-9b64-33550f5eb446",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "9. The closed kinds": [
+      {
+        "executionId": "4d082b2a-9cc3-429b-a0d2-e39f8abda1c2",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "10. Conformance per kind": [
+      {
+        "executionId": "60e6cde3-1bb5-4672-9c6a-56633e86ff21",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "11. Documentation, skill and budgets": [
+      {
+        "executionId": "bc49663f-187b-4df3-8e97-c17685a14c8d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "13. The nine kinds (D111)": [
+      {
+        "executionId": "2877db15-d961-4d99-aa2a-381710faf1e6",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "14. `skye.Plugins` (D111)": [
+      {
+        "executionId": "af98ff95-e3f8-40cb-8afe-b2a3ce76713d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "15. One `provider` kind (D111)": [
+      {
+        "executionId": "248dd65c-a7f5-4015-98b4-8d12037eb0a4",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "16. One word to add and to build (D111)": [
+      {
+        "executionId": "1191a907-7326-4f89-93d3-49c4beefdaf8",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "17. The profile of an existing provider and the tokenizer by name (D111)": [
+      {
+        "executionId": "c5782f55-c900-4c99-a9ee-23405d6333fb",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "18. Toolkits (D111; the loop and the content are other specs and O70)": [
+      {
+        "executionId": "7b68b505-d18b-43c9-9ded-a6e1b32e3d30",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "20. Async only for the plugin author (D111)": [
+      {
+        "executionId": "fc941ff1-a94d-444c-9bbb-4e32cd2df9f0",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "22. The name of the built-in MCP client (D112)": [
+      {
+        "executionId": "ebcded81-03be-48a6-8b38-89fc677149be",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "23. Strategies that read the request (D113)": [
+      {
+        "executionId": "4d50eed8-a7c0-4984-bf0d-2898b0ce9bd7",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "21. The examples, the lint scope and the pages written before D111": [
+      {
+        "executionId": "82755d27-8905-4b7a-8190-499de7d63ad3",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "12. Final checkpoint (it runs after tasks 13 to 21; its id does not move because tests cite this file)": [
+      {
+        "executionId": "9b274fbc-f9a0-43fd-8fea-54f873a667cc",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794573618131
+      }
+    ],
+    "25.1 Lexer, parser and syntax tree (`src/skye/base/dsl`): `include \"path\" as alias`, `from \"path\" import a, b as c`, `use name` and `use alias`": [
+      {
+        "executionId": "5c8f6a44-ebb9-4923-8071-a10c12f0c0dc",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794576464094
+      }
+    ],
+    "25.2 Errors and diagnostics: the messages of the table of errors of the note (a name that does not exist with the names that do, a name not imported,": [
+      {
+        "executionId": "835f20f5-057e-45c0-8124-ebee60460316",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794577224777
+      }
+    ],
+    "25.3 The tools: the resolver that reads the file system in `utils` (`skye.load`, `skye check` with `--stdin-filename`), the path rules and the symbolic": [
+      {
+        "executionId": "905de6e6-d82c-4624-ac9c-b51c397fd54a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794578067846
+      }
+    ],
+    "25.4 The bundled catalogue: the resolver for the folder and for the archive (a member by its normalized path, one above the root refused), the": [
+      {
+        "executionId": "70627472-da1f-4137-8658-df9486b0fdc7",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794579129161
+      }
+    ],
+    "24.6 The bundled `.skye` templates use `include` and `from ... import` for what 2 or more files repeat (five partials: `system_prompt`, `tools`, the memories and two small groups, 93% of the gain; 33% of their bytes are in repeated lines); the output of": [
+      {
+        "executionId": "734ffb9a-dc5d-495b-8817-349bc74aa0f4",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794581657285
+      }
+    ],
+    "25.5 Documents and editors: `docs/reference/skye-language.md` (the grammar table and the table of the versions), `docs/concepts/skye-language.md`": [
+      {
+        "executionId": "8ccbfd1f-65cd-4b0d-9c5d-e27b55592f30",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794581657285
+      }
+    ],
+    "26.4 The `text` format of the `output` block (D70, amended 2026-11-13; the code, the tests in `tests/unit/dsl/test_output_text.py` and the documents are written, the bundled templates do not use it yet: task 24.10): `output \"text\" { style = \"...\" }` is a plain answer with no fields; with the format from a variable, the value `text` leaves the fields and `schema = VAR` unread; `set_output_schema` refuses it": [
+      {
+        "executionId": "485c017e-d5e4-4637-8685-e7fe01adbd36",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794583139694
+      }
+    ],
+    "26.1 The language core of `override` (`src/skye/base/dsl`: parser, syntax tree, expansion): `override name = <definition>` in the `variables` map and": [
+      {
+        "executionId": "85babd44-44e4-4aec-a70a-60f47deb21c1",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794583767259
+      },
+      {
+        "executionId": "767d324d-fb99-4a18-ae10-df27a93c2e6d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794583776368
+      }
+    ],
+    "26.2 Diagnostics, `skye fmt` and `skye check` for `override`: the messages (what was brought, the `use` must come first, an override and a definition of the same": [
+      {
+        "executionId": "189463b0-c7f6-494b-aa86-8ed418a4dac3",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794584506165
+      }
+    ],
+    "26.3 Documents, the Claude skill language reference, the grammar of the VS Code extension (the keyword `override` in its positions) and the doc-example": [
+      {
+        "executionId": "caca8982-594b-4f67-84a2-af8be4fcaee9",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794585170186
+      }
+    ],
+    "26. The override of the include (D117)": [
+      {
+        "executionId": "74718379-21fd-444f-a295-cb76f438d673",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794585170186
+      }
+    ],
+    "24.9 The comments inside the bundled `.skye` templates go: the examples (the `/** Example: builder.render(...) **/` blocks, 87 in 40 files) move to `examples/prompts/bundled/` as one data file per template with its sample variables, with one example `examples/prompts/bundled_templates.py` that renders each bundled template from them; the explanatory comments (block and `#` lines) are removed and not moved (a copy of what was removed is kept in `docs/_notes/skye-comments-removed.md`, which git ignores); the front matter (`title`, `description`, `version`, `tags`) stays; the sample files are the single source of the render checks of 24.6; the output of every template does not change": [
+      {
+        "executionId": "3b4effe8-487e-4716-9708-10625a89f5ae",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794589727350
+      }
+    ],
+    "24.10 The catalogue of bundled templates is reduced (owner, 2026-11-13): `structured_output_json`, `structured_output_table` and `structured_output_xml` go (`structured_output` already takes `format`); the pairs `main_agent` and `memory_agent` (the second takes a subset of the variables of the first), `code_agent` and `code_generation`, and `chain_of_thought_agent` and `reasoning_agent` are each evaluated as one template with options and variables, and merged when the render of the options that replace the old template equals the old render (a test per merged template); tests and pages that name a removed template are updated; the renames are decided by the owner (2026-11-13): `ner` to `entity_extraction`, `tabular_extraction` to `table_extraction`, `main_agent` and `memory_agent` to one `memory_assistant`, `memory_update_agent`/`memory_consolidation_agent`/`working_memory_agent` to `memory_update`/`memory_consolidation`/`memory_working`, `tree_of_thoughts_agent` and `self_reflection_agent` to `reasoning_tree_of_thoughts` and `reasoning_self_reflection`, `smol_planning` to `smol_planning_agent`; the three merges (`main_agent`/`memory_agent`, `code_agent`/`code_generation`, `chain_of_thought_agent`/`reasoning_agent`) are approved when the render with the options equals the old render; no other merge is planned: two templates are merged only when they are the same job with options, never to force a `mode` on different jobs (owner, 2026-11-13: the families supervisor, groupchat, smol, reasoning beyond the approved pair, tool and procedure, extraction and text stay as they are); the memory agents end as two templates (owner, 2026-11-13): `agent_memory_assistant` (conversational, absorbs `agent_memory_recall`) and `agent_memory_maintenance` with a `mode` (`update`, `consolidate`, `working`) that replaces `agent_memory_update`, `agent_memory_consolidation` and `agent_memory_working`; the parts activate by `mode` and the JSON answer is a conditional `output` block per mode, with the renders of each old template reproduced by its mode (intended changes listed); the variables of the templates are unified (one name per idea, `docs/_notes/template-variables-unification.md`) and the answer format of every template is written with the `output` block of the language through one shared partial (`output_format` and `output_schema`) instead of a hand-written format text in 16 templates (owner, 2026-11-13: `chat` still has a free-form format while the structured one exists); the free-form style of an answer stays a separate text variable; the parts the agent templates share besides the memories, the tools block and the system prompt (the `## Constraints` section, the `## Tools` listing in its three variants, the task block `## Task` and its variable, the examples as user and assistant turns, the transcript and progress sections of the supervisor and group chat families) are unified to one wording and moved to the shared partials of step 2 (`common/io.skye` and, for the agents, `common/agent.skye`) where the pairing rule allows it; the one-off context variables become generic reusable ones (owner, 2026-11-13: no code-specific optional variables such as `database_schema` and `database_type`): `context` (background text, for `code_context`, `additional_context`, `domain_knowledge`), `references` (a list of named items with an optional description and a content, for `database_schema`, `table_schema`, `documents` and the files of `code_context`) and `environment` (the dialect, runtime or version, for `database_type` and the runtime of a language); `generation_sql` becomes a case of `generation_code` through them, with a thin template over a shared partial and an `override` of the language, or no template of its own (the owner chooses) DONE as step 1: the three `structured_output_*` removed and the templates renamed to `scope_detail` (every agent `agent_*`); the three merges were refused because no merge reproduces the old render; the steps 1b, 2 and 3 are not planned (D118: 26 templates left the bundle) and are done on the gallery only if the owner asks": [
+      {
+        "executionId": "1d70d165-c887-4977-987b-4f76ef5b5fd0",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794589727350
+      }
+    ],
+    "24.11 The bundled prompts are reduced (D118, owner 2026-11-13): the 26 templates other than `generation_*`, `extraction_*`, `text_*` and the ReAct agent prompt (`agent_smol_tool_calling` renamed `agent_react`) move to `examples/prompts/catalogue/` with their sample variables (a gallery with one runner example that lists and renders them offline, and a test that every file passes `skye check` and renders; the files that use a shared partial carry their own copy of `common/`); `src/skye/prompts/templates/` keeps `common/` and the 11 kept templates; the comments inside the templates go (the examples already moved to `examples/prompts/bundled/` in 24.9; the explanations are removed and kept in a local note); every test, page, example and the skill that uses a moved template by name uses the gallery; Requirement 30.14 and the specification `2-services-prompts` are amended; the steps 1b, 2 and 3 of 24.10 are done only if the owner asks; the gallery also holds `extraction_generic` (one prompt for entity, relation and table extraction, with three sample files), 27 files in all": [
+      {
+        "executionId": "de2afa1b-8f99-4e25-9c0e-adab75da404f",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794589727350
+      }
+    ],
+    "26.5 `register_template` resolves includes from a path: a `.skye` file registered with `from_string=False` reads its `include`, `from ... import`, `use` and `override` from its folder (the file resolver, read again at each registration), a text takes an optional `resolver=`, a text without one keeps the 'no resolver' error that names the argument, the folder loader registers such files and skips the files with `partial = true`, and `validate_template` rebuilds them; the code is in `src/skye/prompts/messages.py` and `loaders.py`, the tests in `tests/unit/prompts/test_register_template_include.py`": [
+      {
+        "executionId": "dc00d4d9-b034-44aa-990c-6af98bd066de",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794589727350
+      }
+    ],
+    "24.12 `generation_code` and `generation_sql` become one bundled template `generation_code` (owner, 2026-11-13): SQL is a case of code generation through generic variables and not through variables of its own: `language` (`\"SQL\"` for SQL), `input` (what to generate), `description`, `requirements` and `constraints` (one list), `references` (a list of named items with an optional description and a content, for the tables of a schema, files or documents), `environment` (the dialect, runtime or version, for the SQL dialect or the runtime), `examples` (`input` and `output`), `input_format`, the answer through the `output` block (`format` json, table, xml or text) and `include_tests` and `include_comments`; the renders of the two old templates are reproduced by their options except the intended changes (the system sentence follows the language, the sections follow one layout), listed in a test with the old and the new text; the tests, pages, examples and the skill that name `generation_sql` use `generation_code` with `language` set; the requirements and the constraints are one list `constraints`, what the generated code outputs is `result_format`, `format` defaults to `text` (plain code); done after 24.11": [
+      {
+        "executionId": "2ce5bf5a-a868-415a-8497-9fd6ba662968",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794591465573
+      }
+    ],
+    "25.6 The check of the feature: `make size`, the footprint test and the load budgets (the code of tasks 25.1 to 25.4 and 26.1 to 26.3 adds a few KB to the core; the": [
+      {
+        "executionId": "e8de2253-2b19-49b1-87a4-b16032a11f54",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794591465573
+      }
+    ],
+    "24.5 The `include` of the `.skye` language is implemented and documented (D116, `docs/_notes/include-design.md`): the work is the tasks 25.1 to 25.6; this task": [
+      {
+        "executionId": "8ebffe8b-e2b8-493f-901a-5439a412d574",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794591465574
+      }
+    ],
+    "25. The `include` of the `.skye` language (D116)": [
+      {
+        "executionId": "02d8a284-8436-4ba3-9ac0-3781a68a167a",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794591465574
+      }
+    ],
+    "24.13 The four bundled extraction prompts (`extraction_entities`, `extraction_relations`, `extraction_structured`, `extraction_table`) and `text_classification` are replaced by one bundled `extraction_generic` (owner, 2026-11-13: a classification is an extraction whose `labels` are the categories): the fields of `schema` and the allowed `labels` say what to extract, the `format` (json, table, xml, text) is written by the `output` block, the extra rules are `instructions` and `constraints`, the background is `context`, the examples are user and assistant turns; the bundled set becomes `common/` and 6 templates (`agent_react`, `extraction_generic`, `generation_code`, `text_explanation`, `text_question_answering`, `text_summarization`); the old samples become the cases of `examples/prompts/bundled/extraction_generic.json` (entities, relations, table, default fields, classification); the tests, pages, examples and the skill that name the five are updated": [
+      {
+        "executionId": "c87dae07-bcb3-4bf7-90f0-8b190a0224e0",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794595312164
+      }
+    ],
+    "19. The built-in toolkits as plugins (D111; the content of each is open in O70)": [
+      {
+        "executionId": "22dc661d-faad-44e9-80ae-88b9869bccda",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794595755007
+      }
+    ],
+    "24. Size and load time of the installed package (O77, O78; the owner approved the proposal on 2026-11-12)": [
+      {
+        "executionId": "41ed529f-6f31-4de6-b2a5-58c10d3e8a9d",
+        "chatSessionId": "sess_ae3aa7cd-e210-490f-bfa5-039a555a984c",
+        "timestamp": 1794596684110
+      }
     ]
   }
 }

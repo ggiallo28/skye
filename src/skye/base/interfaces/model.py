@@ -50,6 +50,7 @@ if TYPE_CHECKING:
 
 
 
+# decision D36
 class ModelInterface(ABC):
     """Abstract interface for LLM providers.
 
@@ -61,7 +62,7 @@ class ModelInterface(ABC):
 
     **The call:** ``complete``, ``stream``, ``acomplete`` and ``astream`` take what users write,
     ``client.complete(messages=[...], model="gpt-4")``, and also one ``CompleteRequest`` as the first argument,
-    ``client.complete(request)`` (decision D36).
+    ``client.complete(request)``.
 
     **Polymorphic Input Handling:**
     Implementations should handle CompleteRequest with either:
@@ -85,23 +86,18 @@ class ModelInterface(ABC):
         ...             # Resolve prompt to messages (if skyeai[prompts] available)
         ...             messages = self._resolve_prompt(request.prompt, request.prompt_variables)
         ...         else:
-        ...             messages = request.messages
-        ...
+        ...             messages = request.messages...
         ...         # Call OpenAI API with messages
-        ...         return self._call_api(messages, request)
-        ...
+        ...         return self._call_api(messages, request)...
         ...     def stream(self, messages=None, model=None, router=None, temperature=None, max_tokens=None, **kwargs):
         ...         # Stream from OpenAI API
-        ...         pass
-        ...
+        ...         pass...
         ...     async def acomplete(self, messages=None, model=None, router=None, temperature=None, max_tokens=None, **kwargs):
         ...         # Async call to OpenAI API
-        ...         pass
-        ...
+        ...         pass...
         ...     async def astream(self, messages=None, model=None, router=None, temperature=None, max_tokens=None, **kwargs):
         ...         # Async stream from OpenAI API
-        ...         yield StreamChunk(delta="")
-        ...
+        ...         yield StreamChunk(delta="")...
         ...     def get_model_info(self) -> dict:
         ...         return {"name": "gpt-4", "provider": "openai"}
     """

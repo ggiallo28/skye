@@ -12,10 +12,17 @@ from typing import Any
 
 @dataclass(kw_only=True)
 class Node:
-    """A node with its position (line and column count from 1)."""
+    """A node with its position (line and column count from 1).
+
+    A node that an ``include`` brought from another file also says where it comes from:
+    ``source`` is the name of that file (empty for a node of the file itself) and ``via`` the
+    chain of sites that used it, each as ``(file, line, column)``.
+    """
 
     line: int
     column: int
+    source: str = ""
+    via: tuple[tuple[str, int, int], ...] = ()
 
 
 @dataclass(kw_only=True)
@@ -93,11 +100,16 @@ class MapEntry(Node):
 
     Inside an ``output`` block an entry may end with a string, its description
     (``amount = number "Amount of the line"``); elsewhere ``description`` is always ``None``.
+    In the ``variables`` map of a prompt an entry may be ``use name``: then ``use`` is true,
+    ``key`` is the name and ``value`` a :class:`Name`; or ``override name = ...``: then ``override``
+    is true and the entry replaces the one that a ``use`` brought.
     """
 
     key: str
     value: Value
     description: Str | None = None
+    use: bool = False
+    override: bool = False
 
 
 @dataclass(kw_only=True)
@@ -144,6 +156,7 @@ class Block(Node):
         var: The loop variable of ``each``.
         body: The attributes and blocks inside the braces, in order.
         braces: ``False`` for a block written with no braces (``placeholder "history"``).
+        override: True for ``override when ...``, which replaces the block that a ``use`` brought.
     """
 
     kind: str
@@ -153,6 +166,7 @@ class Block(Node):
     var: str = ""
     body: list[Attribute | Block] = field(default_factory=list)
     braces: bool = True
+    override: bool = False
 
     @property
     def label_text(self) -> str | None:
@@ -180,8 +194,10 @@ class Tree:
         filename: The file name used in diagnostics.
         blocks: The top-level blocks, in order.
         metadata: The front matter (``---`` ... ``---`` at the top, TOML); empty without one.
+        has_include: True when the file holds an ``include``, a ``from ... import`` or a ``use``.
     """
 
     filename: str
     blocks: list[Block] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
+    has_include: bool = False

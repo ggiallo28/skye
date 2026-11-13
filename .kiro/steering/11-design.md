@@ -146,14 +146,19 @@ Ports `authorizer`, `safety`, `observer`, `memory`. An agent without a memory ho
 every listing and call with the authorizer when one is provided.
 
 ## Extension points
-| Kind | Port in `base` | Owner | A new one is added by |
-|---|---|---|---|
-| provider (model, embedding, decision) | `model`, `vector_encoder`, `decision` | `models` | `@plugins.provider("name")` on a class, with its profile |
-| store backend | `storage` | `store` | `@plugins.backend("name")` on a class |
-| tool | `capability` | `tools` | `@capability` on a function, passed in `tools=[...]` or put in a `CapabilityRegistry` |
-| toolkit | `tool_provider` | `tools` | `@plugins.toolkit("name")` on a class that extends `skye.Toolkit` |
-| observability exporter | `observer` | `observe` | registering it in the observe registry |
-| credential provider | credential-source Port | `auth` | `@plugins.credential_source("name")` on a class |
+| Kind | Port in `base` | Owner | Added by | Built by | Offline check |
+|---|---|---|---|---|---|
+| `provider` (model, embedding, decision) | `model`, `vector_encoder`, `decision` | `models` | `@plugins.provider("name", profile=..., function=...)` | `skye.provider(name)` | `skye.models.conformance.check_provider` |
+| `backend` | `storage` | `store` | `@plugins.backend("name")` | `skye.backend(name)` | `skye.store.check_backend` |
+| `credential_source` | `authentication` | `auth` | `@plugins.credential_source("name")` | `skye.credential_source(name)` | `skye.auth.conformance.check_credential_source` |
+| `routing_strategy` | `router` | `router` | `@plugins.routing_strategy("name")` | `skye.routing_strategy(name)` | `skye.router.conformance.check_routing_strategy` |
+| `mcp_client` | `MCPClientInterface` (in `tools`) | `tools` | `@plugins.mcp_client("name")` | `skye.mcp_client(target, impl=...)` | `skye.tools.check_mcp_client` |
+| `tokenizer` | none (a function returning an object with `encode`) | `models` | `@plugins.tokenizer("name")` | `plugins.get("tokenizer", name)` | `skye.models.conformance.check_tokenizer` |
+| `template_filter` | none (a function of a value) | `prompts` | `@plugins.template_filter("name")` | `plugins.get("template_filter", name)` | `skye.prompts.conformance.check_template_filter` |
+| `agent` | `Runnable` | `agents` | `@plugins.agent("name")` | `skye.agent(name, **options)` | `skye.agents.conformance.check_agent` |
+| `toolkit` | `tool_provider` | `tools` | `@plugins.toolkit("name")` on a class that extends `skye.Toolkit`, or with `tools=[...]` | `skye.toolkit(name, **options)` | `skye.tools.check_toolkit` |
+| tool (not a plugin kind, D111) | `capability` | `tools` | `@capability` on a function, passed in `tools=[...]` or put in a `CapabilityRegistry` | | |
+| observability exporter | `observer` | `observe` | registering it in the observe registry | | |
 
 Adding one never edits a file outside the owner; a check rejects it otherwise. Every kind is also reachable through a plugin (next section).
 
@@ -182,7 +187,7 @@ plugin object with `register(registrar)`, no `PluginInterface` and no `skye.use`
   provider (`models`: `openai`, `anthropic`, `bedrock`, `azure`, `google`, `cohere`, `typesafe`; `store`, `auth` and `tools` by implementation).
   The `__init__.py` of a folder is the only door: public names resolved lazily, and an internal `register(registrar)` that makes the same calls as a third party.
   The files have the same names in every folder: in `models` `provider.py`, `request.py`, `response.py`, `capabilities.py`, `embeddings.py`,
-  `multimodal_embeddings.py`, `decision.py`, `profile.toml`; the main file is `backend.py` in `store`, `source.py` in `auth`, `client.py` in `tools` and `agent.py` in `agents`. What several providers use, and what a plugin is written with, is in
+  `multimodal_embeddings.py`, `decision.py`, `profile.toml`; the main file is `backend.py` in `store`, `source.py` in `auth`, `client.py` in `tools/engines` (the MCP clients; the toolkits are `toolkit.py` in `tools/plugins`, D114) and `agent.py` in `agents`. What several providers use, and what a plugin is written with, is in
   `models/utilities/` (`base.py`, `openai_compatible/`, `anthropic_compatible/`, `transport/`), not in `plugins/`. `plugins` is not a component: it would have to know the internal paths of all
   the others (Requirement 56.9).
 - **The profile is the one home of provider knowledge.** It carries the key variable, the region rule, the default endpoint, the client
@@ -196,9 +201,9 @@ plugin object with `register(registrar)`, no `PluginInterface` and no `skye.use`
   what is installed and registered. Conformance: one public `check_<kind>` per kind, run over the built-ins too.
 - **Tools, toolkits and agents (D111).** Capabilities are not a plugin kind and no default set exists: a tool belongs to the agent that is
   given it. `@capability` (required) takes `name`, `description` and `return_direct`; a `CapabilityRegistry` stays in `tools` and holds
-  tools with namespaces (`weather.get_current`). The built-in tools are toolkits, `ToolProvider`s that an agent takes in `toolkits=`,
-  apart from its own `tools=`: `files` (a required root), `openapi`, `mcp`, `a2a`. A toolkit is a class that extends `skye.Toolkit`
-  with `@capability` on its methods; the name of a tool is `<toolkit>.<name>`. A `SKILL.md` in `skills=` adds `files` by itself,
+  tools with namespaces (`weather_get_current`). The built-in tools are toolkits, `ToolProvider`s that an agent takes in `toolkits=`,
+  apart from its own `tools=`: `files` (a required root, or several roots), `openapi`, `human`, `shell`; `mcp`, `skyea2a` and `a2a` are deferred to an issue and O80 stays open. A toolkit is a class that extends `skye.Toolkit`
+  with `@capability` on its methods; the name of a tool is `<toolkit>_<name>` (D119). A `SKILL.md` in `skills=` adds `files` by itself,
   limited to the folder of the skill. An agent is built only with `skye.agent(name, **options)`; `REACT` is the built-in one.
 - **Tokenizers.** A tokenizer is registered by name and a model uses it through its `ModelProfile`; `plugins.profile(provider, models=...)`
   merges a change into an existing provider.
@@ -236,7 +241,7 @@ needs it. A breaking rename is acceptable while the version is 0.x and the migra
 
 ## The `.skye` language
 One declarative language, HCL-like, written from scratch in the standard library, for the `router`, `flow` and `prompt` blocks (Requirement
-54, D50). A file holds one or more blocks; each file is self-sufficient, with no `include` in version 1.
+54, D50). A file holds one or more blocks; a file is self-sufficient except for the partials it includes (version 1.1, D116, below).
 
 Where it lives. The parser is in `base` and takes **text**, never a path, because `base` does no file I/O (Requirement 3.2); it returns a
 neutral syntax tree. The component that owns a block reads the file, calls the parser and validates the tree into its own dataclasses: the
@@ -268,7 +273,7 @@ result that would build a different model, is idempotent, and is the same functi
 
 Prompt features of the language. Variables are described and typed with the syntax of `output` fields (D73): a trailing string is the
 description, and `list(string)`, `list({ ... }, [])`, `map({ ... })` and nesting give a structured type that `render_prompt` checks with
-one `ValidationError` listing every path (`shapes.py`, `conform`); the default of a structured variable is the second argument (D83). `each` has one variable and `loop.*` (D69). The `output` block (`json`, `table`, `xml`, `schema = VAR`, a format from a
+one `ValidationError` listing every path (`shapes.py`, `conform`); the default of a structured variable is the second argument (D83). `each` has one variable and `loop.*` (D69). The `output` block (`json`, `table`, `xml`, `text` with an optional `style`, `schema = VAR`, a format from a
 `string` variable, conditional variants inside `when`) turns one declaration into the instructions for the model (D70, in `prompts`).
 `describe(spec)` in `base/dsl/info.py` describes any block (prompt, router, flow; D83), public in `skye.dsl` with `check_text` and
 `format_text` (D78); `skye.prompts` re-exports `describe_prompt` / `prompt_help`. They tell what a prompt takes and gives back, and `skye prompt list|info` print it (D73). The bundled prompts are all `.skye`,
@@ -280,6 +285,50 @@ Editors (D72). A VS Code extension ships inside the package (`utils/vscode_exten
 a TextMate grammar, diagnostics from `skye check --format json` and "Format Document" through `skye fmt -`; it is only a client of the
 command line. `skye vscode install|uninstall|status|path|package` (`utils/vscode.py`) builds a `.vsix` with `zipfile` for an editor CLI,
 or copies the folder into `~/.vscode/extensions` (Requirement 55).
+
+### The `include` of the `.skye` language (Requirement 63, D116, D117)
+
+A partial is a `.skye` file shaped like a prompt (`partial = true` in its front matter): its own `variables` and `message`, never built or
+listed alone. A file brings one in with `include "path" as alias` (the whole file) or `from "path" import a, b as c` (names one by one), and
+writes `use name` or `use alias` on its own line exactly where the content goes. The expansion is a step of `build`, made on the syntax tree
+before the validation into the dataclasses, so the checker, the formatter and the renderer see one expanded tree; `base` does no file I/O
+(D91), so the parser takes a resolver.
+
+- **Resolver contract.** `resolver(target, from_key) -> Resolved(text, name, key)`, a callable given to `build` and `check_text`; it raises
+  `FileNotFoundError` or `KeyError`. `key` is the identity of the file (a real path, or the member name in the archive) and keeps the stack
+  that detects a cycle. A resolver may offer `fingerprint()`. Without a resolver an include or an import is a `ValidationError` with the fix.
+  `utils` gives the file system resolver (`skye.load`, `skye check`; `--stdin-filename` gives the folder); `prompts` gives the catalogue
+  resolver for the bundled templates.
+- **Where the content goes.** The place decides the kind: `variables` takes entries, a prompt or message body takes items. A name brings the
+  entry of the partial's `variables` or the first-level blocks of its message of the same name whose condition is only that name (or its
+  negation); an alias brings the whole `variables` or the whole body. A partial holds no `use`, so there is no nesting and no cycle between
+  partials; a cycle through the file that includes it is still an error. Limits: 64 includes and 1 MB of expanded text; paths are relative and
+  stay inside the root, with no absolute path, URL or symbolic link out of it.
+- **Override (D117).** In `variables`, `override name = <definition>` replaces the entry that an earlier `use` of the same map brought; in a
+  prompt or message body, `override when name { ... }` or `override when not name { ... }` replaces the first-level block with that exact
+  condition that an earlier `use` of the same body brought (by name or by alias). The word is accepted only after the `use` that brings
+  the target, so the order of the lines is the order of the declarations; it does not exist in a partial or in a file with no `use`. Check
+  order inside `build`: the expansion brings entries and blocks and marks each with the `use` that brought it (its use site, kept for `via`);
+  each `override` line then replaces the marked target, or is an error that lists what was brought; the check of duplicates runs last, on the
+  result, so a name that is both overridden and defined by the file itself is reported with both lines. The overriding definition goes
+  through the same validation as any entry or block. A diagnostic about it points to the `override` line; one about what the partial still
+  brings keeps its `via`.
+- **Origin and `via`.** Each node that comes from a partial keeps its file, line and column; `Diagnostic` gets an optional `via` (the chain of
+  use sites), shown in the text form and added to the JSON that the VS Code extension reads; the keys that exist do not change, and a
+  diagnostic whose file is not the open document goes to the first `via` site that is in it. The built specs keep the `line` of the partial, so
+  the equality of a migrated template is checked on the rendered messages and on the specs without the `line` fields.
+- **Tools.** `skye check` expands and then checks (an undeclared variable read by brought text is reported with its origin); `skye fmt` keeps
+  the `include`, `from ... import`, `use` and `override` lines and formats partials, comparing syntax trees without expanding; `to_text` writes expanded
+  text; `skye prompt list` and `info`, which read the files directly, and the discovery of the bundled templates skip `partial = true`.
+- **Cache.** `build_cached` keys on the text, the file name and the registry names; a text with an include or an import is cached only when the
+  resolver gives a `fingerprint()` that goes into the key. The key of `_BUNDLED_ENTRIES` (task 24.8) is a fingerprint of the catalogue (the size and
+  CRC of the archive, or the stat of every file of the folder), because the partials live in the same catalogue; `trusted()` covers the whole
+  expansion of a bundled template.
+- **Archive and hook.** Partials are members of `templates.zip` (task 24.7) with their relative paths (`common/memories.skye`); the resolver
+  reads a member by its normalized path and refuses one above the archive root. The comment strip (task 24.3) walks the subfolders of the
+  templates, keeps the front matter (`partial = true` survives) and keeps the line breaks, so a diagnostic in a bundled partial keeps its line.
+- **Version.** The language is 1.1: `from`, `import`, `use`, `override` and `partial` are new words, `include` leaves `_V2_PROMPT` and the reserved list
+  of version 2, and no key declares the version.
 
 ## Transport and providers
 What a provider is written with is in `models/utilities/` (D110), as plain modules: the network (`rest.py` JSON over `urllib` and server-sent events,
@@ -337,9 +386,9 @@ Tests use fake credential endpoints (stdlib `http.server`, as in `tests/differen
 ## MCP client
 Lives in `tools`, consume-only. Official MCP types are converted at one module (`tools/mcp_boundary.py`); the prompt facet returns `base`
 messages through the `MCPPrompt` descriptor in `tools`; `Resource` stays internal to `tools` until a same-layer consumer needs it
-(then a resource Port in `base`, open decision O7). The built-in client is JSON-RPC over stateless HTTP on `base/http.py`; `fastmcp`
+(then a resource Port in `base`, open decision O7). The built-in client, `skyemcp`, is JSON-RPC over stateless HTTP on `base/http.py`; `fastmcp`
 is the optional substitute (`create_mcp_client(target, impl=...)`); differential tests keep both equal.
-Only `tools/plugins/fastmcp/client.py` imports `fastmcp`; the built-in client is the default and `impl="fastmcp"` returns the substitute from the `mcp` extra.
+Only `tools/engines/fastmcp/client.py` imports `fastmcp`; the built-in client (`impl="skyemcp"`) is the default and `impl="fastmcp"` returns the substitute from the `mcp` extra.
 
 ## Correctness properties (what the tests guard)
 1. Layer import direction is downward only. 2. Imports stay within each component's allowed set. 3. `base` imports only the standard library.

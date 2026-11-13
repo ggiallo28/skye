@@ -30,7 +30,7 @@ class CapabilityRegistry:
 
     Provides a singleton registry for registering, retrieving, and managing
     capabilities across the application. Supports namespace-based organization
-    (e.g., "weather.get_current", "database.query"), semantic search, and
+    (e.g., "weather_get_current", "database_query"), semantic search, and
     thread-safe operations.
 
     The registry validates capabilities on registration and provides methods
@@ -70,12 +70,16 @@ class CapabilityRegistry:
     _instance: "CapabilityRegistry | None" = None
     _lock = threading.Lock()
 
+    # Requirement 62.1
     def __init__(
         self,
         capabilities: list[CapabilityInterface] | None = None,
         auto_search: bool = True,
     ) -> None:
         """Initialize the capability registry.
+
+        A new registry starts empty, or with the ``capabilities`` passed. It is no view of the registrar: what is registered
+        on it, with ``register``, stays local to it and never reaches another registry. A set of tools that several agents share is a toolkit.
 
         Args:
             capabilities: Optional list of capabilities to register on initialization
@@ -168,7 +172,7 @@ class CapabilityRegistry:
     def get(self, name: str) -> CapabilityInterface | None:
         """Retrieve a capability by name.
 
-        Supports namespace-based lookup (e.g., "weather.get_current").
+        Supports namespace-based lookup (e.g., "weather_get_current").
 
         Args:
             name: The name of the capability to retrieve
@@ -178,7 +182,7 @@ class CapabilityRegistry:
 
         Example:
             >>> registry = CapabilityRegistry.get_instance()
-            >>> capability = registry.get("weather.get_current")
+            >>> capability = registry.get("weather_get_current")
             >>> if capability:
             ...     result = capability.execute(location="New York")
         """
@@ -198,7 +202,7 @@ class CapabilityRegistry:
             >>> registry = CapabilityRegistry.get_instance()
             >>> names = registry.list_all()
             >>> print(names)
-            ['database.query', 'weather.get_current']
+            ['database_query', 'weather_get_current']
         """
         with self._registry_lock:
             return sorted(self._capabilities.keys())
@@ -214,7 +218,7 @@ class CapabilityRegistry:
 
         Example:
             >>> registry = CapabilityRegistry.get_instance()
-            >>> registry.unregister("weather.get_current")
+            >>> registry.unregister("weather_get_current")
         """
         with self._registry_lock:
             if name in self._capabilities:
@@ -242,7 +246,9 @@ class CapabilityRegistry:
         """Get all capabilities in a specific namespace.
 
         Retrieves all capabilities whose names start with the given namespace
-        prefix (e.g., "weather" returns "weather.get_current", "weather.forecast").
+        prefix and an underscore (e.g., "weather" returns "weather_get_current",
+        "weather_forecast"). A capability name holds letters, digits, ``_`` and ``-`` only,
+        so the underscore is the separator of a group.
 
         Args:
             namespace: The namespace prefix to search for
@@ -255,7 +261,7 @@ class CapabilityRegistry:
             >>> weather_tools = registry.get_by_namespace("weather")
         """
         with self._registry_lock:
-            prefix = namespace if namespace.endswith(".") else f"{namespace}."
+            prefix = namespace if namespace.endswith("_") else f"{namespace}_"
             return [cap for name, cap in self._capabilities.items() if name.startswith(prefix)]
 
     def count(self) -> int:
@@ -282,8 +288,8 @@ class CapabilityRegistry:
 
         Example:
             >>> registry = CapabilityRegistry.get_instance()
-            >>> if registry.exists("weather.get_current"):
-            ...     capability = registry.get("weather.get_current")
+            >>> if registry.exists("weather_get_current"):
+            ...     capability = registry.get("weather_get_current")
         """
         with self._registry_lock:
             return name in self._capabilities
@@ -469,7 +475,7 @@ class CapabilityRegistry:
 
         Example:
             >>> registry = CapabilityRegistry.get_instance()
-            >>> result = registry.execute("weather.get_current", {"location": "NYC"})
+            >>> result = registry.execute("weather_get_current", {"location": "NYC"})
             >>> print(result.content)
             '{"temperature": 72, "condition": "sunny"}'
         """
@@ -557,7 +563,7 @@ class CapabilityRegistry:
 
         Example:
             >>> registry = CapabilityRegistry.get_instance()
-            >>> result = await registry.aexecute("weather.get_current", {"location": "NYC"})
+            >>> result = await registry.aexecute("weather_get_current", {"location": "NYC"})
             >>> print(result.content)
             '{"temperature": 72, "condition": "sunny"}'
         """

@@ -1,0 +1,168 @@
+---
+title       = "Planner agent (plan and execute)"
+description = "One agent that breaks a task into a numbered JSON plan, carries out one step at a time, and revises the rest of the plan until the task is done."
+version     = "1.0"
+tags        = ["agent", "planning"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+include "common/tools.skye" as tools
+include "common/memories.skye" as memories
+
+prompt "agent_planner" {
+  variables = {
+    use system_prompt
+    task              = string            "The task to accomplish"
+    phase             = string("plan")    "\"plan\", \"execute\" or \"replan\""
+    plan              = list({
+      id          = number            "Step number"
+      description = string            "What to do"
+      tool        = string("")        "Tool to use"
+      depends_on  = list(number, [])  "Ids of the steps it waits for"
+      done_when   = string("")        "How to tell it is done"
+    }, [])                            "Current plan"
+    current_step      = map({
+      id          = number            "Step number"
+      description = string            "What to do"
+      tool        = string("")        "Tool to use"
+      done_when   = string("")        "How to tell it is done"
+    })                                "Step to carry out, for phase \"execute\""
+    completed_steps   = list({
+      id     = number                 "Id of the finished step"
+      result = string                 "What it returned"
+    }, [])                            "Finished steps"
+    observation       = string("")        "What the last step returned, for phase \"replan\""
+    error             = string("")        "Error that blocked a step, for phase \"replan\""
+    use tools
+    use memories
+    max_steps         = number(7)         "Maximum number of steps in a plan"
+    constraints       = list(string, [])  "Rules to respect"
+  }
+  allow_missing = ["current_step"]
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You are a planning agent. You reach a goal by thinking ahead first: you split the task into a short list of concrete steps, then you carry the steps out one by one, and after each one you look at what happened and adjust the steps that are left."
+    }
+
+    when tools {
+      text = "## Tools"
+      text = "These are the only tools you can call. A step that needs none of them is answered from your own knowledge."
+      each tool in tools {
+        text = "- **{{ tool.name }}**: {{ tool.description }}"
+        when "parameters" in tool and tool.parameters { text = "  Parameters: {{ tool.parameters | tojson }}" }
+        when "returns" in tool and tool.returns       { text = "  Returns: {{ tool.returns }}" }
+      }
+    }
+    when not tools { text = "No tools are available in this session: every step must be done by reasoning and writing, so set \"tool\" to null." }
+
+    use memories
+
+    when constraints {
+      text = "## Constraints"
+      each constraint in constraints { text = "- {{ constraint }}" }
+    }
+
+    when phase == "execute" {
+      text = """
+        ## Your job now: execute one step
+        You are given the plan, the steps already finished with their results, and the one step to do now.
+        - Work only on the current step; later steps will get their own turn.
+        - If the step names a tool, call that tool with arguments built from the task and the earlier results.
+        - If the step needs no tool, write the result yourself, directly and completely.
+        - Use the results of finished steps instead of redoing their work.
+        - When you cannot complete the step, say plainly what is missing or what went wrong, so the plan can be revised.
+        - Finish with the result of the step, checked against its "done_when" condition.
+        """
+    }
+
+    when phase == "replan" {
+      text = """
+        ## Your job now: revise the plan
+        Look at the original plan, the steps already finished and what they returned, and any new observation or error.
+        - Keep the steps that are still useful, drop the ones that are no longer needed, and add steps only when something new must be done.
+        - Never repeat a finished step unless its result was wrong; when you do, explain why in its description.
+        - If an error blocked a step, change the approach (another tool, another order, smaller steps) rather than retrying the same thing.
+        - Number the remaining steps after the last finished one and keep "depends_on" pointing at real step ids.
+        - The remaining plan has at most {{ max_steps }} steps.
+
+        ## Answer format
+        Reply with one JSON object and nothing else. If work remains, return the remaining plan:
+        {"goal": "<the goal, restated>", "steps": [{"id": 1, "description": "<what to do>", "tool": "<tool name or null>", "depends_on": [], "done_when": "<how to tell the step is finished>"}]}
+        If the finished steps already answer the task, return the answer instead:
+        {"final_answer": "<the complete answer to the task>"}
+        """
+    }
+
+    when phase != "execute" and phase != "replan" {
+      text = """
+        ## Your job now: make a plan
+        Turn the task into a numbered list of steps that, done in order, fully accomplish it.
+        - Each step is one concrete action with a single expected output; avoid vague steps such as "research the topic".
+        - Name the tool the step uses, or null when it needs none; a tool name must be one listed in the Tools section.
+        - List in "depends_on" the ids of the earlier steps whose output this step needs.
+        - Give each step a "done_when" check that someone else could verify.
+        - The last step produces the final answer to the task.
+        - Use at most {{ max_steps }} steps; fewer is better when they are enough.
+        """
+      when procedural_memory {
+        text = "- A procedure in memory that matches this task is a tested recipe: reuse its steps, adapting them to the details of this task, instead of inventing new ones."
+      }
+      text = """
+        ## Answer format
+        Reply with one JSON object and nothing else:
+        {"goal": "<the goal in one sentence>", "steps": [{"id": 1, "description": "<what to do and what it should produce>", "tool": "<tool name or null>", "depends_on": [], "done_when": "<how to tell the step is finished>"}]}
+        """
+    }
+  }
+
+  placeholder "history"
+
+  message "user" {
+    text = "## Task"
+    text = "{{ task }}"
+
+    when phase == "execute" or phase == "replan" {
+      when plan {
+        text = "## Plan"
+        each step in plan {
+          text = "{{ step.id }}. {{ step.description }}"
+          when "tool" in step and step.tool             { text = "   Tool: {{ step.tool }}" }
+          when "depends_on" in step and step.depends_on { text = "   Depends on: {{ step.depends_on | join(', ') }}" }
+          when "done_when" in step and step.done_when   { text = "   Done when: {{ step.done_when }}" }
+        }
+      }
+      when completed_steps {
+        text = "## Finished steps"
+        each done in completed_steps { text = "- Step {{ done.id }}: {{ done.result }}" }
+      }
+      when not completed_steps { text = "No step has been finished yet." }
+    }
+
+    when phase == "execute" {
+      text = "## Current step"
+      when current_step {
+        text = "{{ current_step.id }}. {{ current_step.description }}"
+        when "tool" in current_step and current_step.tool           { text = "Tool: {{ current_step.tool }}" }
+        when "done_when" in current_step and current_step.done_when { text = "Done when: {{ current_step.done_when }}" }
+      }
+      when not current_step { text = "(no step was given: take the first plan step that is not finished)" }
+      text = "Carry out this step."
+    }
+
+    when phase == "replan" {
+      when observation {
+        text = "## Observation"
+        text = "{{ observation }}"
+      }
+      when error {
+        text = "## Error"
+        text = "{{ error }}"
+      }
+      text = "Revise the remaining plan, or give the final answer if the task is done."
+    }
+
+    when phase != "execute" and phase != "replan" { text = "Write the plan." }
+  }
+}

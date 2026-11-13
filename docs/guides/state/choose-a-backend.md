@@ -33,7 +33,8 @@ A backend implements the capabilities it can. A component asks only for what it 
 | Port | Methods | Who needs it |
 |---|---|---|
 | `KeyValueStore` | `get`, `set`, `delete`, `get_multiple`, `set_multiple` | every backend has it |
-| `CounterStore` | `increment(key, amount=1, ttl=None)`, atomic | the router (health, cooldown, rate limits) |
+| `CounterStore` | `increment(key, amount=1, ttl=None)`, atomic, and `count(key)`, which reads the counter (0 when absent or expired) | the router (health, cooldown, rate limits) |
+| `ExpiryStore` | `is_alive(key)` and `remaining(key)`: the seconds a key has left, rounded up | the router cooldown, anything that asks how long a key lives |
 | `ScanStore` | `keys(prefix="", limit=None)` | listing keys by prefix |
 
 `StorageBackend` is key-value plus counter: the base class of every backend. The Ports are runtime-checkable, so you can test a
@@ -68,7 +69,7 @@ the store deletes it later (DynamoDB deletes expired items within days).
 
 ## Create a backend
 
-`skye.store.backend(name, **config)` builds a backend by name; the configuration is the keyword arguments of its class. Naming a
+`skye.backend(name, **config)` builds a backend by name (`skye.store.backend` is the same function); the configuration is the keyword arguments of its class. Naming a
 backend imports only its module, and its driver only on first use.
 
 ```python

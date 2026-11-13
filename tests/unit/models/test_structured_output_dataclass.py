@@ -13,7 +13,7 @@ import skye
 from skye.base.exceptions import ValidationError
 from skye.base.messages import UserMessage
 from skye.base.validated import validated
-from skye.models.transport.structured import STRUCTURED_TOOL, parse_structured, schema_of, strict_schema
+from skye.models.utilities.structured import STRUCTURED_TOOL, parse_structured, schema_of, strict_schema
 from tests.examples.fake_network import FakeResponse
 
 

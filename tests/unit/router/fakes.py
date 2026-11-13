@@ -10,30 +10,25 @@ import pytest
 
 from skye.base.completion import CompleteResponse, StreamChunk, TokenUsage
 from skye.base.interfaces.model import ModelInterface
-
-
-class FakeClock:
-    """A wall clock the test moves by hand (``time.time`` is replaced by ``now``)."""
-
-    def __init__(self, start: float = 1_000_000.0) -> None:
-        self.current = start
-
-    def now(self) -> float:
-        return self.current
-
-    def advance(self, seconds: float) -> None:
-        self.current += seconds
+from skye.store import FakeClock, backend
 
 
 @pytest.fixture
 def clock(monkeypatch: pytest.MonkeyPatch) -> FakeClock:
-    """Replace ``time.time`` (read by the health tracker, the rate-limit tracker and the in-memory store) with a fake clock.
+    """The ``FakeClock`` of ``skye.store``, started on a minute boundary so the minute window of a rate limit is predictable.
 
-    The start is aligned on a minute boundary so that the minute window of the rate-limit tracker is predictable.
+    The tests that are about time hand it to the router and to the store (``timed``). It also replaces ``time.time`` for the
+    tests that build a router with no clock; ``test_router_clock.py`` leaves ``time.time`` alone and proves that the router
+    reads only the clock it is given.
     """
     fake = FakeClock(start=60.0 * 100_000)
-    monkeypatch.setattr(time, "time", fake.now)
+    monkeypatch.setattr(time, "time", fake)
     return fake
+
+
+def timed(clock: FakeClock) -> dict[str, Any]:
+    """The keyword arguments that drive a ``ModelRouter`` by a ``FakeClock``: the clock and a store on the same clock."""
+    return {"clock": clock, "storage": backend("memory", clock=clock)}
 
 
 class RateLimitError(Exception):

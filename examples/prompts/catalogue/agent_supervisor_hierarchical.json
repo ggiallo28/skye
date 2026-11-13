@@ -1,0 +1,34 @@
+{
+  "task": "Launch the new website by the end of the month.",
+  "teams": [
+    {
+      "name": "content",
+      "lead": "editor",
+      "purpose": "Writes and checks the pages",
+      "members": [
+        "writer",
+        "proofreader"
+      ]
+    },
+    {
+      "name": "engineering",
+      "lead": "tech_lead",
+      "purpose": "Builds and deploys the site"
+    }
+  ],
+  "team_reports": [
+    {
+      "team": "content",
+      "report": "All twelve pages are written and proofread."
+    }
+  ],
+  "progress": [
+    {
+      "worker": "content",
+      "summary": "Pages written."
+    }
+  ],
+  "constraints": [
+    "Do not change the brand colours."
+  ]
+}

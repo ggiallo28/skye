@@ -1,6 +1,7 @@
+# Requirement 22
 """Accept messages and tool definitions in the OpenAI data shape and return Skye types.
 
-SDK compatibility is at the level of data, not classes (Requirement 22): plain dicts in the OpenAI
+SDK compatibility is at the level of data, not classes: plain dicts in the OpenAI
 chat format come in, ``SkyeMessage`` subclasses and ``CapabilitySchema`` come out. No vendor
 SDK class is mirrored, subclassed or re-exported here. Input that does not conform is rejected
 with a ``ValidationError`` naming the invalid field; the input is never modified.

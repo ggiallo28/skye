@@ -1,4 +1,5 @@
-"""RS256 assertions with the pure-Python ``rsa`` (D12: not ``google-auth``, not ``cryptography``).
+# D12
+"""RS256 assertions with the pure-Python ``rsa`` (: not ``google-auth``, not ``cryptography``).
 
 ``rsa`` is the one third-party library of ``auth`` and is imported only when a token is minted,
 through ``missing_extra`` (so ``MissingExtraError`` names the extra ``auth`` when it is absent).

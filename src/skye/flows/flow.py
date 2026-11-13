@@ -1,5 +1,5 @@
-"""A flow loaded from a ``.skye`` file: checked and ready to be read, not to be run yet (decisions
-D52, D61).
+# decisions D52, D61
+"""A flow loaded from a ``.skye`` file: checked and ready to be read, not to be run yet.
 
 ``flows`` imports only ``base`` (and ``utils``, the file reader); a step is a ``Runnable`` found by
 name in the registry the

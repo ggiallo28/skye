@@ -1,18 +1,21 @@
 """Your own durable-state backend behind the StorageBackend Port (Live).
 
 ``StorageBackend`` is key-value plus counter (decision D98); ``ScanStore`` adds ``keys`` by prefix.
-Subclass, implement the abstract async methods, register the class with ``register_backend`` and
-check it with the public conformance suite (``check_backend``). This example backs it with a plain
+Subclass, implement the abstract async methods, add the class with ``@plugins.backend("name")``,
+build it with ``skye.backend("name")`` and check it with the public conformance suite (``check_backend``). This example backs it with a plain
 dict to keep the focus on the shape of the Ports; it ignores expiry, so it skips the full suite.
 """
 
 import asyncio
 from typing import Any
 
+import skye
 from skye.interfaces import ScanStore, StorageBackend
-from skye.store import backend, register_backend
+
+plugins = skye.Plugins()
 
 
+@plugins.backend("dict", replace=True)
 class DictBackend(StorageBackend, ScanStore):
     """A minimal StorageBackend kept entirely in a dictionary."""
 
@@ -54,8 +57,7 @@ class DictBackend(StorageBackend, ScanStore):
 
 
 async def main() -> None:
-    register_backend("dict", DictBackend, replace=True)
-    store = backend("dict")
+    store = skye.backend("dict")
     await store.connect()
 
     await store.set_multiple({"user:1": {"name": "Ada"}, "user:2": {"name": "Grace"}})

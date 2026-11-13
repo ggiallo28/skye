@@ -42,7 +42,7 @@ from skye.base.interfaces.observer import (
     ObserverInterface,
 )
 from skye.base.interfaces.plugin import (
-    PluginInterface,
+    RegistrarInterface,
 )
 from skye.base.interfaces.prompt import (
     OutputSchema,
@@ -75,6 +75,7 @@ from skye.base.interfaces.safety import (
 )
 from skye.base.interfaces.storage import (
     CounterStore,
+    ExpiryStore,
     KeyValueStore,
     ScanStore,
     StorageBackend,
@@ -112,13 +113,13 @@ __all__ = [
     "ModelSelectionInterface",
     "ObserverInterface",
     "OutputSchema",
-    "PluginInterface",
     "PromptBuilderInterface",
     "PromptParts",
     "PromptRegistryInterface",
     "PromptRenderingInterface",
     "PromptSchemaInterface",
     "ProviderRegistryInterface",
+    "RegistrarInterface",
     "Resource",
     "ResourceProviderInterface",
     "RouterConfigurationInterface",
@@ -129,6 +130,7 @@ __all__ = [
     "StorageBackend",
     "KeyValueStore",
     "CounterStore",
+    "ExpiryStore",
     "ScanStore",
     "TokenCounterInterface",
     "ToolProvider",

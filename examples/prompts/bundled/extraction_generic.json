@@ -1,0 +1,125 @@
+[
+  {
+    "_case": "entities",
+    "input": "Tim Cook presented the new iPhone in Cupertino.",
+    "instructions": [
+      "Find every named entity and give its type."
+    ],
+    "labels": [
+      {
+        "name": "PERSON",
+        "description": "Names of people"
+      },
+      {
+        "name": "ORG",
+        "description": "Organizations and companies"
+      },
+      {
+        "name": "LOC",
+        "description": "Places"
+      }
+    ],
+    "schema": {
+      "entities": [
+        {
+          "text": "string",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  {
+    "_case": "relations",
+    "input": "Ada Lovelace worked with Charles Babbage in London.",
+    "instructions": [
+      "Find every relation between two entities."
+    ],
+    "labels": [
+      {
+        "name": "WORKS_WITH",
+        "description": "Two people who work together"
+      },
+      {
+        "name": "LOCATED_IN",
+        "description": "An entity located in a place"
+      }
+    ],
+    "schema": {
+      "relations": [
+        {
+          "subject": "string",
+          "relation": "string",
+          "object": "string"
+        }
+      ]
+    }
+  },
+  {
+    "_case": "table",
+    "task": "List every product with its price",
+    "input": "Notebooks cost 4.50 EUR and are in stock; pens cost 1.20 EUR, sold out.",
+    "format": "table",
+    "schema": {
+      "name": {
+        "type": "string",
+        "description": "Product name"
+      },
+      "price": {
+        "type": "number",
+        "description": "Unit price in EUR"
+      },
+      "in_stock": "bool"
+    },
+    "instructions": [
+      "Write prices without the currency symbol."
+    ],
+    "examples": [
+      {
+        "input": "Pens, 1.20 EUR each, in stock.",
+        "output": "| name | price | in_stock |\n| --- | --- | --- |\n| Pens | 1.2 | true |"
+      }
+    ]
+  },
+  {
+    "_case": "default fields",
+    "task": "List every product",
+    "input": "Pens 1.20 EUR, ink 3 EUR."
+  },
+  {
+    "_case": "classification",
+    "input": "The parcel arrived two weeks late and the box was damaged.",
+    "context": "Messages from the customer support inbox of an online shop.",
+    "instructions": [
+      "Classify the text into exactly one of the labels."
+    ],
+    "labels": [
+      {
+        "name": "complaint",
+        "description": "The customer reports a problem"
+      },
+      {
+        "name": "praise",
+        "description": "The customer is satisfied"
+      },
+      {
+        "name": "question",
+        "description": "The customer asks for information"
+      }
+    ],
+    "schema": {
+      "category": "string",
+      "confidence": "number",
+      "reasoning": "string"
+    },
+    "examples": [
+      {
+        "input": "Thanks, it works perfectly!",
+        "output": "{\"category\": \"praise\", \"confidence\": 0.97, \"reasoning\": \"The customer thanks us and is satisfied.\"}"
+      },
+      {
+        "input": "Where is my order?",
+        "output": "{\"category\": \"question\", \"confidence\": 0.9, \"reasoning\": \"The customer asks for information.\"}"
+      }
+    ]
+  }
+]

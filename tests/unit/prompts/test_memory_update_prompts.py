@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -11,15 +10,15 @@ import pytest
 from skye.base.dsl import PromptSpec, build
 from skye.base.messages import AssistantMessage, SkyeMessage, SystemMessage, UserMessage
 from skye.prompts.skye_prompts import load_prompt, render_prompt
+from tests.unit.prompts.bundled import build_template, load_template, template_path
 
-TEMPLATES = Path(__file__).resolve().parents[3] / "src" / "skye" / "prompts" / "templates"
 
-NAMES = ("memory_update_agent", "memory_consolidation_agent", "working_memory_agent")
+NAMES = ("agent_memory_update", "agent_memory_consolidation", "agent_memory_working")
 
 REQUIRED: dict[str, dict[str, Any]] = {
-    "memory_update_agent": {},
-    "memory_consolidation_agent": {},
-    "working_memory_agent": {"task": "Write the quarterly report."},
+    "agent_memory_update": {},
+    "agent_memory_consolidation": {},
+    "agent_memory_working": {"task": "Write the quarterly report."},
 }
 
 TOOLS = [
@@ -58,7 +57,7 @@ MEMORY: dict[str, list[dict[str, Any]]] = {
 
 
 def _spec(name: str) -> PromptSpec:
-    return load_prompt((TEMPLATES / f"{name}.skye").read_text(encoding="utf-8"), name)
+    return load_template(template_path(name), name)
 
 
 def _render(
@@ -83,7 +82,7 @@ def _json_lines(text: str) -> list[Any]:
 
 @pytest.mark.parametrize("name", NAMES)
 def test_has_front_matter(name: str) -> None:
-    metadata = build((TEMPLATES / f"{name}.skye").read_text(encoding="utf-8")).metadata
+    metadata = build_template(template_path(name)).metadata
     assert metadata["title"] and metadata["description"]
     assert metadata["version"] == "1.0"
     assert isinstance(metadata["tags"], list) and metadata["tags"]
@@ -133,7 +132,7 @@ def test_every_memory_kind_with_ids(name: str) -> None:
     assert "- Lives in Turin." in system
     assert "### Past events" in system
     assert "- [e1] Asked for a short report. (at 2026-11-01)" in system
-    assert "- Said hello. (at 2026-11-02)" in system
+    assert "- [2026-11-02] Said hello." in system  # no id: the standard line of every template
     assert "### Known facts" in system
     assert "- [s1] Solar capacity doubled since 2020. (source: IEA)" in system
     assert "- [s2] The team uses Python." in system
@@ -150,7 +149,7 @@ def test_every_memory_kind_with_ids(name: str) -> None:
 
 @pytest.mark.parametrize("kind", sorted(MEMORY))
 def test_one_memory_kind_alone(kind: str) -> None:
-    system = _system(_render("memory_update_agent", **{kind: MEMORY[kind]}))
+    system = _system(_render("agent_memory_update", **{kind: MEMORY[kind]}))
     assert "## Memory" in system
     assert system.count("### ") == 1
 
@@ -174,11 +173,11 @@ def test_json_examples_parse(name: str) -> None:
     assert all(value == [] for value in answer.values())
 
 
-# -- memory_update_agent ------------------------------------------------------------------------
+# -- agent_memory_update ------------------------------------------------------------------------
 
 
 def test_update_json_shape_and_rules() -> None:
-    system = _system(_render("memory_update_agent"))
+    system = _system(_render("agent_memory_update"))
     for field in ('"op"', '"kind"', '"id"', '"content"', '"name"', '"steps"', '"reason"'):
         assert field in system
     for word in ('"add"', '"update"', '"delete"', '"none"'):
@@ -191,25 +190,25 @@ def test_update_json_shape_and_rules() -> None:
 
 
 def test_update_kinds_and_limit() -> None:
-    plain = _system(_render("memory_update_agent"))
+    plain = _system(_render("agent_memory_update"))
     assert "Only propose operations for these kinds" not in plain
     assert "at most" not in plain
     system = _system(
-        _render("memory_update_agent", kinds=["semantic", "persona"], max_operations=5)
+        _render("agent_memory_update", kinds=["semantic", "persona"], max_operations=5)
     )
     assert "Only propose operations for these kinds: semantic, persona." in system
     assert "Propose at most 5 operations" in system
 
 
 def test_update_names() -> None:
-    system = _system(_render("memory_update_agent", user_name="Ada", agent_name="Skye"))
+    system = _system(_render("agent_memory_update", user_name="Ada", agent_name="Skye"))
     assert "called Skye" in system
     assert "called Ada" in system
 
 
 def test_update_transcript_latest_exchange_and_time() -> None:
     user = _render(
-        "memory_update_agent",
+        "agent_memory_update",
         transcript=[
             {"speaker": "user", "content": "I switched to Rust."},
             {"speaker": "assistant", "content": "Good choice."},
@@ -226,16 +225,16 @@ def test_update_transcript_latest_exchange_and_time() -> None:
 
 
 def test_update_without_transcript_points_at_history() -> None:
-    user = _render("memory_update_agent")[-1].content
+    user = _render("agent_memory_update")[-1].content
     assert "## Conversation" not in user
     assert "messages above" in user
 
 
-# -- memory_consolidation_agent -----------------------------------------------------------------
+# -- agent_memory_consolidation -----------------------------------------------------------------
 
 
 def test_consolidation_json_shape_and_merge() -> None:
-    system = _system(_render("memory_consolidation_agent", **MEMORY))
+    system = _system(_render("agent_memory_consolidation", **MEMORY))
     assert '"merge"' in system
     assert '"ids"' in system
     example = _json_lines(system)[0]
@@ -245,28 +244,28 @@ def test_consolidation_json_shape_and_merge() -> None:
 
 
 def test_consolidation_user_message() -> None:
-    empty = _render("memory_consolidation_agent")[-1].content
+    empty = _render("agent_memory_consolidation")[-1].content
     assert '{"operations": []}' in empty
-    full = _render("memory_consolidation_agent", **MEMORY)[-1].content
+    full = _render("agent_memory_consolidation", **MEMORY)[-1].content
     assert "Consolidate the memories" in full
 
 
 def test_consolidation_kinds() -> None:
-    system = _system(_render("memory_consolidation_agent", kinds=["episodic"]))
+    system = _system(_render("agent_memory_consolidation", kinds=["episodic"]))
     assert "Only propose operations for these kinds: episodic." in system
 
 
-# -- working_memory_agent -----------------------------------------------------------------------
+# -- agent_memory_working -----------------------------------------------------------------------
 
 
 def test_working_requires_task() -> None:
     with pytest.raises(ValueError) as info:
-        render_prompt(_spec("working_memory_agent"), {})
+        render_prompt(_spec("agent_memory_working"), {})
     assert "task" in str(info.value)
 
 
 def test_working_json_shape_and_task() -> None:
-    messages = _render("working_memory_agent", latest_exchange="user: the deadline moved to Monday")
+    messages = _render("agent_memory_working", latest_exchange="user: the deadline moved to Monday")
     system, user = messages[0].content, messages[-1].content
     example = _json_lines(system)[0]
     assert set(example) == {"notes", "done", "open_questions"}

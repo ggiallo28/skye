@@ -57,8 +57,8 @@ estimate until the provider reports its own (`chunk.cost["exact"]` becomes `True
 
 ## Call a model from async code
 
-`acomplete` is the async form of `complete`. Every client runs the call in a worker thread of the event loop's executor, so the
-loop keeps serving other tasks while the request is in flight:
+`acomplete` is the async form of `complete`, and it is the form that holds the code: `complete` runs it for you. The built-in clients do
+the blocking part of the request in a worker thread, so the loop keeps serving other tasks while the request is in flight:
 
 ```python
 --8<-- "examples/basic/async_and_streaming.py:20:38"
@@ -77,8 +77,8 @@ async def ask_all(client, questions: list[str]) -> list[str]:
     return [response.content for response in await asyncio.gather(*calls)]
 ```
 
-`astream` does not block the event loop either: the provider's stream is read in a worker thread, and each chunk is handed to your
-`async for` through a queue, so other tasks run between two chunks. Nothing is left running when the loop ends: if you stop early
+`astream` does not block the event loop either: the blocking read of the provider's stream runs in a worker thread, and each chunk is handed to your
+`async for`, so other tasks run between two chunks. `stream` is derived from it the same way `complete` is derived from `acomplete`. Nothing is left running when the loop ends: if you stop early
 (`break`), the worker stops at the next chunk and `astream` waits for it before closing.
 
 ## A router

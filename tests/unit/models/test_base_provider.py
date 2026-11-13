@@ -1,7 +1,8 @@
 """Unit tests for BaseModelProvider."""
 
 from datetime import datetime, timezone
-from typing import Any, Iterator
+from collections.abc import AsyncGenerator
+from typing import Any
 
 import pytest
 
@@ -58,13 +59,13 @@ class MockProvider(BaseModelProvider):
             index=0
         )
     
-    def _call_provider(self, request: dict[str, Any]) -> Any:
+    async def _acall_provider(self, request: dict[str, Any]) -> Any:
         """Make mock provider API call."""
         if self.should_fail:
             raise Exception("Mock provider failure")
         return {"content": "Mock response"}
     
-    def _call_provider_stream(self, request: dict[str, Any]) -> Iterator[Any]:
+    async def _acall_provider_stream(self, request: dict[str, Any]) -> AsyncGenerator[Any, None]:
         """Make mock streaming provider API call."""
         if self.fail_on_stream:
             raise Exception("Mock stream failure")
@@ -97,13 +98,13 @@ class MockProvider(BaseModelProvider):
             index=chunk.get("index", 0)
         )
     
-    def _call_provider(self, request: dict[str, Any]) -> Any:
+    async def _acall_provider(self, request: dict[str, Any]) -> Any:
         """Mock provider call."""
         if self.should_fail:
             raise ValueError("Mock provider error")
         return {"content": "Mock response"}
     
-    def _call_provider_stream(self, request: dict[str, Any]) -> Iterator[Any]:
+    async def _acall_provider_stream(self, request: dict[str, Any]) -> AsyncGenerator[Any, None]:
         """Mock streaming provider call."""
         if self.fail_on_stream:
             raise ValueError("Mock streaming error")

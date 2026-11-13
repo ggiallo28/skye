@@ -12,7 +12,7 @@ You use `@plugins.toolkit("name")` on a class that extends `skye.Toolkit`:
 * A tool outside the class, a function with `@capability`, goes in `tools=[...]` of the decorator.
 * `async close()`, if the toolkit holds something to release.
 
-The name of a tool is the toolkit and the method: `create_issue` of `"jira"` is `jira.create_issue`.
+The name of a tool is the toolkit and the method: `create_issue` of `"jira"` is `jira_create_issue`.
 You never write the prefix, so a toolkit never clashes with your tools. Two instances of one toolkit
 take an `alias`: `skye.toolkit("jira", alias="jira-eu", ...)`. Functions with no state need no
 class: `plugins.toolkit("text", tools=[slugify])`. An agent takes it in `toolkits=[...]`.
@@ -53,7 +53,7 @@ class JiraToolkit(skye.Toolkit):
         description="Close an issue that is done or no longer needed.",
     )
     def move_to_done(self, key: str) -> str:
-        # A name of its own: the tool is `jira.close_issue`, whatever the method is called.
+        # A name of its own: the tool is `jira_close_issue`, whatever the method is called.
         return f"{key} closed"
 
     async def close(self) -> None:
@@ -64,7 +64,7 @@ async def main() -> None:
     jira = skye.toolkit("jira", base_url="https://acme.example/jira")
     print("tools:", [schema.name for schema in await jira.list_schemas()])
 
-    call = CapabilityCall(id="1", name="jira.create_issue", arguments={"title": "Broken login"})
+    call = CapabilityCall(id="1", name="jira_create_issue", arguments={"title": "Broken login"})
     message = await jira.run(call)
     print("result:", message.content)
 

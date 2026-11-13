@@ -1,0 +1,860 @@
+{
+ "code_generation": [
+  {
+   "label": "empty",
+   "variables": {},
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate Python code for the following task: \nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "full",
+   "variables": {
+    "description": "A small utility for a CLI tool",
+    "language": "Go",
+    "task": "Parse an ISO 8601 date string and return the weekday name",
+    "requirements": [
+     "Use only the standard library",
+     "Raise an error on bad input"
+    ],
+    "examples": "weekday(\"2026-11-08\") -> \"Sunday\"",
+    "input_format": "a string such as '2026-11-08'",
+    "output_format": "the English weekday name",
+    "include_tests": true,
+    "include_comments": true
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "A small utility for a CLI tool\nGenerate Go code for the following task: Parse an ISO 8601 date string and return the weekday name\nRequirements:\n- Use only the standard library\n- Raise an error on bad input\nExamples:\nweekday(\"2026-11-08\") -> \"Sunday\"\nInput format: a string such as '2026-11-08'\nExpected output format: the English weekday name\nPlease include unit tests for your code.\nPlease include detailed comments explaining the code.\nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert Go developer. Generate clean, efficient, and well-documented code.\nA small utility for a CLI tool\n## Constraints:\n- Use only the standard library\n- Raise an error on bad input\n## Examples:\n**Request:** Example\n**Code:**\n```Go\nweekday(\"2026-11-08\") -> \"Sunday\"\n```"
+    ],
+    [
+     "user",
+     "Generate Go code for the following task: Parse an ISO 8601 date string and return the weekday name\nInput format: a string such as '2026-11-08'\nExpected output format: the English weekday name\nPlease include unit tests for your code.\nPlease include detailed comments explaining the code.\nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "system",
+   "variables": {
+    "system_prompt": "SYS"
+   },
+   "before": [
+    [
+     "system",
+     "SYS"
+    ],
+    [
+     "user",
+     "Generate Python code for the following task: \nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "SYS"
+    ],
+    [
+     "user",
+     "Generate code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_description",
+   "variables": {
+    "description": "A small utility for a CLI tool"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "A small utility for a CLI tool\nGenerate Python code for the following task: \nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code.\nA small utility for a CLI tool"
+    ],
+    [
+     "user",
+     "Generate code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_language",
+   "variables": {
+    "language": "Rust"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate Rust code for the following task: \nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert Rust developer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate Rust code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_task",
+   "variables": {
+    "task": "Reverse a string"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate Python code for the following task: Reverse a string\nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate code for the following task: Reverse a string\nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_requirements",
+   "variables": {
+    "requirements": [
+     "Use only the standard library",
+     "Raise ValueError on bad input"
+    ]
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate Python code for the following task: \nRequirements:\n- Use only the standard library\n- Raise ValueError on bad input\nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code.\n## Constraints:\n- Use only the standard library\n- Raise ValueError on bad input"
+    ],
+    [
+     "user",
+     "Generate code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_examples",
+   "variables": {
+    "examples": "reverse('ab') -> 'ba'"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate Python code for the following task: \nExamples:\nreverse('ab') -> 'ba'\nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code.\n## Examples:\n**Request:** Example\n**Code:**\n```\nreverse('ab') -> 'ba'\n```"
+    ],
+    [
+     "user",
+     "Generate code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_input_format",
+   "variables": {
+    "input_format": "a UTF-8 string"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate Python code for the following task: \nInput format: a UTF-8 string\nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate code for the following task: \nInput format: a UTF-8 string\nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_output_format",
+   "variables": {
+    "output_format": "the reversed string"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate Python code for the following task: \nExpected output format: the reversed string\nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate code for the following task: \nExpected output format: the reversed string\nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_tests",
+   "variables": {
+    "include_tests": true
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate Python code for the following task: \nPlease include unit tests for your code.\nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate code for the following task: \nPlease include unit tests for your code.\nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_comments",
+   "variables": {
+    "include_comments": true
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate Python code for the following task: \nPlease include detailed comments explaining the code.\nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate code for the following task: \nPlease include detailed comments explaining the code.\nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "sample",
+   "variables": {
+    "language": "Python",
+    "task": "Parse an ISO 8601 date string and return the weekday name",
+    "requirements": [
+     "Use only the standard library",
+     "Raise ValueError on bad input"
+    ],
+    "examples": "weekday('2026-11-08') -> 'Sunday'",
+    "input_format": "a string such as '2026-11-08'",
+    "output_format": "the English weekday name",
+    "include_tests": true,
+    "include_comments": true
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert programmer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate Python code for the following task: Parse an ISO 8601 date string and return the weekday name\nRequirements:\n- Use only the standard library\n- Raise ValueError on bad input\nExamples:\nweekday('2026-11-08') -> 'Sunday'\nInput format: a string such as '2026-11-08'\nExpected output format: the English weekday name\nPlease include unit tests for your code.\nPlease include detailed comments explaining the code.\nCode:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert Python developer. Generate clean, efficient, and well-documented code.\n## Constraints:\n- Use only the standard library\n- Raise ValueError on bad input\n## Examples:\n**Request:** Example\n**Code:**\n```Python\nweekday('2026-11-08') -> 'Sunday'\n```"
+    ],
+    [
+     "user",
+     "Generate Python code for the following task: Parse an ISO 8601 date string and return the weekday name\nInput format: a string such as '2026-11-08'\nExpected output format: the English weekday name\nPlease include unit tests for your code.\nPlease include detailed comments explaining the code.\nCode:"
+    ]
+   ]
+  }
+ ],
+ "sql_generation": [
+  {
+   "label": "empty",
+   "variables": {},
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\n## Question:\n## SQL Query:\n```sql\n\n```\n\n## Explanation:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "full_explained",
+   "variables": {
+    "description": "Reporting database",
+    "database_schema": [
+     {
+      "name": "customers",
+      "description": "One row per customer",
+      "columns": [
+       {
+        "name": "id",
+        "type": "integer",
+        "description": "Primary key"
+       },
+       {
+        "name": "name",
+        "type": "text"
+       }
+      ]
+     },
+     {
+      "name": "orders",
+      "columns": [
+       {
+        "name": "id",
+        "type": "integer"
+       },
+       {
+        "name": "customer_id",
+        "type": "integer",
+        "description": "References customers.id"
+       },
+       {
+        "name": "placed_at",
+        "type": "date"
+       }
+      ]
+     }
+    ],
+    "database_type": "PostgreSQL",
+    "examples": [
+     {
+      "question": "How many customers are there?",
+      "sql": "SELECT count(*) FROM customers;"
+     }
+    ],
+    "constraints": [
+     "Read-only queries",
+     "No SELECT *"
+    ],
+    "question": "Which customers placed more than three orders in 2026?",
+    "output_format": "explained"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\nReporting database\n## Database Schema:\n**Table: customers**\nDescription: One row per customer\nColumns:\n- id (integer) - Primary key\n- name (text)\n**Table: orders**\nColumns:\n- id (integer)\n- customer_id (integer) - References customers.id\n- placed_at (date)\n## Database Type: PostgreSQL\nPlease generate queries compatible with PostgreSQL.\n## Examples:\n**Question:** How many customers are there?\n**SQL:**\n```sql\nSELECT count(*) FROM customers;\n```\n## Constraints:\n- Read-only queries\n- No SELECT *\n## Question:\nWhich customers placed more than three orders in 2026?\nPlease provide:\n1. **SQL Query**: The complete SQL query\n2. **Explanation**: How the query works\n3. **Key Joins**: Important table relationships used\n4. **Performance Notes**: Any performance considerations"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code.\nReporting database\n## Reference material:\n**customers**: One row per customer\nColumns:\n- id (integer) - Primary key\n- name (text)\n**orders**\nColumns:\n- id (integer)\n- customer_id (integer) - References customers.id\n- placed_at (date)\n## Environment:\nPlease generate code compatible with PostgreSQL.\n## Constraints:\n- Read-only queries\n- No SELECT *\n## Examples:\n**Request:** How many customers are there?\n**Code:**\n```SQL\nSELECT count(*) FROM customers;\n```"
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: Which customers placed more than three orders in 2026?\nPlease provide:\n1. **Code**: The complete code\n2. **Explanation**: How the code works\n3. **Key points**: Important aspects of the implementation\n4. **Usage example**: How to use the code"
+    ]
+   ]
+  },
+  {
+   "label": "full_json",
+   "variables": {
+    "description": "Reporting database",
+    "database_schema": [
+     {
+      "name": "customers",
+      "description": "One row per customer",
+      "columns": [
+       {
+        "name": "id",
+        "type": "integer",
+        "description": "Primary key"
+       },
+       {
+        "name": "name",
+        "type": "text"
+       }
+      ]
+     },
+     {
+      "name": "orders",
+      "columns": [
+       {
+        "name": "id",
+        "type": "integer"
+       },
+       {
+        "name": "customer_id",
+        "type": "integer",
+        "description": "References customers.id"
+       },
+       {
+        "name": "placed_at",
+        "type": "date"
+       }
+      ]
+     }
+    ],
+    "database_type": "PostgreSQL",
+    "examples": [
+     {
+      "question": "How many customers are there?",
+      "sql": "SELECT count(*) FROM customers;"
+     }
+    ],
+    "constraints": [
+     "Read-only queries",
+     "No SELECT *"
+    ],
+    "question": "Which customers placed more than three orders in 2026?",
+    "output_format": "json"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\nReporting database\n## Database Schema:\n**Table: customers**\nDescription: One row per customer\nColumns:\n- id (integer) - Primary key\n- name (text)\n**Table: orders**\nColumns:\n- id (integer)\n- customer_id (integer) - References customers.id\n- placed_at (date)\n## Database Type: PostgreSQL\nPlease generate queries compatible with PostgreSQL.\n## Examples:\n**Question:** How many customers are there?\n**SQL:**\n```sql\nSELECT count(*) FROM customers;\n```\n## Constraints:\n- Read-only queries\n- No SELECT *\n## Question:\nWhich customers placed more than three orders in 2026?\nPlease format your response as JSON:\n```json\n{\n  \"sql\": \"SELECT * FROM table WHERE condition\",\n  \"explanation\": \"explanation of the query\",\n  \"tables_used\": [\"table1\", \"table2\"],\n  \"complexity\": \"simple|medium|complex\"\n}\n```"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code.\nReporting database\n## Reference material:\n**customers**: One row per customer\nColumns:\n- id (integer) - Primary key\n- name (text)\n**orders**\nColumns:\n- id (integer)\n- customer_id (integer) - References customers.id\n- placed_at (date)\n## Environment:\nPlease generate code compatible with PostgreSQL.\n## Constraints:\n- Read-only queries\n- No SELECT *\n## Examples:\n**Request:** How many customers are there?\n**Code:**\n```SQL\nSELECT count(*) FROM customers;\n```"
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: Which customers placed more than three orders in 2026?\n\nAnswer with a single JSON object and nothing else.\nIt must match this JSON Schema:\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"code\": {\n      \"type\": \"string\",\n      \"description\": \"The complete code\"\n    },\n    \"explanation\": {\n      \"type\": \"string\",\n      \"description\": \"How the code works\"\n    }\n  },\n  \"required\": [\n    \"code\",\n    \"explanation\"\n  ]\n}\n```\nExample of the shape:\n{\"code\": \"...\", \"explanation\": \"...\"}"
+    ]
+   ]
+  },
+  {
+   "label": "system",
+   "variables": {
+    "system_prompt": "SYS"
+   },
+   "before": [
+    [
+     "system",
+     "SYS\n## Question:\n## SQL Query:\n```sql\n\n```\n\n## Explanation:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "SYS"
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_description",
+   "variables": {
+    "description": "Reporting database"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\nReporting database\n## Question:\n## SQL Query:\n```sql\n\n```\n\n## Explanation:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code.\nReporting database"
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_schema",
+   "variables": {
+    "database_schema": [
+     {
+      "name": "customers",
+      "description": "One row per customer",
+      "columns": [
+       {
+        "name": "id",
+        "type": "integer",
+        "description": "Primary key"
+       },
+       {
+        "name": "name",
+        "type": "text"
+       }
+      ]
+     },
+     {
+      "name": "orders",
+      "columns": [
+       {
+        "name": "id",
+        "type": "integer"
+       },
+       {
+        "name": "customer_id",
+        "type": "integer",
+        "description": "References customers.id"
+       },
+       {
+        "name": "placed_at",
+        "type": "date"
+       }
+      ]
+     }
+    ]
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\n## Database Schema:\n**Table: customers**\nDescription: One row per customer\nColumns:\n- id (integer) - Primary key\n- name (text)\n**Table: orders**\nColumns:\n- id (integer)\n- customer_id (integer) - References customers.id\n- placed_at (date)\n## Question:\n## SQL Query:\n```sql\n\n```\n\n## Explanation:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code.\n## Reference material:\n**customers**: One row per customer\nColumns:\n- id (integer) - Primary key\n- name (text)\n**orders**\nColumns:\n- id (integer)\n- customer_id (integer) - References customers.id\n- placed_at (date)"
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_database_type",
+   "variables": {
+    "database_type": "PostgreSQL"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\n## Database Type: PostgreSQL\nPlease generate queries compatible with PostgreSQL.\n## Question:\n## SQL Query:\n```sql\n\n```\n\n## Explanation:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code.\n## Environment:\nPlease generate code compatible with PostgreSQL."
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_examples",
+   "variables": {
+    "examples": [
+     {
+      "question": "How many customers are there?",
+      "sql": "SELECT count(*) FROM customers;"
+     }
+    ]
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\n## Examples:\n**Question:** How many customers are there?\n**SQL:**\n```sql\nSELECT count(*) FROM customers;\n```\n## Question:\n## SQL Query:\n```sql\n\n```\n\n## Explanation:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code.\n## Examples:\n**Request:** How many customers are there?\n**Code:**\n```SQL\nSELECT count(*) FROM customers;\n```"
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_constraints",
+   "variables": {
+    "constraints": [
+     "Read-only queries",
+     "No SELECT *"
+    ]
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\n## Constraints:\n- Read-only queries\n- No SELECT *\n## Question:\n## SQL Query:\n```sql\n\n```\n\n## Explanation:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code.\n## Constraints:\n- Read-only queries\n- No SELECT *"
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: \nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "only_question",
+   "variables": {
+    "question": "How many orders were placed today?"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\n## Question:\nHow many orders were placed today?\n## SQL Query:\n```sql\n\n```\n\n## Explanation:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: How many orders were placed today?\nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "output_explained",
+   "variables": {
+    "question": "How many orders?",
+    "output_format": "explained"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\n## Question:\nHow many orders?\nPlease provide:\n1. **SQL Query**: The complete SQL query\n2. **Explanation**: How the query works\n3. **Key Joins**: Important table relationships used\n4. **Performance Notes**: Any performance considerations"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: How many orders?\nPlease provide:\n1. **Code**: The complete code\n2. **Explanation**: How the code works\n3. **Key points**: Important aspects of the implementation\n4. **Usage example**: How to use the code"
+    ]
+   ]
+  },
+  {
+   "label": "output_json",
+   "variables": {
+    "question": "How many orders?",
+    "output_format": "json"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\n## Question:\nHow many orders?\nPlease format your response as JSON:\n```json\n{\n  \"sql\": \"SELECT * FROM table WHERE condition\",\n  \"explanation\": \"explanation of the query\",\n  \"tables_used\": [\"table1\", \"table2\"],\n  \"complexity\": \"simple|medium|complex\"\n}\n```"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: How many orders?\n\nAnswer with a single JSON object and nothing else.\nIt must match this JSON Schema:\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"code\": {\n      \"type\": \"string\",\n      \"description\": \"The complete code\"\n    },\n    \"explanation\": {\n      \"type\": \"string\",\n      \"description\": \"How the code works\"\n    }\n  },\n  \"required\": [\n    \"code\",\n    \"explanation\"\n  ]\n}\n```\nExample of the shape:\n{\"code\": \"...\", \"explanation\": \"...\"}"
+    ]
+   ]
+  },
+  {
+   "label": "output_other",
+   "variables": {
+    "question": "How many orders?",
+    "output_format": "plain"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\n## Question:\nHow many orders?\n## SQL Query:\n```sql\n\n```\n\n## Explanation:"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code."
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: How many orders?\nCode:"
+    ]
+   ]
+  },
+  {
+   "label": "sample",
+   "variables": {
+    "question": "Which customers placed more than three orders in 2026?",
+    "database_type": "PostgreSQL",
+    "database_schema": [
+     {
+      "name": "customers",
+      "description": "One row per customer",
+      "columns": [
+       {
+        "name": "id",
+        "type": "integer",
+        "description": "Primary key"
+       },
+       {
+        "name": "name",
+        "type": "text"
+       }
+      ]
+     },
+     {
+      "name": "orders",
+      "columns": [
+       {
+        "name": "id",
+        "type": "integer"
+       },
+       {
+        "name": "customer_id",
+        "type": "integer",
+        "description": "References customers.id"
+       },
+       {
+        "name": "placed_at",
+        "type": "date"
+       }
+      ]
+     }
+    ],
+    "examples": [
+     {
+      "question": "How many customers are there?",
+      "sql": "SELECT count(*) FROM customers;"
+     }
+    ],
+    "constraints": [
+     "Read-only queries",
+     "No SELECT *"
+    ],
+    "output_format": "explained"
+   },
+   "before": [
+    [
+     "system",
+     "You are an expert SQL query generator. You can translate natural language questions into accurate, efficient SQL queries based on the provided database schema.\n## Database Schema:\n**Table: customers**\nDescription: One row per customer\nColumns:\n- id (integer) - Primary key\n- name (text)\n**Table: orders**\nColumns:\n- id (integer)\n- customer_id (integer) - References customers.id\n- placed_at (date)\n## Database Type: PostgreSQL\nPlease generate queries compatible with PostgreSQL.\n## Examples:\n**Question:** How many customers are there?\n**SQL:**\n```sql\nSELECT count(*) FROM customers;\n```\n## Constraints:\n- Read-only queries\n- No SELECT *\n## Question:\nWhich customers placed more than three orders in 2026?\nPlease provide:\n1. **SQL Query**: The complete SQL query\n2. **Explanation**: How the query works\n3. **Key Joins**: Important table relationships used\n4. **Performance Notes**: Any performance considerations"
+    ]
+   ],
+   "after": [
+    [
+     "system",
+     "You are an expert SQL developer. Generate clean, efficient, and well-documented code.\n## Reference material:\n**customers**: One row per customer\nColumns:\n- id (integer) - Primary key\n- name (text)\n**orders**\nColumns:\n- id (integer)\n- customer_id (integer) - References customers.id\n- placed_at (date)\n## Environment:\nPlease generate code compatible with PostgreSQL.\n## Constraints:\n- Read-only queries\n- No SELECT *\n## Examples:\n**Request:** How many customers are there?\n**Code:**\n```SQL\nSELECT count(*) FROM customers;\n```"
+    ],
+    [
+     "user",
+     "Generate SQL code for the following task: Which customers placed more than three orders in 2026?\nPlease provide:\n1. **Code**: The complete code\n2. **Explanation**: How the code works\n3. **Key points**: Important aspects of the implementation\n4. **Usage example**: How to use the code"
+    ]
+   ]
+  }
+ ]
+}

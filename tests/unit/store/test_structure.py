@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[3] / "src" / "skye"
-PORTS = {"StorageBackend", "KeyValueStore", "CounterStore", "ScanStore"}
+PORTS = {"StorageBackend", "KeyValueStore", "CounterStore", "ExpiryStore", "ScanStore"}
 DRIVERS = ["boto3", "botocore", "redis", "valkey", "pg8000", "asyncpg"]
 
 

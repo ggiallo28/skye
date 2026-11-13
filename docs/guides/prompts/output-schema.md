@@ -16,7 +16,7 @@ model: as written instructions, or as the provider's native structured-output fi
 ## Step 1: write an `output` block
 
 An `output` block lists the fields of the answer with their types; the string after a type is a description for the model. The
-label is the format: `"json"` (the default when you leave it out), `"table"` or `"xml"`.
+label is the format: `"json"` (the default when you leave it out), `"table"`, `"xml"` or `"text"` (a plain answer with no fields, `output "text" { style = "a short paragraph" }`).
 
 ```skye
 prompt "extract_invoice" {
@@ -108,8 +108,7 @@ prompt "extract_any" {
 ```
 
 `active_output(spec, variables)` returns the block that applies, or `None`. `skye prompt info` shows each block under its condition.
-The bundled prompts `structured_output`, `structured_output_json`, `structured_output_table` and `structured_output_xml` are built
-this way.
+The bundled prompt `extraction_generic` is built this way: its `format` variable is `"json"` by default, `"table"` or `"xml"`.
 
 ## Step 5: send the schema as a native field
 

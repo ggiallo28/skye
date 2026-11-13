@@ -1,12 +1,16 @@
-"""Agent prompt: the bundled ``planner_agent`` with optional tools and memories.
+"""Agent prompt: ``agent_planner`` from the gallery, with optional tools and memories.
 
-Every builder loads the .skye prompts that ship with the package (``chat``, ``classification``,
-``planner_agent``, ``structured_output`` and more). An agent prompt's optional sections (tools,
-memories, constraints) are ``when`` blocks: they appear only when their variable is given.
+The gallery in ``examples/prompts/catalogue/`` holds agent prompts to copy; ``register_template``
+reads one from its path, with the shared parts it includes. An agent prompt's optional sections
+(tools, memories, constraints) are ``when`` blocks: they appear only when their variable is given.
 Runs offline, no key.
 """
 
+from pathlib import Path
+
 from skye.prompts import BasePromptBuilder
+
+PLANNER = Path(__file__).parent / "catalogue" / "agent_planner.skye"
 
 TOOLS = [{"name": "search_restaurants", "description": "Find restaurants by city and date"}]
 MEMORIES = {
@@ -29,10 +33,11 @@ def section(text: str, start: str, stop: str) -> str:
 
 def main() -> None:
     builder = BasePromptBuilder()
+    builder.register_template("agent_planner", str(PLANNER), from_string=False)
     task = {"task": "Book a table for four in Rome on Friday."}
 
-    bare = builder.render("planner_agent", task)[0].content
-    full = builder.render("planner_agent", {**task, "tools": TOOLS, **MEMORIES})[0].content
+    bare = builder.render("agent_planner", task)[0].content
+    full = builder.render("agent_planner", {**task, "tools": TOOLS, **MEMORIES})[0].content
 
     print("Sections")
     print(f"  bare:              {headings(bare)}")

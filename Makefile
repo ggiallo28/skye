@@ -1,4 +1,4 @@
-.PHONY: help install install-dev clean format lint type-check type-check-providers test test-unit test-integration test-cov test-providers test-capabilities check all budget budget-fast differential
+.PHONY: help install install-dev clean format lint type-check type-check-providers test test-unit test-integration test-cov test-providers test-capabilities check all budget budget-fast size size-wheel differential
 
 # Default target
 help:
@@ -27,6 +27,8 @@ help:
 	@echo ""
 	@echo "  make budget-fast      Size/load policy checks (no network)"
 	@echo "  make budget           Install in clean envs and check size budgets (needs uv, network)"
+	@echo "  make size             Report the size of src/skye by component and by kind (a second, end of a wave)"
+	@echo "  make size-wheel       The same, on the wheel that uv builds"
 	@echo ""
 	@echo "  make differential     Built-in vs official-SDK differential tests (dev env)"
 	@echo ""
@@ -131,6 +133,13 @@ budget-fast:
 
 budget:
 	uv run pytest tests/budget -m budget -q
+
+# Report (never enforce) the size of the package by component and by kind, against [core] of budgets.toml
+size:
+	uv run python -m tests.budget.size_report --source
+
+size-wheel:
+	uv run python -m tests.budget.size_report
 
 # Built-in vs official-SDK equivalence tests (dev env; SDKs come from the dev dependency group)
 differential:

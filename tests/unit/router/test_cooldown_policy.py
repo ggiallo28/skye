@@ -13,7 +13,8 @@ from skye.base.completion import CompleteRequest
 from skye.base.exceptions import ProviderError
 from skye.base.messages import UserMessage
 from skye.router import AllowedFailsPolicyConfig, FallbackConfig, ModelRouter, RetryPolicyConfig
-from tests.unit.router.fakes import FakeClock, FakeModel, RateLimitError
+from skye.store import FakeClock
+from tests.unit.router.fakes import FakeModel, RateLimitError, timed
 
 MESSAGES = [UserMessage(content="hi")]
 
@@ -28,9 +29,9 @@ NO_RETRIES = [
 ]
 
 
-def _router(models: dict[str, FakeModel], **kwargs: object) -> ModelRouter:
+def _router(clock: FakeClock, models: dict[str, FakeModel], **kwargs: object) -> ModelRouter:
     kwargs.setdefault("retry_policies", NO_RETRIES)
-    router = ModelRouter(**kwargs)  # type: ignore[arg-type]
+    router = ModelRouter(**timed(clock), **kwargs)  # type: ignore[arg-type]
     for model_id, model in models.items():
         router.register_model(model_id, model)
     return router
@@ -47,6 +48,7 @@ async def test_a_target_goes_into_cooldown_when_its_failures_reach_the_allowed_c
     flaky = FakeModel("flaky")
     flaky.always_fail = ServerError("down")
     router = _router(
+        clock,
         {"flaky": flaky},
         allowed_fails_policies=[
             AllowedFailsPolicyConfig(error_type="ServerError", allowed_fails_per_minute=3)
@@ -60,7 +62,7 @@ async def test_a_target_goes_into_cooldown_when_its_failures_reach_the_allowed_c
     await _fail_once(router, "flaky")
     health = await router.aget_model_health("flaky")
     assert health.is_in_cooldown
-    assert health.cooldown_until == pytest.approx(clock.now() + router.cooldown_seconds)
+    assert health.cooldown_until == pytest.approx(clock() + router.cooldown_seconds)
     assert [info.model_id for info in await router.aget_cooldown_models()] == ["flaky"]
 
 
@@ -68,6 +70,7 @@ async def test_a_target_in_cooldown_is_not_called(clock: FakeClock) -> None:
     flaky = FakeModel("flaky")
     flaky.always_fail = ServerError("down")
     router = _router(
+        clock,
         {"flaky": flaky},
         allowed_fails_policies=[
             AllowedFailsPolicyConfig(error_type="ServerError", allowed_fails_per_minute=1)
@@ -84,6 +87,7 @@ async def test_a_target_in_cooldown_is_not_called(clock: FakeClock) -> None:
 async def test_a_target_comes_back_when_the_cooldown_expires(clock: FakeClock) -> None:
     flaky = FakeModel("flaky", errors=[ServerError("down")])
     router = _router(
+        clock,
         {"flaky": flaky},
         cooldown_seconds=30.0,
         allowed_fails_policies=[
@@ -105,7 +109,7 @@ async def test_a_target_comes_back_when_the_cooldown_expires(clock: FakeClock) -
 async def test_an_error_type_outside_the_policy_never_causes_cooldown(clock: FakeClock) -> None:
     flaky = FakeModel("flaky")
     flaky.always_fail = ValueError("bad")
-    router = _router({"flaky": flaky})
+    router = _router(clock, {"flaky": flaky})
     for _ in range(20):
         await _fail_once(router, "flaky")
     health = await router.aget_model_health("flaky")
@@ -118,7 +122,7 @@ async def test_the_default_policy_cools_a_target_down_after_100_rate_limit_error
 ) -> None:
     flaky = FakeModel("flaky")
     flaky.always_fail = RateLimitError("429")
-    router = _router({"flaky": flaky})
+    router = _router(clock, {"flaky": flaky})
     assert router.allowed_fails_policy["RateLimitError"] == 100
 
     for _ in range(99):
@@ -131,7 +135,7 @@ async def test_the_default_policy_cools_a_target_down_after_100_rate_limit_error
 async def test_set_allowed_fails_policy_and_set_cooldown_time_take_effect(clock: FakeClock) -> None:
     flaky = FakeModel("flaky")
     flaky.always_fail = ServerError("down")
-    router = _router({"flaky": flaky})
+    router = _router(clock, {"flaky": flaky})
     router.set_allowed_fails_policy(
         [AllowedFailsPolicyConfig(error_type="ServerError", allowed_fails_per_minute=1)]
     )
@@ -148,6 +152,7 @@ async def test_a_primary_in_cooldown_goes_straight_to_its_fallback(clock: FakeCl
     primary.always_fail = ServerError("down")
     backup = FakeModel("backup")
     router = _router(
+        clock,
         {"primary": primary, "backup": backup},
         fallbacks=[FallbackConfig(primary="primary", fallbacks=["backup"])],
         allowed_fails_policies=[
@@ -171,6 +176,7 @@ async def test_a_target_in_cooldown_is_not_selected_while_another_is_available(
     flaky.always_fail = ServerError("down")
     steady = FakeModel("steady")
     router = _router(
+        clock,
         {"flaky": flaky, "steady": steady},
         allowed_fails_policies=[
             AllowedFailsPolicyConfig(error_type="ServerError", allowed_fails_per_minute=1)
@@ -190,6 +196,7 @@ async def test_failures_older_than_a_minute_do_not_count_toward_the_allowed_fail
     flaky = FakeModel("flaky")
     flaky.always_fail = ServerError("down")
     router = _router(
+        clock,
         {"flaky": flaky},
         allowed_fails_policies=[
             AllowedFailsPolicyConfig(error_type="ServerError", allowed_fails_per_minute=3)

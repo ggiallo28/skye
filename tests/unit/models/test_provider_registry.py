@@ -1,5 +1,7 @@
 """Unit tests for ProviderRegistry."""
 
+from unittest.mock import patch
+
 import pytest
 
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
@@ -7,6 +9,7 @@ from skye.base.exceptions import ConfigurationError
 from skye.base.interfaces.model import ModelInterface
 from skye.base.interfaces.vector_encoder import VectorEncoderInterface
 from skye.base.messages import UserMessage
+from skye.base.plugins import Registrar
 from skye.models.registry import ProviderRegistry
 
 
@@ -73,28 +76,28 @@ class TestProviderRegistry:
     """Test suite for ProviderRegistry."""
 
     def setup_method(self):
-        """Clear registry before each test (and keep the real one to put it back)."""
-        self._saved = (ProviderRegistry._model_providers, ProviderRegistry._embedding_providers)
-        ProviderRegistry._model_providers = {}
-        ProviderRegistry._embedding_providers = {}
+        """Give the registry an empty registrar of its own for each test; the default one, with the built-ins, is untouched."""
+        self._private = Registrar()
+        self._patch = patch("skye.models.registry._registrar", return_value=self._private)
+        self._patch.start()
 
     def teardown_method(self):
-        """Put the built-in providers back, so that later tests can create a client."""
-        ProviderRegistry._model_providers, ProviderRegistry._embedding_providers = self._saved
+        """Back to the default registrar, so that later tests can create a client."""
+        self._patch.stop()
 
     def test_register_model_provider(self):
         """Test registering a model provider."""
         ProviderRegistry.register_model_provider("mock", MockModelProvider)
 
-        assert "mock" in ProviderRegistry._model_providers
-        assert ProviderRegistry._model_providers["mock"] == MockModelProvider
+        assert self._private.has("provider", "mock", "model")
+        assert self._private.get("provider", "mock", "model") == MockModelProvider
 
     def test_register_embedding_provider(self):
         """Test registering an embedding provider."""
         ProviderRegistry.register_embedding_provider("mock", MockEmbeddingProvider)
 
-        assert "mock" in ProviderRegistry._embedding_providers
-        assert ProviderRegistry._embedding_providers["mock"] == MockEmbeddingProvider
+        assert self._private.has("provider", "mock", "embedding")
+        assert self._private.get("provider", "mock", "embedding") == MockEmbeddingProvider
 
     def test_get_model_provider_success(self):
         """Test successfully getting a model provider."""

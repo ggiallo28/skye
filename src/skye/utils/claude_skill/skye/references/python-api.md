@@ -63,7 +63,7 @@ for a prompt, a `RouterInfo` (routes with targets and fallbacks) for a router, a
 
 `from skye.prompts import describe_prompt, prompt_help, PromptInfo`: `describe_prompt(document.prompt("chat"), document.metadata)`
 returns a `PromptInfo` (inputs with type, default and description; placeholders; roles; output fields) and `prompt_help(spec, metadata)`
-the same as plain text (what `skye prompt info` prints). `BasePromptBuilder().help("planner_agent")` / `.describe(name)` work on a
+the same as plain text (what `skye prompt info` prints). `BasePromptBuilder().help("agent_react")` / `.describe(name)` work on a
 registered template, bundled ones included. Import these from `skye.prompts`, not from `skye.base.dsl.info`. The specs are public
 there too: `PromptSpec`, `PromptPartSpec`, `OutputSpec`; and `render_parts`, `output_json_schema`, `PromptParts`, `OutputSchema`
 (prompt.md).
@@ -83,7 +83,7 @@ there too: `PromptSpec`, `PromptPartSpec`, `OutputSpec`; and `render_parts`, `ou
   `Flow.from_text(text, name=..., registry=..., filename=...)` does the same for a text. A `Flow` has `.spec`, `.name`, `.registry`,
   `.check()` (the mistakes now, with the registry keys) and `.to_text()`.
 - `skye.load_config("skye.json", overrides={...})` reads the library settings (`log_level`, `component_log_levels`,
-  `correlation_id_header`: no other key; an unknown key raises `ConfigurationError` naming it) from a JSON file, or from the file
+  `correlation_id_header`, `plugins` (the installed plugins that may load): no other key; an unknown key raises `ConfigurationError` naming it) from a JSON file, or from the file
   `SKYE_CONFIG` names when no path is given, and applies the log levels; precedence is code > environment > file. The
   settings file is JSON, not `.skye`. `skye.config.ConfigLoader` takes text (`from_text`, `from_dict`) and opens no file.
 

@@ -2,8 +2,8 @@
 
 import pytest
 
-from skye.auth import openai_compatible as oc
-from skye.auth.oauth2 import ClientCredentialsAuth, TokenExchangeAuth, file_token, token_request
+from skye.auth.plugins.openai_compatible import source as oc
+from skye.auth.plugins.oauth2.source import ClientCredentialsAuth, TokenExchangeAuth, file_token, token_request
 from skye.base.exceptions import ConfigurationError, ProviderError
 
 
@@ -76,7 +76,7 @@ def test_an_http_error_is_a_provider_error_with_the_status(server):
 
 @pytest.fixture
 def no_keys(monkeypatch):
-    for name in oc.STANDARD_ENV_VARS.values():
+    for name in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "COHERE_API_KEY", "GROQ_API_KEY"):
         monkeypatch.delenv(name, raising=False)
 
 
@@ -89,8 +89,17 @@ def test_bearer_and_api_key_strategies(no_keys, monkeypatch):
     assert oc.anthropic_authenticator().apply("POST", "u", {}) == {"x-api-key": "ak"}
     monkeypatch.setenv("COHERE_API_KEY", "ck")
     assert oc.cohere_authenticator().apply("POST", "u", {}) == {"Authorization": "Bearer ck"}
+    # A provider that has a profile with `api_key_variables` is known by name (here a plugin provider, the one of the profile).
+    from skye.base.plugins import Registrar
+    from skye.base.profile import ProviderProfile
+
+    registrar = Registrar()
+    registrar.provider(
+        "groq-6-3", object, function="model", profile=ProviderProfile("groq-6-3", api_key_variables=("GROQ_API_KEY",))
+    )
     monkeypatch.setenv("GROQ_API_KEY", "gk")
-    assert oc.api_key_authenticator("groq").apply("POST", "u", {}) == {"Authorization": "Bearer gk"}
+    monkeypatch.setattr("skye.base.api_keys.get_registrar", lambda: registrar)
+    assert oc.api_key_authenticator("groq-6-3").apply("POST", "u", {}) == {"Authorization": "Bearer gk"}
 
 
 def test_the_input_headers_are_not_mutated_and_the_key_is_not_in_repr(no_keys):

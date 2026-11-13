@@ -124,6 +124,7 @@ nav:
           - Local functions: guides/tools/local-functions.md
           - Remote APIs: guides/tools/remote-apis.md
           - MCP client: guides/tools/mcp-client.md
+          - Toolkits: guides/tools/toolkits.md
       - State:
           - Choose a store backend: guides/state/choose-a-backend.md
       - Security:
@@ -132,6 +133,7 @@ nav:
       - Observability: guides/observability.md
       - Extend Skye:
           - guides/extend/index.md
+          - Write a plugin: guides/extend/write-a-plugin.md
           - Custom provider: guides/extend/custom-provider.md
           - Custom store backend: guides/extend/custom-store.md
           - Custom capability: guides/extend/custom-capability.md
@@ -154,9 +156,11 @@ nav:
           - skye.dsl: reference/api/dsl.md
           - skye.interfaces: reference/api/interfaces.md
           - skye.exceptions: reference/api/exceptions.md
+          - skye.plugins: reference/api/plugins.md
       - CLI: reference/cli.md
       - .skye language: reference/skye-language.md
       - Editor support: reference/editor.md
+      - Provider profile: reference/provider-profile.md
       - Configuration keys: reference/configuration-keys.md
       - Extras: reference/extras.md
   - Project:

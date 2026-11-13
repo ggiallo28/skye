@@ -68,8 +68,13 @@ from typing import Any
 import pytest
 
 from skye.prompts.skye_prompts import load_prompt, render_prompt
+from tests.unit.prompts.bundled import BUNDLED_DIR, GALLERY_DIR, load_template, template_path
 
 INTENDED_DIFFERENCES: list[str] = [
+    # 0. Task 24.6: the memories of agent_memory_assistant and agent_memory_recall are the standard section.
+    "agent_memory_assistant and agent_memory_recall show their memories in the standard section '## Memory' of "
+    "common/memories.skye (they had sections of their own); a case with memory items is not compared "
+    "with the legacy text.",
     # 1. Real roles instead of text markers.
     "Roles are real message roles (SystemMessage, UserMessage, AssistantMessage) instead of the "
     "[SYSTEM]/[USER]/[ASSISTANT] text markers; the harness splits the legacy output at the "
@@ -85,13 +90,11 @@ INTENDED_DIFFERENCES: list[str] = [
     "A message whose text is empty after rendering is omitted on both sides.",
     # 5. Lines glued by the old whitespace control.
     "Lines that the old templates glued together because an '{% endif %}' swallowed the newline "
-    "(trim_blocks) are separate lines in .skye. Seen in main_agent and memory_agent (2+ "
-    "memories: '- I like tea (2024-01-01)- I live in Rome'), sql_generation ('Description: "
-    "DColumns:', 2+ columns '- a (int) - x- b (text)'), relation_extraction (examples on a "
-    "relation that is not the last) and tabular_extraction (2+ columns). A case that exercises "
+    "(trim_blocks) are separate lines in .skye. Seen in agent_memory_assistant and agent_memory_recall (2+ "
+    "memories: '- I like tea (2024-01-01)- I live in Rome'). A case that exercises "
     'such a shape sets "glued_lines": true; the harness then compares each message with its '
     "whitespace removed, so the text and its order must still match exactly."
-    " Also seen in form_agent (field Type / Options / Validation lines) and multimodal_agent "
+    " Also seen in agent_form (field Type / Options / Validation lines) and agent_multimodal "
     "('URL:' and 'Transcript:' lines).",
     # 6. Inputs that changed shape (owner request, 2026-11-08).
     "classification takes one 'categories' list of {name, description?} instead of a list of "
@@ -108,22 +111,26 @@ INTENDED_DIFFERENCES: list[str] = [
     "the old agent templates printed before the history is gone (the history is a placeholder, "
     "real messages); the harness drops exactly that line from the legacy system message of the "
     "templates listed in LEGACY_HISTORY_HEADINGS.",
+    # 9. Task 24.12: two templates are one.
+    "generation_code and generation_sql are one template, generation_code, with generic variables (language, "
+    "input, references, environment, constraints, examples, detailed, format); their legacy cases are no "
+    "longer compared, and tests/unit/prompts/test_generation_merge.py pins the renderings of both old templates "
+    "and lists every intended change.",
 ]
 
 # Intended difference 8: the heading line each old template printed before its history.
 LEGACY_HISTORY_HEADINGS: dict[str, str] = {
-    "code_agent": "## Previous discussion:",
-    "form_agent": "## Recent conversation:",
-    "main_agent": "## Recent conversation:",
-    "memory_agent": "## Recent conversation:",
-    "multimodal_agent": "## Previous conversation:",
-    "procedure_agent": "## Recent conversation:",
-    "reasoning_agent": "## Previous discussion:",
-    "tool_agent": "## Recent conversation:",
+    "agent_code": "## Previous discussion:",
+    "agent_form": "## Recent conversation:",
+    "agent_memory_assistant": "## Recent conversation:",
+    "agent_memory_recall": "## Recent conversation:",
+    "agent_multimodal": "## Previous conversation:",
+    "agent_procedure": "## Recent conversation:",
+    "agent_reasoning": "## Previous discussion:",
+    "agent_tool": "## Recent conversation:",
 }
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-TEMPLATES_DIR = REPO_ROOT / "src" / "skye" / "prompts" / "templates"
 HERE = Path(__file__).resolve().parent
 LEGACY_DIR = HERE / "legacy_renderings"
 CASES_DIR = HERE / "equivalence_cases"
@@ -133,7 +140,7 @@ _SPACES = re.compile(r"[ \t]+")
 
 # Only conversions are compared: a new prompt written directly in .skye has no legacy template.
 SKYE_NAMES = sorted(
-    p.stem for p in TEMPLATES_DIR.glob("*.skye") if (LEGACY_DIR / f"{p.stem}.json").exists()
+    p.stem for p in [*BUNDLED_DIR.glob("*.skye"), *GALLERY_DIR.glob("*.skye")] if (LEGACY_DIR / f"{p.stem}.json").exists()
 )
 
 
@@ -195,6 +202,18 @@ def parse_case(
     return dict(case), {}, "", False
 
 
+#: Templates whose memories were sections of their own in the legacy text and are the standard section
+#: of ``common/memories.skye`` now: a case with memory items is not compared with the legacy rendering.
+MEMORIES_IN_THE_STANDARD_SECTION = ("agent_memory_assistant", "agent_memory_recall")
+MEMORY_KINDS = (
+    "episodic_memory",
+    "semantic_memory",
+    "procedural_memory",
+    "persona_memory",
+    "working_memory",
+)
+
+
 def _cases(name: str) -> list[Any]:
     path = CASES_DIR / f"{name}.json"
     if not path.exists():
@@ -213,7 +232,7 @@ def test_intended_differences_are_listed() -> None:
 
 def test_every_legacy_rendering_has_its_skye_prompt_and_one_text_per_case() -> None:
     for legacy in LEGACY_DIR.glob("*.json"):
-        assert (TEMPLATES_DIR / f"{legacy.stem}.skye").exists(), f"{legacy.stem}.skye is missing"
+        assert (template_path(legacy.stem)).exists(), f"{legacy.stem}.skye is missing"
         texts = json.loads(legacy.read_text(encoding="utf-8"))
         assert len(texts) == len(_cases(legacy.stem)), f"{legacy.name}: one text per case"
 
@@ -242,10 +261,12 @@ def test_join_lines_matches_glued_legacy_output() -> None:
 def test_skye_matches_legacy(name: str) -> None:
     legacy_path = LEGACY_DIR / f"{name}.json"
     legacy_texts = json.loads(legacy_path.read_text(encoding="utf-8"))
-    spec = load_prompt((TEMPLATES_DIR / f"{name}.skye").read_text(encoding="utf-8"), name=name)
+    spec = load_template(template_path(name), name)
 
     for index, raw in enumerate(_cases(name)):
         variables, history, note, glued = parse_case(raw)
+        if name in MEMORIES_IN_THE_STANDARD_SECTION and any(variables.get(k) for k in MEMORY_KINDS):
+            continue  # the memories are the standard section now (task 24.6); test_templates_migrated pins its text
         expected = drop_history_heading(name, split_legacy(legacy_texts[index]))
         skye_variables = {**variables, **(raw.get("skye_variables") or {})}
         messages = render_prompt(spec, skye_variables, history=history or None)

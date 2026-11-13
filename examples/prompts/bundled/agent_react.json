@@ -1,0 +1,25 @@
+{
+  "task": "How much is 250 USD in EUR today?",
+  "tools": [
+    {
+      "name": "currency_rate",
+      "description": "Gives today's exchange rate between two currencies.",
+      "parameters": {
+        "base": "Currency to convert from",
+        "quote": "Currency to convert to"
+      },
+      "returns": "The rate as a number"
+    }
+  ],
+  "managed_agents": [
+    {
+      "name": "researcher",
+      "description": "Searches the web and reports what it finds."
+    }
+  ],
+  "persona_memory": [
+    {
+      "content": "Prefers short answers in English."
+    }
+  ]
+}

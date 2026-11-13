@@ -1,6 +1,6 @@
 """``provider()`` is typed so the quickstart needs no cast (Requirement 22.9 of steering, task 4.8).
 
-The default call returns the model client and ``provider_type="embedding"`` the embedding client. The overloads are checked at
+The default call returns the model client, ``provider_type="embedding"`` the embedding client and ``provider_type="decision"`` the decision model. The overloads are checked at
 runtime here; the type-checker lines are the ones of the quickstart, run by mypy when it is installed.
 """
 
@@ -36,13 +36,13 @@ QUICKSTART = textwrap.dedent(
 @pytest.mark.parametrize("fn", [skye.provider, registry.provider])
 def test_provider_has_one_overload_per_kind(fn):
     overloads = typing.get_overloads(fn)
-    assert len(overloads) == 2
+    assert len(overloads) == 3
     # An annotation is a class when the module has no `from __future__ import annotations`, and a string when it has.
     returns = {
         getattr(o.__annotations__["return"], "__name__", None) or str(o.__annotations__["return"]).strip("'\"").split(".")[-1]
         for o in overloads
     }
-    assert returns == {"ModelInterface", "VectorEncoderInterface"}
+    assert returns == {"ModelInterface", "VectorEncoderInterface", "DecisionModel"}
 
 
 @pytest.mark.skipif(shutil.which("mypy") is None and not Path(sys.prefix, "bin", "mypy").exists(), reason="mypy not installed")

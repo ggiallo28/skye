@@ -9,7 +9,7 @@ from unittest.mock import patch
 import pytest
 
 from skye.base.exceptions import ProviderError
-from skye.models.transport import eventstream
+from skye.models.utilities import eventstream
 
 
 def _hdr(name: str, value: str) -> bytes:

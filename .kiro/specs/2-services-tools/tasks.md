@@ -52,8 +52,8 @@ cited from other documents are `tools:N.k`.
     - _Requirements: 18.3_
 
 - [x] 4. Tri-faceted MCP client and the boundary
-  - [x] 4.1 `MCPClientInterface` and `BuiltinMCPClient` (stdlib JSON-RPC over HTTP, consume-only)
-    - Evidence: `src/skye/tools/mcp_client.py` (`MCPClientInterface`, `BuiltinMCPClient`, `MCPToolCapability`); `tests/unit/tools/test_mcp_client.py`, `test_mcp_stdlib_prototype.py`.
+  - [x] 4.1 `MCPClientInterface` and `SkyeMCPClient` (stdlib JSON-RPC over HTTP, consume-only)
+    - Evidence: `src/skye/tools/mcp_client.py` (`MCPClientInterface`, `SkyeMCPClient`, `MCPToolCapability`); `tests/unit/tools/test_mcp_client.py`, `test_mcp_stdlib_prototype.py`.
     - _Requirements: 10.1, 10.2_
   - [x] 4.2 Single conversion boundary `mcp_boundary.py` (stdlib only, reject malformed)
     - Evidence: `src/skye/tools/mcp_boundary.py`; `tests/budget/test_boundary_rule.py` (`test_mcp_boundary_has_no_third_party_import`, `test_mcp_boundary_returns_skye_types_for_dict_and_library_objects`).

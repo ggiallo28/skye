@@ -12,10 +12,10 @@ from unittest.mock import patch
 
 import pytest
 
-from skye.models.embeddings.openai_embeddings import OpenAIEmbeddingProvider
-from skye.models.transport.rest import JsonObject
+from skye.models.plugins.openai.embeddings import OpenAIEmbeddingProvider
+from skye.models.utilities.rest import JsonObject
 
-POST = "skye.models.transport.rest.post_json"
+POST = "skye.models.utilities.rest.post_json"
 URL = "https://api.openai.com/v1/embeddings"
 
 
@@ -57,7 +57,7 @@ class TestOpenAIEmbeddingProviderInitialization:
         """The adapter must not import the vendor SDK."""
         import inspect
 
-        import skye.models.embeddings.openai_embeddings as mod
+        import skye.models.plugins.openai.embeddings as mod
 
         source = inspect.getsource(mod)
         assert "import openai" not in source and "from openai" not in source

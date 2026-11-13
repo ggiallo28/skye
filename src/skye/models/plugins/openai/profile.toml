@@ -1,0 +1,155 @@
+name = "openai"
+api_key_variables = ["OPENAI_API_KEY"]
+default_api_base = "https://api.openai.com/v1"
+map_error = "skye.models.plugins.openai.errors:map_error"
+
+[models."gpt-4-turbo"]
+prompt_price = 10.0
+completion_price = 30.0
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4-turbo-preview"]
+prompt_price = 10.0
+completion_price = 30.0
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4-1106-preview"]
+prompt_price = 10.0
+completion_price = 30.0
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4-0125-preview"]
+prompt_price = 10.0
+completion_price = 30.0
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4"]
+prompt_price = 30.0
+completion_price = 60.0
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4-0613"]
+prompt_price = 30.0
+completion_price = 60.0
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4-32k"]
+prompt_price = 60.0
+completion_price = 120.0
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4-32k-0613"]
+prompt_price = 60.0
+completion_price = 120.0
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-3.5-turbo"]
+prompt_price = 0.5
+completion_price = 1.5
+tokenizer = "tiktoken"
+message_overhead = 4
+
+[models."gpt-3.5-turbo-0125"]
+prompt_price = 0.5
+completion_price = 1.5
+tokenizer = "tiktoken"
+message_overhead = 4
+
+[models."gpt-3.5-turbo-1106"]
+prompt_price = 1.0
+completion_price = 2.0
+tokenizer = "tiktoken"
+message_overhead = 4
+
+[models."gpt-3.5-turbo-16k"]
+prompt_price = 3.0
+completion_price = 4.0
+tokenizer = "tiktoken"
+message_overhead = 4
+
+[models."o1-preview"]
+prompt_price = 15.0
+completion_price = 60.0
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."o1-mini"]
+prompt_price = 3.0
+completion_price = 12.0
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4o"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4o-mini"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4.1"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4.1-mini"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4.1-nano"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4.5-preview"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-4-vision-preview"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-3.5-turbo-instruct"]
+tokenizer = "tiktoken"
+message_overhead = 4
+
+[models."gpt-5"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-5-mini"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."gpt-5-nano"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."o1-pro"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."o3-mini"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+[models."o3-pro"]
+tokenizer = "tiktoken"
+message_overhead = 3
+
+# Embedding models: the size of the vector (read by get_vector_dimension of OpenAIEmbeddingProvider).
+
+[models."text-embedding-3-small".info]
+vector_dimension = 1536
+
+[models."text-embedding-3-large".info]
+vector_dimension = 3072
+
+[models."text-embedding-ada-002".info]
+vector_dimension = 1536

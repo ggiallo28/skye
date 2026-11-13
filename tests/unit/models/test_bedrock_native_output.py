@@ -13,8 +13,8 @@ from typing import Any
 from skye.base.completion import CompleteRequest
 from skye.base.messages import UserMessage
 from skye.base.prompt_parts import OutputSchema
-from skye.models.llm.bedrock import BedrockProvider
-from skye.models.transport.structured import STRUCTURED_TOOL
+from skye.models.plugins.bedrock.provider import BedrockProvider
+from skye.models.utilities.structured import STRUCTURED_TOOL
 
 ANSWER = OutputSchema(
     "answer",

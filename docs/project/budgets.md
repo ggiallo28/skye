@@ -31,17 +31,20 @@ Provider SDKs and optional libraries are imported inside the function that uses 
 | Each extra: size added over the core, compiled packages added | `test_footprint_budget.py` | `uv`, network |
 | Serverless profile (core + `bedrock`) stays far below the 250 MB Lambda limit | `test_footprint_budget.py` | `uv`, network |
 | Tokens Skye adds to what the caller wrote, on a direct model call (reported in the job summary, not enforced yet) | `test_token_overhead.py` | nothing |
+| Size of the package by component and by kind (code, docstrings, comments, data); reports and never enforces | `size_report.py`, `test_size_report.py` | nothing (`--source`), `uv` (wheel) |
+| The wheel has no comment: `scripts/hatch_build.py` strips the comments of the Python files and of the bundled templates at build (same AST, same line numbers, same objects); the repository, the sdist and an editable install keep them; the wheel packs the templates into one reproducible `templates.zip` that the loader reads by name (`test_wheel_templates_archive.py`) | `test_wheel_comments.py` | `uv` |
 
 Run them:
 
 ```bash
 make budget-fast    # policy and import checks, a second
 make budget         # installs Skye in clean environments, about a minute
+make size           # where the bytes are, by component and by kind; run it at the end of a wave
 ```
 
 Sizes exclude the libraries Lambda already ships. Time is the best of five fresh interpreters. Measurements were taken on Python 3.13; the workflow runs the fast checks on 3.11 (the minimum, D49) and 3.13 and the footprint checks on 3.13.
 
-**Sizes are Linux sizes.** The footprint jobs run on a Linux x86_64 runner, which is also the serverless target, and the compiled wheels (`asyncpg`, `tiktoken`, ...) are larger there than on macOS: the compiled extras are larger there (the core has no compiled file any more: it is the same 1.8 MB everywhere). The limits in `budgets.toml` are the Linux ones. To check the sizes from any machine, without a Linux runner:
+**Sizes are Linux sizes.** The footprint jobs run on a Linux x86_64 runner, which is also the serverless target, and the compiled wheels (`asyncpg`, `tiktoken`, ...) are larger there than on macOS: the compiled extras are larger there (the core has no compiled file any more: it is the same 1.9 MB everywhere). The limits in `budgets.toml` are the Linux ones. To check the sizes from any machine, without a Linux runner:
 
 ```bash
 uv pip install --target /tmp/skye-linux --python-platform x86_64-manylinux_2_28 --python-version 3.13 "skyeai[memory] @ file:///path/to/skyeai.whl"
@@ -59,62 +62,35 @@ A budget only goes down. When a PR fixes something (removes a dependency, moves 
 
 To make the check blocking, require the `budgets / fast checks` and `budgets / footprint` jobs in the repository's branch protection rules. This is a GitHub setting, not part of the repository.
 
-## Debt recorded today (2026-11-02)
+## Current numbers
 
-Checked against `budgets.toml` and `pyproject.toml`.
+Measured with skyeai 0.3.0 on a built wheel, installed with `uv pip install --no-deps` into a clean virtual environment (Python 3.13, macOS arm64). The wheel
+is pure Python, so the files are the same on Linux; the CI runner measures them again and is about three times slower than a laptop, which is why each limit
+leaves room. A limit only goes down.
 
-| Item | Why it matters | Target |
+| Measure | Value | Limit in `budgets.toml` |
 |---|---|---|
-| Core dependencies: none since decision D49 (`pydantic` and `tenacity` are gone); one distribution, 1.8 MB, nothing compiled (measured 2026-11-11, below) | nothing to carry | done |
-| Extras with no dependency of their own: `agents`, `guard`, `prompts`, `tools`, `teams`, `flows`, `observe`, and the provider extras `anthropic`, `bedrock`, `google`, `cohere` | they are modules, not extras (the provider extras stay so `pip install skyeai[...]` keeps working) | remove the ones that are not provider extras from `pyproject.toml` |
-| Extra sizes over the core, on Linux: `auth` 0.5 MB (`rsa`), `memory` 2.6 MB (`redis`), `tokens` 8.4 MB (`tiktoken`, compiled; decision D33), `postgres` 14.0 MB (`asyncpg`, compiled), `mcp` about 50 MB (`fastmcp`, 7 compiled distributions; not gated since decision D67: an optional third-party library is not part of Skye's budget, and the built-in MCP client is the default) | the compiled ones | only who installs an extra pays for it |
-| `skyeai[all]` size | it includes `mcp` and `memory` | not advertised for Lambda |
+| Distributions in the core install | 1 (`skyeai`), nothing compiled | 1 |
+| Third-party dependencies of the core | 0 | 0 |
+| Installed size of the core | 1.9 MB | 2 MB |
+| `import skye`: modules loaded | 61 | 80 |
+| `import skye`: time, best of 5 | about 20 ms | 100 ms |
+| `import skye`: memory added | about 5 MB | 16 MB |
+| `BasePromptBuilder()`, the first of the process | about 1 ms | 10 ms |
+| Serverless profile (core + `bedrock`, which has no library of its own) | 1.9 MB | 3 MB |
+| Lambda zip of `examples/serverless/lambda_zip` | 0.61 MB | 1 MB (AWS: 50 MB) |
 
-### What the core weighs (2026-11-07, task 14.4 of `0-base-structure`)
+The cold path of the library (import, router, one target, one request) has its own limit of 200 ms in `[cold_start]` of `budgets.toml`. Every extra has a
+size and a count of compiled distributions there too; the measured sizes over the core are:
 
-Measured on a real install: `uv build --wheel` (the wheel is `skyeai-0.1.0-py3-none-any.whl`, pure Python), then `uv pip install --no-deps` into a fresh
-venv, Python 3.13.2, macOS arm64. The wheel has no compiled file, so the files (and the size) are the same on Linux; the CI runner measures them again. Not measured here: the extras (they need the network to download their libraries; the limits of the extras are unchanged) and Linux x86_64.
+| Extra | Added over the core | Compiled distributions |
+|---|---|---|
+| `auth` | 0.5 MB | 0 |
+| `valkey` | 1.1 MB | 0 |
+| `postgres` | 1.7 MB | 0 |
+| `postgres-asyncpg` | 2.3 MB | 1 |
+| `redis` | 2.6 MB | 0 |
+| `tokens` | 6.2 MB | 3 |
 
-| Measure | Before (D49, estimates and the pydantic stack) | Measured now | Limit in `budgets.toml` (was) |
-|---|---|---|---|
-| Distributions in the core install | 10 to 12 | 1 (`skyeai`) | 1 (2) |
-| Installed size | 8.9 MB on Linux, 8.5 MB on macOS | 1.13 MB | 2 MB (3) |
-| Compiled distributions | `pydantic-core` | none | none |
-| `import skye` in a clean core install: modules | 293 | 58 | 80 (340) |
-| `import skye`: time, best of 10 | about 91 ms | 16 ms | 100 ms (250) |
-| `import skye`: memory added | about 24 MB | 5 MB | 16 MB (32) |
-| Cold path (import, router, one target, one request), best of 10 | about 95 ms | 56 ms (median 69, worst 152) | 200 ms (300); target 100 ms (150) |
-| Serverless profile (core + `bedrock`, which has no library of its own) | about 9 MB | 1.8 MB | 3 MB (30) |
-
-The tests that measured them are the real ones: `tests/budget/test_footprint_budget.py -m budget -k "core or serverless"` (4 and 1 passed) and the probe of
-`tests/budget/test_cold_start.py` run with the python of the clean install. Each limit is the measure plus room for a slower runner (the CI runner is about three times a laptop) and for growth; a limit only goes down.
-
-Done since the previous table (2026-10-30): `jinja2` and `markupsafe` left the core (the prompts engine is standard library), the provider SDK extras
-(`google` 176 MB, `cohere` 33 MB, `anthropic` 10 MB) are empty because every provider has one built-in REST adapter, `pydantic` and `tenacity` left the core (D49), and the `yaml` extra and `pyyaml` were removed (D62): the library reads no YAML.
-
-### Parse time of a `.skye` file (2026-11-07, task 11.3 of `0-base-base`; decides open decision O37)
-
-Each number is the best of 5 fresh interpreters on the clean install above (Python 3.13.2, macOS arm64), in milliseconds. "Cold" is `skye.base.dsl.build` on the text, the first
-call of the process. "From the cache" is the second call in the same process: `build_cached` on the same text, and `load_document` on the same file (a stat, no read).
-
-| File | Lines | Import of `skye.base.dsl` and `skye.utils.skye_files` | `build`, cold | `load_document`, first call (read, hash, build) | `build_cached`, hit | `load_document`, hit |
-|---|---|---|---|---|---|---|
-| `examples/routing/router_config.skye` (the real router, 292 lines with comments) | 292 | 27.6 | 4.6 | 5.1 | 0.008 | 0.03 |
-| `examples/routing/router_config_simple.skye` | 37 | 32.1 | 1.0 | 0.1 (text already built in the probe) | 0.005 | 0.04 |
-| `tests/fixtures/skye/f9.skye` (a flow) | 47 | 26.6 | 2.3 | 3.7 | 0.007 | 0.04 |
-| `tests/fixtures/skye/flows.skye` (several flows) | 129 | 27.3 | 5.6 | 5.1 | 0.010 | 0.04 |
-
-Reading: parsing and checking a real file costs 2 to 6 ms, about one tenth of the cold path of the library (56 ms) and nothing next to a model call. A hit in the memory cache costs 8 to 40 microseconds. Importing the parser costs more (about 27 ms) than parsing the file, and that import is paid by a new process
-whatever happens to the parse result, so a file on disk would save at most 5 of the roughly 70 ms (import of `skye` 16, of the parser 27, parse 5, router import and build 22) that a new serverless container spends on the first router.
-
-**Conclusion for O37: a parse result on disk is not worth it.** It would save about 5 ms per cold container, and it would add a second file to keep consistent (hash, parser version, spec version), a place to write on a read-only Lambda, and a reader whose own cost (JSON decoding plus rebuilding the spec objects) is a fraction of the parse that it replaces. The in-memory cache of D63 already covers the warm container and the program that reloads a router. Decision for the owner: close O37 as "no".
-
-### Import cost per component package
-No package imports `pydantic` or `tenacity` any more (decision D49; the sizes above are the measure before the removal, to be re-measured on a clean Linux install). Before the removal (2026-11-05):
-
-- `skye` and `skye.base` (and the facades `skye.interfaces`, `skye.data`, `skye.messages`, `skye.completion`, `skye.exceptions`, `skye.config`): no.
-- `skye.agents`, `skye.auth`, `skye.flows`, `skye.gateway`, `skye.guard`, `skye.models`, `skye.observe`, `skye.policy`, `skye.prompts`, `skye.store`, `skye.teams`: no.
-- `skye.router`: yes (one module).
-- `skye.tools`: yes (two modules, among them the pydantic `CapabilitySchema`).
-- `skye.memory`: yes (one module).
-- `skye.utils`: yes (`validation`, for pydantic structured-output classes).
+The tests that measure them are `tests/budget/test_footprint_budget.py`, `test_cold_start.py` and `test_prompts_builder_time.py`; `make size` and
+`make size-wheel` print where the bytes of the package are.

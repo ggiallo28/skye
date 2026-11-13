@@ -1,0 +1,106 @@
+---
+title       = "Code generation"
+description = "Generate code, or a query such as SQL, for a request in a given language, with optional reference material, environment, constraints, examples, tests, comments and a sectioned or structured answer."
+version     = "2.0"
+tags        = ["code", "sql", "generation"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+
+prompt "generation_code" {
+  variables = {
+    use system_prompt
+    language         = string("")        "Language to generate, e.g. Python or SQL; empty for any"
+    input            = string("")        "What the code should do, or the question the query answers"
+    description      = string("")        "Extra description of the task, shown after the role sentence"
+    constraints      = list(string, [])  "Requirements and limits the code must respect"
+    references       = list({
+      name        = string      "Name of the item, e.g. a table or a file"
+      description = string("")  "What the item is"
+      content     = string("")  "Its content, e.g. the columns of a table"
+    }, []) "Reference material the code relies on: the tables of a schema, files, documents"
+    environment      = string("")        "Where the code runs, e.g. PostgreSQL 16 or Python 3.12; empty for any"
+    examples         = list({
+      input  = string  "Example request"
+      output = string  "The code that answers it"
+    }, []) "Worked examples"
+    input_format     = string("")        "Description of the input the code receives"
+    result_format    = string("")        "Description of the output the code must produce"
+    format           = string("text")    "json, table or xml for a structured answer; text (the default) for plain code"
+    detailed         = bool(false)       "Answer in sections: code, explanation, key points, usage example and tests"
+    include_tests    = bool(false)       "Ask for unit tests"
+    include_comments = bool(false)       "Ask for detailed comments"
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      when language {
+        text = "You are an expert {{ language }} developer. Generate clean, efficient, and well-documented code."
+      }
+      when not language {
+        text = "You are an expert programmer. Generate clean, efficient, and well-documented code."
+      }
+    }
+    when description { text = "{{ description }}" }
+
+    when references {
+      text = "## Reference material:"
+      each reference in references {
+        when reference.description     { text = "**{{ reference.name }}**: {{ reference.description }}" }
+        when not reference.description { text = "**{{ reference.name }}**" }
+        when reference.content         { text = "{{ reference.content }}" }
+      }
+    }
+
+    when environment {
+      text = "## Environment:"
+      text = "Please generate code compatible with {{ environment }}."
+    }
+
+    when constraints {
+      text = "## Constraints:"
+      each constraint in constraints { text = "- {{ constraint }}" }
+    }
+
+    when examples {
+      text = "## Examples:"
+      each example in examples {
+        text = """
+          **Request:** {{ example.input }}
+          **Code:**
+          ```{{ language }}
+          {{ example.output }}
+          ```
+          """
+      }
+    }
+  }
+
+  message "user" {
+    when language     { text = "Generate {{ language }} code for the following task: {{ input }}" }
+    when not language { text = "Generate code for the following task: {{ input }}" }
+    when input_format  { text = "Input format: {{ input_format }}" }
+    when result_format { text = "Expected output format: {{ result_format }}" }
+    when detailed {
+      text = """
+        Please provide:
+        1. **Code**: The complete code
+        2. **Explanation**: How the code works
+        3. **Key points**: Important aspects of the implementation
+        4. **Usage example**: How to use the code
+        """
+      when include_tests { text = "5. **Tests**: Unit tests for the code" }
+    }
+    when include_tests and not detailed { text = "Please include unit tests for your code." }
+    when include_comments { text = "Please include detailed comments explaining the code." }
+    when not detailed and format == "text" { text = "Code:" }
+  }
+
+  when format != "text" {
+    output format {
+      code        = string  "The complete code"
+      explanation = string  "How the code works"
+    }
+  }
+}

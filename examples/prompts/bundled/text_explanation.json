@@ -1,0 +1,18 @@
+{
+  "topic": "How a hash table handles collisions",
+  "audience_level": "intermediate",
+  "explanation_type": "step_by_step",
+  "context": "The reader knows arrays and linked lists.",
+  "examples": [
+    {
+      "topic": "Binary search",
+      "explanation": "Halve the sorted range until the item is found."
+    }
+  ],
+  "specific_aspects": [
+    "chaining",
+    "open addressing",
+    "load factor"
+  ],
+  "output_format": "structured"
+}

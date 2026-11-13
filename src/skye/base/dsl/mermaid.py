@@ -1,9 +1,10 @@
-"""Draw a flow or a router as a Mermaid diagram, text in and text out (Requirement 54.21, D88).
+# Requirement 54.21, D88, D50, D49
+"""Draw a flow or a router as a Mermaid diagram, text in and text out.
 
-The diagram is generated from the model, never parsed back (D50): ``to_mermaid(spec)`` takes a
+The diagram is generated from the model, never parsed back: ``to_mermaid(spec)`` takes a
 ``FlowSpec`` or a ``RouterSpec`` and returns a ``flowchart`` text that GitHub, MkDocs and most
 editors render. The output is deterministic, so a diagram kept in a document changes only when the
-file changes. No Mermaid library is used (D49).
+file changes. No Mermaid library is used.
 
 A flow: a step is a box (with what it runs, and its ``foreach`` and ``max_visits`` when set), a
 ``choice`` a diamond whose edges carry the ``when`` text and ``else``, a ``parallel`` block a

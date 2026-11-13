@@ -1,0 +1,22 @@
+---
+title   = "Support"
+version = "1.0"
+---
+
+from "shared/tone.skye" import tone, signature
+
+prompt "support" {
+  variables = {
+    use tone
+    use signature
+    question = string "The customer's question"
+  }
+
+  message "system" {
+    text = "You answer the questions of a software company's customers."
+    use tone
+    use signature
+  }
+
+  message "user" { text = "{{ question }}" }
+}

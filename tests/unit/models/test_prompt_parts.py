@@ -19,8 +19,9 @@ from skye.base.interfaces import OutputSchema as ExportedOutputSchema
 from skye.base.interfaces import PromptParts as ExportedPromptParts
 from skye.base.messages import UserMessage
 from skye.base.prompt_parts import OutputSchema, PromptParts
-from skye.models.transport.prompt_parts import request_from_parts
-from skye.models.transport.structured import STRUCTURED_TOOL, gemini_schema, parse_structured
+from skye.models.utilities.prompt_parts import request_from_parts
+from skye.models.plugins.google.schema import gemini_schema
+from skye.models.utilities.structured import STRUCTURED_TOOL, parse_structured
 from tests.examples.fake_network import FakeResponse
 
 SCHEMA = {

@@ -12,8 +12,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from skye.models.embeddings.cohere_embeddings import CohereEmbeddingProvider
-from skye.models.transport.rest import JsonObject
+from skye.models.plugins.cohere.embeddings import CohereEmbeddingProvider
+from skye.models.utilities.rest import JsonObject
 
 
 class TestCohereEmbeddingProviderInitialization:
@@ -52,7 +52,7 @@ def _response(vectors: list[list[float]]) -> JsonObject:
 class TestCohereEmbeddingProviderBatchEncoding:
     """Test batch encoding functionality."""
 
-    @patch("skye.models.transport.rest.post_json")
+    @patch("skye.models.utilities.rest.post_json")
     def test_encode_batch(self, mock_post: Mock) -> None:
         mock_post.return_value = _response([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]])
         provider = CohereEmbeddingProvider(model="embed-english-v3.0", api_key="cohere-key")
@@ -70,7 +70,7 @@ class TestCohereEmbeddingProviderBatchEncoding:
         }
         assert kwargs["headers"] == {"Authorization": "Bearer cohere-key"}
 
-    @patch("skye.models.transport.rest.post_json")
+    @patch("skye.models.utilities.rest.post_json")
     def test_encode_single_text(self, mock_post: Mock) -> None:
         mock_post.return_value = _response([[0.1, 0.2, 0.3]])
         provider = CohereEmbeddingProvider(model="embed-english-v3.0", api_key="cohere-key")
@@ -83,7 +83,7 @@ class TestCohereNoVendorSdk:
     def test_module_imports_no_cohere_sdk(self) -> None:
         import ast
 
-        import skye.models.embeddings.cohere_embeddings as mod
+        import skye.models.plugins.cohere.embeddings as mod
 
         tree = ast.parse(Path(mod.__file__).read_text())
         for node in ast.walk(tree):

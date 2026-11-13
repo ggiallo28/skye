@@ -12,7 +12,7 @@ from typing import Any
 
 from skye.base.messages import UserMessage
 from skye.router import ModelRouter, ModelTarget, RouteConfig
-from skye.store.memory import InMemoryBackend
+from skye.store.plugins.memory import InMemoryBackend
 from tests.unit.router.fakes import FakeModel
 
 MESSAGES = [UserMessage(content="hi")]

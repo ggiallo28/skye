@@ -17,12 +17,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # the shared offli
 from _offline import get_client  # noqa: E402
 
 posts = RemoteAPICapability(
-    name="posts.get_user_posts",
+    name="posts_get_user_posts",
     description="Get posts by a user from JSONPlaceholder",
     url="https://jsonplaceholder.typicode.com/posts",
     method="GET",
     schema=CapabilitySchema(
-        name="posts.get_user_posts",
+        name="posts_get_user_posts",
         description="Get posts by a user from JSONPlaceholder",
         parameters={"type": "object", "properties": {"userId": {"type": "integer"}}, "required": ["userId"]},
     ),
@@ -30,9 +30,9 @@ posts = RemoteAPICapability(
 )
 
 # Other configurations: headers, basic authentication, other methods, a timeout
-repos = RemoteAPICapability("github.search", "Search repositories", "https://api.github.com/search/repositories", method="GET",
+repos = RemoteAPICapability("github_search", "Search repositories", "https://api.github.com/search/repositories", method="GET",
                             headers={"Accept": "application/vnd.github+json"})
-private = RemoteAPICapability("crm.create", "Create a record", "https://api.example.com/records", method="POST", auth=("user", "secret"))
+private = RemoteAPICapability("crm_create", "Create a record", "https://api.example.com/records", method="POST", auth=("user", "secret"))
 
 
 async def main() -> None:

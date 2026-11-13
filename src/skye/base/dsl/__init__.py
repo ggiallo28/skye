@@ -1,5 +1,5 @@
-"""The ``.skye`` language: parser, checker, expression checker and block models (decisions D50 to
-D61).
+# decisions D50 to D61, decision D88
+"""The ``.skye`` language: parser, checker, expression checker and block models.
 
 The functions take text, never a path: ``base`` does no file I/O. The code that reads a file
 (``skye check``, the component that loads a router or a flow) reads the text and calls them.
@@ -8,7 +8,7 @@ Entry points:
 
 * :func:`parse` ``(text, filename=None) -> Tree``: the syntax tree; raises :class:`SkyeSyntaxError`
   with every syntax mistake found.
-* :func:`build` ``(text_or_tree, *, filename=None, registry_names=None) -> Document``: the validated
+* :func:`build` ``(text_or_tree, *, filename=None, registry_names=None, resolver=None) -> Document``: the validated
   blocks (``RouterSpec``, ``FlowSpec``, ``PromptSpec``) and the list of diagnostics.
 * :func:`check_text` ``(text, filename=None, registry_names=None) -> list[Diagnostic]``.
 * :func:`block_schema` ``(kind=None) -> dict``: the JSON Schema of the blocks.
@@ -17,7 +17,7 @@ Entry points:
 * :func:`format_text` ``(text, filename=None) -> str``: the standard layout, comments kept
   (``skye fmt``).
 * :func:`to_mermaid` ``(spec, direction=None) -> str``: a flow or a router as a Mermaid diagram
-  (``skye render``, decision D88).
+  (``skye render``).
 * :func:`split_metadata` / :func:`format_metadata`: the ``---`` metadata at the top of a file
   (TOML); :func:`build` puts it in ``Document.metadata``.
 
@@ -36,6 +36,7 @@ from skye.base.dsl.expressions import (
     evaluate,
 )
 from skye.base.dsl.fmt import FormatError, format_text
+from skye.base.dsl.include import Resolved
 from skye.base.dsl.lexer import Token, tokenize
 from skye.base.dsl.mermaid import to_mermaid
 from skye.base.dsl.metadata import format_metadata, split_metadata
@@ -88,6 +89,7 @@ __all__ = [
     "ParallelSpec",
     "PromptPartSpec",
     "PromptSpec",
+    "Resolved",
     "RetryPolicySpec",
     "RetrySpec",
     "RouteSpec",

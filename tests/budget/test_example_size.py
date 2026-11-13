@@ -17,7 +17,7 @@ EXEMPT_FOLDERS: set[str] = set()
 # capability hooks included). Making them optional with safe defaults is proposal S5.5 of the simplicity report; it is not a task
 # or a decision yet. The cap is the file's size today and only shrinks.
 KNOWN_LONG: dict[str, int] = {
-    "advanced/custom_providers.py": 90,
+    "advanced/custom_providers.py": 88,
 }
 
 

@@ -21,7 +21,7 @@ each provider is called over HTTPS with the standard library. Bedrock requests a
 `boto3` nor a vendor SDK is needed for a model call.
 
 A complete function is in [`examples/serverless/lambda_zip`](https://github.com/ggiallo28/skye/tree/main/examples/serverless/lambda_zip):
-`handler.py` and `build.sh`, which writes `function.zip` with Skye and the handler, nothing else. The zip is **0.56 MB** (1.76 MB
+`handler.py` and `build.sh`, which writes `function.zip` with Skye and the handler, nothing else. The zip is **0.61 MB** (1.87 MB
 unzipped; AWS allows 50 MB and 250 MB), and the CI fails above `[lambda] max_zip_mb` of `budgets.toml` (1 MB).
 
 ```bash

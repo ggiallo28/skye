@@ -1,8 +1,8 @@
+# Requirement 54.3
 """Diagnostics of the ``.skye`` language: where a mistake is, what it is and how to fix it.
 
 The parser and the validators do not stop at the first mistake: they collect every
-:class:`Diagnostic` they can find and report them together, in one :class:`SkyeSyntaxError`
-(Requirement 54.3).
+:class:`Diagnostic` they can find and report them together, in one :class:`SkyeSyntaxError`.
 """
 
 from __future__ import annotations
@@ -41,6 +41,8 @@ class Diagnostic:
         reason: What is wrong.
         fix: What to do about it (an ``Add: ...`` line or a ``Did you mean ...?`` suggestion), or
             an empty string.
+        via: When the mistake is in a file that an ``include`` brought, the use sites that
+            brought it, as ``(file, line, column)``; empty otherwise.
     """
 
     file: str
@@ -48,6 +50,7 @@ class Diagnostic:
     column: int
     reason: str
     fix: str = ""
+    via: tuple[tuple[str, int, int], ...] = ()
 
     @property
     def message(self) -> str:
@@ -56,7 +59,8 @@ class Diagnostic:
 
     def format(self) -> str:
         """The diagnostic as ``file:line:col message``, written to be pasted back to a model."""
-        return f"{self.file}:{self.line}:{self.column} {self.message}"
+        used = "".join(f" (used from {f}:{n}:{c})" for f, n, c in self.via)
+        return f"{self.file}:{self.line}:{self.column} {self.message}{used}"
 
 
 class SkyeSyntaxError(SkyeError):

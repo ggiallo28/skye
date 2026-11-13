@@ -1,23 +1,26 @@
-"""Register and run your own agent type (Live).
+"""Add and run your own agent type (Live).
 
 This runs real library code end to end.
 
-An agent type is a factory (usually a class) that produces a ``Runnable`` -- any
-object with ``async def invoke(self, input) -> output``. You register the factory
-by name through ``register_agent_type``, create instances with ``create_agent`` and
-list what is available with ``list_agent_types``.
+An agent type is a class that is a ``Runnable`` -- any object with
+``async def invoke(self, input) -> output``. You add it by name with
+``@plugins.agent("name")``, build instances with ``skye.agent`` and list what is
+available with ``plugins.names("agent")``.
 
 The registry is a process-wide singleton that the examples harness does not reset
-between scripts, so this example registers under a script-local name with
+between scripts, so this example adds it under a script-local name with
 ``replace=True`` to stay idempotent.
 """
 
 import asyncio
 
-from skye.agents import create_agent, list_agent_types, register_agent_type
+import skye
 from skye.interfaces import Runnable
 
+plugins = skye.Plugins()
 
+
+@plugins.agent("echo-demo", replace=True)
 class EchoAgent:
     """A tiny agent type: it echoes the input, optionally with a prefix.
 
@@ -33,18 +36,14 @@ class EchoAgent:
 
 
 async def main() -> None:
-    # Register our factory under a script-local name. replace=True keeps the script
-    # idempotent because the harness shares the agents registry across scripts.
-    register_agent_type("echo-demo", EchoAgent, replace=True)
-
-    # Create an instance; factory options flow straight to EchoAgent(**options).
-    agent = create_agent("echo-demo", prefix="demo")
+    # Build an instance; the options flow straight to EchoAgent(**options).
+    agent = skye.agent("echo-demo", prefix="demo")
     assert isinstance(agent, Runnable)  # the Port is a structural Protocol
 
     reply = await agent.invoke("hi")
     print(reply)
 
-    print("Registered agent types:", list_agent_types())
+    print("Registered agent types:", plugins.names("agent"))
 
 
 if __name__ == "__main__":

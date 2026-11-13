@@ -20,7 +20,8 @@ subprocess and never runs a server.
 
 ## 1. Create a client and list the tools
 
-`create_mcp_client(target)` returns the built-in client. `list_tools()` already returns capabilities, one per tool, with the schema
+`create_mcp_client(target)` returns the built-in client; `skye.mcp_client(target)` is the same call by the name every kind of plugin
+shares (`skye.agent`, `skye.backend`, `skye.toolkit`). `list_tools()` already returns capabilities, one per tool, with the schema
 the server declared.
 
 ```python
@@ -30,13 +31,16 @@ the server declared.
 All the methods of the client are coroutines. When the server cannot be reached the call raises `OSError` or a `SkyeError`; an error
 answer from the server raises `ProviderError`.
 
-`create_mcp_client` also takes `headers=` (for example an `Authorization` header for a protected server) and `timeout=` in seconds
+Both also take `headers=` (for example an `Authorization` header for a protected server) and `timeout=` in seconds
 (`30.0` by default).
 
 ## 2. Give the tools to a model
 
 The capabilities from `list_tools()` go in the list of capabilities like local ones. A call runs through the client, as a
 `tools/call` request to the server.
+A server may name a tool with a character that a model provider refuses (a dot or a space). The capability that Skye gives the model
+carries a valid name (every other character becomes `_`, 64 characters at most, so `github.create issue` is `github_create_issue`),
+and the call to the server uses the name the server gave.
 
 ```python
 --8<-- "examples/capabilities/mcp_server.py:24:47"
@@ -58,7 +62,7 @@ The same client reads the prompts and the resources of the server:
 | `read_resource(uri)` | a `Resource` with its text or bytes |
 
 ```python
---8<-- "examples/tools/mcp_prompts_and_resources.py:33:61"
+--8<-- "examples/tools/mcp_prompts_and_resources.py:34:62"
 ```
 
 Every MCP client is also a `ResourceProviderInterface`, so you can pass it wherever a resource provider is expected.
@@ -83,17 +87,22 @@ do, such as the transports fastmcp supports. It returns the same Skye types.
 ```python
 from skye.tools import create_mcp_client
 
-client = create_mcp_client("http://localhost:8000/mcp", impl="fastmcp")
+client = create_mcp_client("http://localhost:8000/mcp", impl="fastmcp")  # or skye.mcp_client(..., impl="fastmcp")
 ```
 
 The choice is this argument only: no environment variable, no configuration entry, no automatic fallback. Without the extra,
-`impl="fastmcp"` raises `MissingExtraError` naming `mcp`; any other value of `impl` raises `ConfigurationError`.
+`impl="fastmcp"` raises `MissingExtraError` naming `mcp`; any name that is not registered raises `ConfigurationError` listing the registered ones. A plugin adds an implementation with the decorator
+`@plugins.mcp_client("name")` on a class (or on a factory, called as `factory(target, headers=..., timeout=...)`) that implements the
+`MCPClientInterface`; `skye.mcp_client(target, impl="name")` then builds it. The built-in clients live in `skye.tools.engines`
+(`skyemcp` and `fastmcp`), apart from the toolkits.
 
 ## See also
 
 - [Local functions](local-functions.md): how capabilities, calls and results work.
-- Reference: [`skye.tools`](../../reference/api/tools.md) (`create_mcp_client`, `MCPClientInterface`, `MCPPrompt`, `Resource`).
+- Reference: [`skye.tools`](../../reference/api/tools.md) (`create_mcp_client`, `MCPClientInterface`, `MCPPrompt`, `Resource`),
+  [`skye.plugins`](../../reference/api/plugins.md).
 - Examples: [`mcp_client.py`](https://github.com/ggiallo28/skye/blob/main/examples/capabilities/mcp_client.py),
   [`mcp_server.py`](https://github.com/ggiallo28/skye/blob/main/examples/capabilities/mcp_server.py),
   [`mcp_prompts_and_resources.py`](https://github.com/ggiallo28/skye/blob/main/examples/tools/mcp_prompts_and_resources.py),
-  [`mcp_fastmcp.py`](https://github.com/ggiallo28/skye/blob/main/examples/tools/mcp_fastmcp.py).
+  [`mcp_fastmcp.py`](https://github.com/ggiallo28/skye/blob/main/examples/tools/mcp_fastmcp.py),
+  [`plugins/mcp_client.py`](https://github.com/ggiallo28/skye/blob/main/examples/plugins/mcp_client.py) (a client of your own).

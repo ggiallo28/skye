@@ -1,0 +1,30 @@
+{
+  "task": "Plan a weekend trip to Rome within 500 EUR.",
+  "latest_exchange": "user: The hotel must be near Termini.\nassistant: Noted, I will search there.",
+  "working_memory": [
+    {
+      "id": "w1",
+      "content": "Budget: 500 EUR."
+    },
+    {
+      "id": "w2",
+      "content": "Train booked: 120 EUR return."
+    }
+  ],
+  "semantic_memory": [
+    {
+      "id": "s1",
+      "content": "Termini is the main station of Rome."
+    }
+  ],
+  "tools": [
+    {
+      "name": "web_search",
+      "description": "Searches the web and returns the top results.",
+      "parameters": {
+        "query": "What to search for"
+      },
+      "returns": "A list of titles and links"
+    }
+  ]
+}

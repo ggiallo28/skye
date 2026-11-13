@@ -25,8 +25,8 @@ Read the folders in this order; each folder has a README with its own order.
 17. `examples/observe/`: telemetry and exporters
 18. `examples/gateway/`: a gateway over MCP
 19. `examples/serverless/`: handlers and routers for AWS Lambda and similar
-20. `examples/prompts/`: `.skye` prompts: roles and history, control flow, few-shot turns, output formats, agent and group chat prompts, validation, rendered offline
-21. `examples/plugins/`: add an integration with a `Plugin` and a decorator, by `skye.use` or by an installed package
+20. `examples/prompts/`: `.skye` prompts: roles and history, control flow, few-shot turns, output formats, the bundled prompts and a gallery of 26 prompts to copy, validation, shared parts, rendered offline
+21. `examples/plugins/`: add an integration with `skye.Plugins()` and a decorator, or by an installed package with an entry point
 
 ## Running without a key
 

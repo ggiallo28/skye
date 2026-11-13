@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 from skye.base.messages import UserMessage
-from skye.models.transport.token_counter import TokenCounter
+from skye.models.token_counter import TokenCounter
 
 
 def test_import_skye_loads_no_tokenizer():
@@ -28,7 +28,7 @@ def test_the_counter_asks_for_the_tokens_extra(monkeypatch):
         asked.append(install_extra)
         raise ImportError(module_name)
 
-    monkeypatch.setattr("skye.models.transport.token_counter.LazyImporter.import_module", staticmethod(fake_import))
+    monkeypatch.setattr("skye.models.token_counter.LazyImporter.import_module", staticmethod(fake_import))
     monkeypatch.setattr(TokenCounter, "_tokenizers", {})
     TokenCounter.count_tokens("hello", "gpt-4")
     assert asked == ["tokens"]

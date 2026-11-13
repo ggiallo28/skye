@@ -26,22 +26,22 @@ prompt "other" {
 def test_list(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["prompt", "list"]) == 0
     out = capsys.readouterr().out
-    assert out.startswith("chain_of_thought_agent")
-    assert "planner_agent" in out and "Planner agent (plan and execute) (1.0)" in out
+    assert out.startswith("agent_react")  # the names are listed in order, the first is agent_react
+    assert "agent_react" in out and "ReAct agent (1.0)" in out
 
 
 def test_list_json(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["prompt", "list", "--json"]) == 0
     rows = json.loads(capsys.readouterr().out)
-    planner = next(r for r in rows if r["name"] == "planner_agent")
+    planner = next(r for r in rows if r["name"] == "agent_react")
     assert set(planner) == {"name", "title", "version", "description"}
     assert planner["version"] == "1.0"
 
 
 def test_info_of_a_bundled_prompt(capsys: pytest.CaptureFixture[str]) -> None:
-    assert main(["prompt", "info", "planner_agent"]) == 0
+    assert main(["prompt", "info", "agent_react"]) == 0
     out = capsys.readouterr().out
-    assert out.startswith("planner_agent — Planner agent (plan and execute) (1.0)\n")
+    assert out.startswith("agent_react — ReAct agent (1.0)\n")
     for section in ("\nInputs\n", "\nHistory\n", "\nMessages\n", "\nOutput\n"):
         assert section in out
 
@@ -93,4 +93,4 @@ def test_info_of_an_unknown_name(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["prompt", "info", "no_such_prompt"]) == 2
     err = capsys.readouterr().err
     assert "neither a bundled prompt nor a file" in err
-    assert "planner_agent" in err
+    assert "agent_react" in err

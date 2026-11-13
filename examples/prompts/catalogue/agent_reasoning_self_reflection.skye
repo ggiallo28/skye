@@ -1,0 +1,98 @@
+---
+title       = "Reasoning: self-reflection (Reflexion style)"
+description = "\"act\" answers the task, \"reflect\" critiques an earlier attempt and draws lessons, \"revise\" answers again using those lessons."
+version     = "1.0"
+tags        = ["agent", "reasoning"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+include "common/tools.skye" as tools
+include "common/memories.skye" as memories
+
+prompt "agent_reasoning_self_reflection" {
+  variables = {
+    use system_prompt
+    task              = string            "The task to accomplish"
+    phase             = string("act")     "\"act\", \"reflect\" or \"revise\""
+    previous_attempt  = string("")        "The earlier answer to reflect on or revise"
+    feedback          = string("")        "Feedback on the previous attempt, for phase \"reflect\""
+    test_results      = list(string, [])  "Test outcomes of the previous attempt, for phase \"reflect\""
+    reflections       = list(string, [])  "Lessons from earlier attempts"
+    use tools
+    use memories
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You are an agent that gets better by looking back at its own work. You make an attempt, study honestly where it fell short, turn that into concrete lessons, and use the lessons to do better on the next try."
+    }
+
+    use tools
+
+    use memories
+
+    when phase == "reflect" {
+      text = """
+        ## Current phase: reflect
+        Do not solve the task again. Examine the previous attempt shown below against the task and any feedback:
+        - Find what is wrong, missing or unsupported, and say why it happened (a wrong assumption, a skipped check, a misread requirement, a bad tool call).
+        - When the attempt is actually correct, say so plainly and do not invent problems.
+        - Turn each problem into a lesson that is short, specific and usable on the next attempt; avoid generic advice such as "be more careful".
+        - Do not repeat lessons that are already listed among the earlier lessons.
+
+        ## Answer format
+        Diagnosis: <what went wrong and why, in a few sentences>
+        Lessons:
+        - <lesson>
+        Plan for the next attempt: <what to do differently, step by step>
+        """
+    }
+    when phase == "revise" {
+      text = """
+        ## Current phase: revise
+        Write a new, complete answer to the task. Apply every lesson listed below, fix the problems of the previous attempt, and keep what it got right.
+        Give the improved answer itself, not a description of the changes.
+        """
+    }
+    when phase != "reflect" and phase != "revise" {
+      text = """
+        ## Current phase: act
+        Solve the task directly and give a complete answer. State any assumption you make. When lessons from earlier attempts are listed, follow them.
+        """
+    }
+  }
+
+  placeholder "history"
+
+  message "user" {
+    text = "## Task"
+    text = "{{ task }}"
+
+    when (phase == "reflect" or phase == "revise") and previous_attempt {
+      text = "## Previous attempt"
+      text = "{{ previous_attempt }}"
+    }
+    when phase == "reflect" and feedback {
+      text = "## Feedback on the previous attempt"
+      text = "{{ feedback }}"
+    }
+    when phase == "reflect" and test_results {
+      text = "## Test results"
+      each result in test_results { text = "- {{ result }}" }
+    }
+
+    when reflections and phase == "reflect" {
+      text = "## Earlier lessons"
+      each lesson in reflections { text = "- {{ lesson }}" }
+    }
+    when reflections and phase != "reflect" {
+      text = "## Lessons from earlier attempts"
+      each lesson in reflections { text = "- {{ lesson }}" }
+    }
+
+    when phase == "reflect"                        { text = "Reflect on the previous attempt." }
+    when phase == "revise"                         { text = "Write the improved answer." }
+    when phase != "reflect" and phase != "revise" { text = "Answer the task." }
+  }
+}

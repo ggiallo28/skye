@@ -14,5 +14,7 @@
   {"query": "build a LangGraph state machine with a parallel node and a human approval interrupt", "should_trigger": false},
   {"query": "write a GitHub Actions workflow that runs pytest on 3.11 and 3.12", "should_trigger": false},
   {"query": "what does the HCL block syntax for a terraform dynamic block look like", "should_trigger": false},
-  {"query": "help me write a system prompt for a customer support bot that is polite but firm", "should_trigger": false}
+  {"query": "help me write a system prompt for a customer support bot that is polite but firm", "should_trigger": false},
+  {"query": "i want to add my own model provider to skyeai with plugins = skye.Plugins(), where do the key variable and the prices go", "should_trigger": true},
+  {"query": "skye plugins shows my plugin as failed, how do i fix the entry point of my skyeai plugin package", "should_trigger": true}
 ]

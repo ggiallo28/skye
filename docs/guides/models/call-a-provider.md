@@ -17,7 +17,7 @@ it takes.
 ## One function for every provider
 
 `skye.provider(name, **config)` returns a client. The name chooses the provider; the keyword arguments are its configuration. Every
-client has the same methods: `complete`, `acomplete`, `stream` and `astream`.
+client has the same methods: `complete`, `acomplete`, `stream` and `astream`. The async ones hold the code and the sync ones are derived from them.
 
 | Name | Provider | Required configuration | Credentials |
 |---|---|---|---|

@@ -1,3 +1,4 @@
+# D76, D20
 """Prompt builder interface for template management.
 
 This module defines the abstract interface for prompt template management
@@ -9,8 +10,8 @@ Inspired by:
   invoke pattern, multimodal support
 
 Comprehensive Features:
-- **Template Engine**: a standard-library engine, interpolation only (``{{ }}`` and filters, D76);
-  conditions and loops are written in ``.skye`` prompts; no macros, inheritance or include (D20)
+- **Template Engine**: a standard-library engine, interpolation only (``{{ }}`` and filters);
+  conditions and loops are written in ``.skye`` prompts; no macros, inheritance or include
 - **Few-Shot Learning**: Dynamic example selection and formatting
 - **Multimodal Support**: Text, images, audio, video content in prompts
 - **Template Management**: Versioning, loading from files/strings, composition
@@ -76,8 +77,9 @@ class PromptRenderingInterface(ABC):
         """
         pass
 
+    # Requirement 33.9, decisions D81, D101
     def render_parts(self, template_name: str, variables: dict[str, Any]) -> PromptParts:
-        """Render a template into provider-agnostic parts (Requirement 33.9, decisions D81, D101).
+        """Render a template into provider-agnostic parts.
 
         The default takes :meth:`render`: the system messages become ``system`` (their texts
         joined with a blank line), the other messages stay in order, and there is no output
@@ -172,6 +174,7 @@ class PromptRenderingInterface(ABC):
         """
         pass
 
+    # decision D79
     @abstractmethod
     def add_examples(
         self,
@@ -184,7 +187,7 @@ class PromptRenderingInterface(ABC):
         """Add few-shot examples to a template.
 
         Inspired by Promptify and LangChain's few-shot prompting, this allows
-        adding examples that will be formatted and injected into the prompt (decision D79).
+        adding examples that will be formatted and injected into the prompt.
 
         Args:
             template_name: Name of the template to add examples to.
@@ -279,12 +282,12 @@ class PromptRenderingInterface(ABC):
         """
         pass
 
+    # decisions D76, D77, D20
     @abstractmethod
     def register_filter(self, filter_name: str, filter_func: Callable[[Any], Any]) -> None:
         """Register a filter for ``{{ value | name }}``, available in every rendering.
 
-        The template engine is the standard-library one and does interpolation only (decisions
-        D76, D77): a filter is how a template transforms a value. Macros are not supported (D20).
+        The template engine is the standard-library one and does interpolation only: a filter is how a template transforms a value. Macros are not supported.
 
         Args:
             filter_name: Name of the filter to use in templates.

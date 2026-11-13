@@ -2,13 +2,14 @@
 
 To add an embedding provider you use the decorator `@plugins.provider("name")` on top of a class. It
 is the same decorator as for a model provider: Skye tells which kind of provider the class is from
-the methods it has (here `encode`, so it is an embedding provider).
+the methods it has (here `aencode`, so it is an embedding provider).
 
-The class has the methods of the `VectorEncoderInterface` Port:
+The class writes two `async` methods and the size of a vector, the `VectorEncoderInterface` Port:
 
-* `encode(text)` and `encode_batch(texts)`, which return one vector, or one vector per text.
-* `aencode` and `aencode_batch`, their `async` versions.
+* `aencode(text)` and `aencode_batch(texts)`, which return one vector, or one vector per text.
 * `get_vector_dimension()`, the size of a vector.
+
+Skye gives the class `encode` and `encode_batch`, the sync forms, built from the two you wrote.
 
 `skye.provider("name", provider_type="embedding")` builds it, as it builds the built-in embedding
 providers.
@@ -35,12 +36,6 @@ class HashEmbedder(VectorEncoderInterface):
 
     def _vector(self, text: str) -> list[float]:
         return [byte / 255 for byte in hashlib.sha256(text.encode()).digest()[: self.dimension]]
-
-    def encode(self, text: str) -> list[float]:
-        return self._vector(text)
-
-    def encode_batch(self, texts: list[str]) -> list[list[float]]:
-        return [self._vector(text) for text in texts]
 
     async def aencode(self, text: str) -> list[float]:
         return self._vector(text)

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -10,26 +9,26 @@ import pytest
 from skye.base.dsl import PromptSpec, build
 from skye.base.messages import AssistantMessage, SkyeMessage, SystemMessage, UserMessage
 from skye.prompts.skye_prompts import load_prompt, render_prompt
+from tests.unit.prompts.bundled import build_template, load_template, template_path
 
-TEMPLATES = Path(__file__).resolve().parents[3] / "src" / "skye" / "prompts" / "templates"
 
 NAMES = (
-    "supervisor_router",
-    "supervisor_planner",
-    "supervisor_reviewer",
-    "supervisor_hierarchical",
+    "agent_supervisor_router",
+    "agent_supervisor_planner",
+    "agent_supervisor_reviewer",
+    "agent_supervisor_hierarchical",
 )
 
 # The variables each prompt cannot do without.
 REQUIRED: dict[str, dict[str, Any]] = {
-    "supervisor_router": {"task": "Write a market report on solar panels."},
-    "supervisor_planner": {"task": "Write a market report on solar panels."},
-    "supervisor_reviewer": {
+    "agent_supervisor_router": {"task": "Write a market report on solar panels."},
+    "agent_supervisor_planner": {"task": "Write a market report on solar panels."},
+    "agent_supervisor_reviewer": {
         "task": "Write a market report on solar panels.",
         "worker_name": "writer",
         "worker_output": "Solar is growing.",
     },
-    "supervisor_hierarchical": {"task": "Launch a new product."},
+    "agent_supervisor_hierarchical": {"task": "Launch a new product."},
 }
 
 WORKERS = [
@@ -68,7 +67,7 @@ PROGRESS = [{"worker": "researcher", "summary": "Collected ten sources."}]
 
 
 def _spec(name: str) -> PromptSpec:
-    return load_prompt((TEMPLATES / f"{name}.skye").read_text(encoding="utf-8"), name)
+    return load_template(template_path(name), name)
 
 
 def _render(
@@ -88,7 +87,7 @@ def _system(messages: list[SkyeMessage]) -> str:
 
 @pytest.mark.parametrize("name", NAMES)
 def test_has_front_matter(name: str) -> None:
-    metadata = build((TEMPLATES / f"{name}.skye").read_text(encoding="utf-8")).metadata
+    metadata = build_template(template_path(name)).metadata
     assert metadata["title"] and metadata["description"]
     assert metadata["version"] == "1.0"
     assert isinstance(metadata["tags"], list) and metadata["tags"]
@@ -159,7 +158,7 @@ def test_every_memory_type(name: str) -> None:
 
 @pytest.mark.parametrize("memory_type", sorted(MEMORY))
 def test_one_memory_type_alone(memory_type: str) -> None:
-    system = _system(_render("supervisor_router", **{memory_type: MEMORY[memory_type]}))
+    system = _system(_render("agent_supervisor_router", **{memory_type: MEMORY[memory_type]}))
     assert "## Memory" in system
     assert system.count("### ") == 1
 
@@ -172,11 +171,11 @@ def test_system_prompt_overrides_the_role_sentence(name: str) -> None:
     assert default.splitlines()[0] not in custom
 
 
-# -- supervisor_router -------------------------------------------------------------------------
+# -- agent_supervisor_router -------------------------------------------------------------------------
 
 
 def test_router_workers_progress_and_json_shape() -> None:
-    messages = _render("supervisor_router", workers=WORKERS, progress=PROGRESS)
+    messages = _render("agent_supervisor_router", workers=WORKERS, progress=PROGRESS)
     system, user = messages[0].content, messages[-1].content
     assert "- **researcher**: Finds sources on the web." in system
     assert "Skills: search, reading" in system
@@ -189,16 +188,16 @@ def test_router_workers_progress_and_json_shape() -> None:
 
 
 def test_router_without_progress_or_workers() -> None:
-    messages = _render("supervisor_router")
+    messages = _render("agent_supervisor_router")
     assert "no workers were listed" in messages[0].content
     assert "No step has been taken yet." in messages[-1].content
 
 
-# -- supervisor_planner ------------------------------------------------------------------------
+# -- agent_supervisor_planner ------------------------------------------------------------------------
 
 
 def test_planner_json_shape_and_limits() -> None:
-    messages = _render("supervisor_planner", workers=WORKERS, progress=PROGRESS, max_subtasks=4)
+    messages = _render("agent_supervisor_planner", workers=WORKERS, progress=PROGRESS, max_subtasks=4)
     system = messages[0].content
     assert '"subtasks": [{"id": "s1"' in system
     assert '"worker": "<worker name>"' in system
@@ -208,15 +207,15 @@ def test_planner_json_shape_and_limits() -> None:
 
 
 def test_planner_without_limit() -> None:
-    assert "at most" not in _render("supervisor_planner")[0].content
+    assert "at most" not in _render("agent_supervisor_planner")[0].content
 
 
-# -- supervisor_reviewer -----------------------------------------------------------------------
+# -- agent_supervisor_reviewer -----------------------------------------------------------------------
 
 
 def test_reviewer_criteria_and_json_shape() -> None:
     messages = _render(
-        "supervisor_reviewer",
+        "agent_supervisor_reviewer",
         acceptance_criteria=["Cites at least three sources", "Under 500 words"],
         instructions="Draft the report.",
     )
@@ -232,11 +231,11 @@ def test_reviewer_criteria_and_json_shape() -> None:
 
 
 def test_reviewer_default_criterion() -> None:
-    system = _render("supervisor_reviewer")[0].content
+    system = _render("agent_supervisor_reviewer")[0].content
     assert "The result is correct, complete" in system
 
 
-# -- supervisor_hierarchical -------------------------------------------------------------------
+# -- agent_supervisor_hierarchical -------------------------------------------------------------------
 
 
 def test_hierarchical_teams_reports_and_json_shapes() -> None:
@@ -251,7 +250,7 @@ def test_hierarchical_teams_reports_and_json_shapes() -> None:
     ]
     reports = [{"team": "research", "report": "The market is large."}]
     messages = _render(
-        "supervisor_hierarchical", teams=teams, team_reports=reports, progress=PROGRESS
+        "agent_supervisor_hierarchical", teams=teams, team_reports=reports, progress=PROGRESS
     )
     system, user = messages[0].content, messages[-1].content
     assert "- **research** (lead: ada): Studies the market." in system
@@ -265,4 +264,4 @@ def test_hierarchical_teams_reports_and_json_shapes() -> None:
 
 
 def test_hierarchical_without_reports() -> None:
-    assert "No team has reported yet." in _render("supervisor_hierarchical")[-1].content
+    assert "No team has reported yet." in _render("agent_supervisor_hierarchical")[-1].content

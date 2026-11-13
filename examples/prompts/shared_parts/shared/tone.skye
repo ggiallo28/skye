@@ -1,0 +1,15 @@
+---
+partial = true
+---
+
+prompt "tone" {
+  variables = {
+    tone      = string("friendly")  "How the assistant sounds"
+    signature = string("")          "Closing line"
+  }
+
+  message "system" {
+    when tone      { text = "Answer in a {{ tone }} tone." }
+    when signature { text = "End every answer with: {{ signature }}" }
+  }
+}

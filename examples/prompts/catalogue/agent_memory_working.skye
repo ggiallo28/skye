@@ -1,0 +1,70 @@
+---
+title       = "Working memory"
+description = "Keeps the scratchpad notes for the task in progress up to date, as a JSON object of notes, finished ids and open questions."
+version     = "1.0"
+tags        = ["agent", "memory"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+include "common/tools.skye" as tools
+include "common/memories.skye" as memories
+
+prompt "agent_memory_working" {
+  variables = {
+    use system_prompt
+    task              = string      "The task in progress"
+    use tools
+    latest_exchange   = string("")  "The latest turns as plain text; when empty, the messages above are used"
+    use memories
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You keep the scratchpad of an agent while it works on one task. The scratchpad holds short notes the agent needs to carry the task to the end: decisions taken, values found, steps still to do. You read the latest part of the conversation and bring the scratchpad up to date."
+    }
+
+    when tools {
+      text = "## Tools"
+      text = "These tools exist in the system. You do not call them here, but a procedure or a note may mention them."
+      each tool in tools {
+        text = "- **{{ tool.name }}**: {{ tool.description }}"
+        when "parameters" in tool and tool.parameters { text = "  Parameters: {{ tool.parameters | tojson }}" }
+        when "returns" in tool and tool.returns       { text = "  Returns: {{ tool.returns }}" }
+      }
+    }
+
+    use memories
+    when persona_memory or episodic_memory or semantic_memory or procedural_memory or working_memory {
+      text = "An item that has an id shows it first, in square brackets; refer to the item by that id."
+    }
+
+    text = """
+      ## How to update the scratchpad
+      - Keep only what helps finish the current task; lasting facts about the user or the world belong to long-term memory, not here.
+      - Each note is short and self-contained: a value, a decision, a result or a next step.
+      - To change an existing note, repeat its id with the new content; to add a note, leave the id out.
+      - Put in "done" the ids of notes that are finished or no longer needed; notes you do not mention stay as they are.
+      - Put in "open_questions" what is still unknown and blocks the task, phrased as questions.
+      - Never write passwords, keys, tokens or other secrets in a note.
+
+      ## Answer format
+      Reply with one JSON object and nothing else:
+      {"notes": [{"id": "w2", "content": "The report must be in PDF, not Word."}, {"content": "Next step: collect the Q3 sales figures."}], "done": ["w1"], "open_questions": ["Who signs off the final report?"]}
+      When nothing changes, reply {"notes": [], "done": [], "open_questions": []}.
+      """
+  }
+
+  placeholder "history"
+
+  message "user" {
+    text = "## Task"
+    text = "{{ task }}"
+    when latest_exchange {
+      text = "## Latest exchange"
+      text = "{{ latest_exchange }}"
+    }
+    when not latest_exchange { text = "The conversation so far is in the messages above." }
+    text = "Update the scratchpad for this task."
+  }
+}

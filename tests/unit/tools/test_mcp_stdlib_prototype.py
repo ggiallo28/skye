@@ -1,8 +1,8 @@
 """Prototype staging for the standard-library MCP client (structure spec, task 7.2, Requirement 15).
 
-Task 14.3 already shipped :class:`~skye.tools.mcp_client.BuiltinMCPClient`: a standard-library
+Task 14.3 already shipped :class:`~skye.tools.mcp_client.SkyeMCPClient`: a standard-library
 JSON-RPC 2.0 client over stateless HTTP, built on ``skye.base.http`` (the base-layer home of
-the shared stdlib transport, re-exported by ``skye.models.transport.http``), behind the one
+the shared stdlib transport, re-exported by ``skye.base.http``), behind the one
 :class:`~skye.tools.mcp_client.MCPClientInterface` alongside the fastmcp implementation.
 
 Task 14.4 is the *future target*: driving the MCP extra toward **zero third-party libraries** so
@@ -36,7 +36,7 @@ from skye.base import http
 from skye.base.exceptions import ProviderError, ValidationError
 from skye.base.messages import AssistantMessage, UserMessage
 from skye.base.interfaces.capability import CapabilityInterface
-from skye.tools.mcp_client import BuiltinMCPClient
+from skye.tools.engines.skyemcp import SkyeMCPClient
 from skye.tools.mcp_resource import Resource
 
 # The MCP protocol/transport libraries the future target drives to zero for the built-in path.
@@ -45,6 +45,7 @@ MCP_THIRD_PARTY = ("fastmcp", "mcp", "httpx", "requests")
 # The modules that make up the standard-library built-in MCP client path.
 BUILTIN_PATH_MODULES = (
     "src/skye/tools/mcp_client.py",
+    "src/skye/tools/engines/skyemcp/client.py",
     "src/skye/tools/mcp_boundary.py",
     "src/skye/tools/mcp_resource.py",
 )
@@ -64,7 +65,7 @@ def _top_level_imports(path: Path) -> set[str]:
     return names
 
 
-def test_builtin_path_source_imports_no_mcp_third_party() -> None:
+def test_skyemcp_path_source_imports_no_mcp_third_party() -> None:
     """Static check: none of mcp_client/boundary/resource names an MCP protocol/transport lib."""
     offenders: list[str] = []
     for rel in BUILTIN_PATH_MODULES:
@@ -78,24 +79,26 @@ def test_builtin_path_source_imports_no_mcp_third_party() -> None:
     )
 
 
-def test_builtin_client_importable_with_mcp_third_party_absent() -> None:
+def test_skyemcp_client_importable_with_mcp_third_party_absent() -> None:
     """A fresh import of the built-in path works with fastmcp/mcp/httpx/requests blocked."""
     blocked = {name: None for name in MCP_THIRD_PARTY}
-    builtin_modules = [
+    skyemcp_modules = [
         "skye.tools.mcp_client",
+        "skye.tools.engines.skyemcp",
+        "skye.tools.engines.skyemcp.client",
         "skye.tools.mcp_boundary",
         "skye.tools.mcp_resource",
     ]
-    saved = {name: sys.modules.pop(name, None) for name in builtin_modules}
+    saved = {name: sys.modules.pop(name, None) for name in skyemcp_modules}
     try:
         with patch.dict(sys.modules, blocked):
-            module = importlib.import_module("skye.tools.mcp_client")
-            assert module.BuiltinMCPClient is not None
+            module = importlib.import_module("skye.tools.engines.skyemcp")
+            assert module.SkyeMCPClient is not None
             # Each name stays blocked (value None): importing the built-in path never pulled in
             # a real fastmcp/mcp/httpx/requests module.
             assert all(sys.modules.get(name) is None for name in MCP_THIRD_PARTY)
     finally:
-        for name in builtin_modules:
+        for name in skyemcp_modules:
             sys.modules.pop(name, None)
         for name, mod in saved.items():
             if mod is not None:
@@ -166,14 +169,14 @@ def fake_transport() -> _FakeTransport:
     # While the client runs, fastmcp/mcp/httpx/requests are blocked (value None in sys.modules):
     # any attempt to import one of them would raise, proving the stdlib path needs none of them.
     with patch.dict(sys.modules, {name: None for name in MCP_THIRD_PARTY}):
-        with patch("skye.tools.mcp_client.http.request", transport):
+        with patch("skye.tools.engines.skyemcp.client.http.request", transport):
             yield transport
 
 
 @pytest.mark.asyncio
 async def test_stdlib_client_tools_facet(fake_transport: _FakeTransport) -> None:
     """Framing, parsing and the tools->Capability boundary all run on stdlib only."""
-    client = BuiltinMCPClient("https://server/mcp", headers={"Authorization": "Bearer t"})
+    client = SkyeMCPClient("https://server/mcp", headers={"Authorization": "Bearer t"})
     tools = await client.list_tools()
 
     assert [t.get_schema().name for t in tools] == ["add", "boom"]
@@ -191,7 +194,7 @@ async def test_stdlib_client_tools_facet(fake_transport: _FakeTransport) -> None
 @pytest.mark.asyncio
 async def test_stdlib_client_prompt_and_resource_facets(fake_transport: _FakeTransport) -> None:
     """prompts->Skye messages and resources->Resource convert at the single boundary."""
-    client = BuiltinMCPClient("https://server/mcp")
+    client = SkyeMCPClient("https://server/mcp")
 
     messages = await client.get_prompt("greet", {"who": "x"})
     assert isinstance(messages[0], UserMessage)
@@ -208,7 +211,7 @@ async def test_stdlib_client_tool_error_maps_to_skye(fake_transport: _FakeTransp
     """A tool-level MCP error surfaces as a Skye error, not a protocol type."""
     from skye.tools.exceptions import CapabilityExecutionError
 
-    client = BuiltinMCPClient("https://server/mcp")
+    client = SkyeMCPClient("https://server/mcp")
     tools = await client.list_tools()
     with pytest.raises(CapabilityExecutionError):
         await tools[1].aexecute()
@@ -219,7 +222,7 @@ async def test_stdlib_client_rpc_error_maps_to_provider_error(
     fake_transport: _FakeTransport,
 ) -> None:
     """A JSON-RPC error object becomes a ProviderError naming the message (no protocol leak)."""
-    client = BuiltinMCPClient("https://server/mcp")
+    client = SkyeMCPClient("https://server/mcp")
     import asyncio
 
     with pytest.raises(ProviderError, match="method not found"):
@@ -231,7 +234,7 @@ async def test_stdlib_client_rejects_malformed_result(fake_transport: _FakeTrans
     """A JSON-RPC reply without 'result' or 'error' is rejected, naming the missing field."""
     import asyncio
 
-    client = BuiltinMCPClient("https://server/mcp")
+    client = SkyeMCPClient("https://server/mcp")
 
     def _bare(
         url: str, method: str = "GET", *, json_body: Any = None, **_: Any
@@ -242,6 +245,6 @@ async def test_stdlib_client_rejects_malformed_result(fake_transport: _FakeTrans
             text=json.dumps({"jsonrpc": "2.0", "id": json_body["id"]}),
         )
 
-    with patch("skye.tools.mcp_client.http.request", _bare):
+    with patch("skye.tools.engines.skyemcp.client.http.request", _bare):
         with pytest.raises(ValidationError, match="result"):
             await asyncio.to_thread(client._rpc, "tools/list")

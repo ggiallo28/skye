@@ -184,8 +184,9 @@ class RouteConfig(Validated):
 
     alias: str = field(description="Alias name for this route")
     targets: list[ModelTarget] = field(min_length=1, description="Model targets")
-    strategy: RoutingStrategy | None = field(
-        default=None, description="Routing strategy (None: the router's)"
+    strategy: RoutingStrategy | str | None = field(
+        default=None,
+        description="Routing strategy: a RoutingStrategy or a registered name (None: the router's)",
     )
     fallback_on_error: bool = field(
         default=True, description="Try the other targets of the route on error"

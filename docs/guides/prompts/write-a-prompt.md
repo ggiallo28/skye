@@ -104,13 +104,18 @@ A [router](../routing/aliases-and-fallbacks.md) takes the same list: `router.com
 
 ## Use a bundled prompt
 
-Skye ships about forty prompts written in `.skye`: task prompts (`chat`, `classification`, `summarization`, `ner`,
-`sql_generation`, `structured_output`, ...) and agent prompts (`planner_agent`, `chain_of_thought_agent`, `supervisor_router`,
-`group_chat_participant`, ...). A `BasePromptBuilder()` loads them all.
+Skye ships 6 prompts written in `.skye`: the task prompts `text_explanation`, `text_question_answering` and
+`text_summarization`, the extraction prompt `extraction_generic` (entities, relations, a table, structured data or a classification: the fields of
+`schema` and the allowed `labels` say what to extract or decide, `format` how to write it), the
+generation prompt `generation_code` (code in any language, SQL included: `language = "SQL"` with `references` for the tables and `environment` for the dialect), and the ReAct agent prompt `agent_react`. A `BasePromptBuilder()` loads them all. The
+other prompts written for Skye (chat, tool, planner, procedure, reasoning, supervisor, group chat, memory upkeep and more) are a
+[gallery of files to copy](https://github.com/ggiallo28/skye/tree/main/examples/prompts/catalogue): they are not installed, you copy one next to your
+code and change it, or register it from its path with `register_template(name, path, from_string=False)`. A prompt joins the package when a part of
+the library needs it.
 
 ```bash
 skye prompt list                      # name, title, version and description of each bundled prompt
-skye prompt info classification       # its inputs, history placeholders, messages and output
+skye prompt info extraction_generic       # its inputs, history placeholders, messages and output
 skye prompt info prompts.skye --name greeting   # the same for a prompt of your own
 ```
 
@@ -121,15 +126,22 @@ data. From Python, `describe_prompt(spec, metadata)` returns it as a `PromptInfo
 from skye.prompts import BasePromptBuilder
 
 builder = BasePromptBuilder()
-messages = builder.render("classification", {
-    "text": "The app crashes when I upload a photo.",
-    "categories": [{"name": "bug"}, {"name": "question"}, {"name": "feature request"}],
+messages = builder.render("extraction_generic", {
+    "input": "The app crashes when I upload a photo.",
+    "instructions": ["Classify the text into exactly one of the labels."],
+    "labels": [{"name": "bug"}, {"name": "question"}, {"name": "feature request"}],
+    "schema": {"category": "string"},
 })
-print(builder.help("classification"))
+print(builder.help("extraction_generic"))
 ```
 
+A prompt of your own that shares parts with other files (`include`, `from ... import`, `use`, see the [language reference](../../reference/skye-language.md))
+is registered from its path: `builder.register_template("chat", "prompts/chat.skye", from_string=False)` reads the files it includes from
+the folder of `chat.skye`. A text has no folder, so `register_template("chat", text, resolver=my_resolver)` takes the function that reads them.
+
 Every bundled prompt that takes tools or memories declares them with the same shapes, and the conversation history is always the
-placeholder `history`. Each file ends with a comment that shows a call that renders.
+placeholder `history`. The sample variables of every bundled prompt, the ones of a call that renders, are in `examples/prompts/bundled/`
+(one JSON file each; `examples/prompts/bundled_templates.py` renders them all), and `skye prompt export DIR` writes the prompts out to edit.
 
 ## What you get
 

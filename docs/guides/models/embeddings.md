@@ -99,6 +99,20 @@ embedder = skye.provider("google-multimodal", project_id="my-project", location=
 vectors = embedder.encode_batch(["a red bicycle", "photos/bike.jpg"])
 ```
 
+## An embedding provider of your own
+
+To use a service Skye does not cover, add a class with the decorator `@plugins.provider("name")`. It is the same decorator as for a model
+provider: Skye tells the kind from the methods, here `aencode`. The class writes two `async` methods and the size of a vector (the
+`VectorEncoderInterface` Port); `encode` and `encode_batch` are derived from them, so you never write the sync forms:
+
+```python
+--8<-- "examples/plugins/embedding_provider.py:22:47"
+```
+
+`skye.provider("hash-embed", provider_type="embedding")` builds it, as it builds the built-in embedding providers. When the provider has a
+key variable, an endpoint, or models with their own vector sizes, pass `profile=` to the decorator (the size of a model is
+`info={"vector_dimension": 1536}` in its `ModelProfile`).
+
 ## Use the vectors
 
 Skye has no vector database of its own. Keep the vectors where your application searches them (PostgreSQL with pgvector, OpenSearch,
@@ -108,5 +122,6 @@ a managed vector store), and use the same model to encode the documents and the 
 
 - [Call a provider](call-a-provider.md): credentials of each provider.
 - [`skye.models` API reference](../../reference/api/models.md): the embedding provider classes.
-- [Custom provider](../extend/custom-provider.md): an embedding provider of your own implements `VectorEncoderInterface`.
-- Example: [`providers/embeddings_example.py`](https://github.com/ggiallo28/skye/blob/main/examples/providers/embeddings_example.py).
+- [Custom provider](../extend/custom-provider.md): the decorator `@plugins.provider`, profiles and packages.
+- Examples: [`providers/embeddings_example.py`](https://github.com/ggiallo28/skye/blob/main/examples/providers/embeddings_example.py),
+  [`plugins/embedding_provider.py`](https://github.com/ggiallo28/skye/blob/main/examples/plugins/embedding_provider.py).

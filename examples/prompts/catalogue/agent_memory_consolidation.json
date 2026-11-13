@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-11-08",
+  "user_name": "Anna",
+  "semantic_memory": [
+    {
+      "id": "s2",
+      "content": "The team ships a release every two weeks.",
+      "source": "chat"
+    },
+    {
+      "id": "s5",
+      "content": "Releases go out on Thursday.",
+      "source": "chat"
+    }
+  ],
+  "persona_memory": [
+    {
+      "id": "p1",
+      "content": "The user prefers answers in Italian."
+    }
+  ],
+  "episodic_memory": [
+    {
+      "id": "e1",
+      "content": "Release 1.4 shipped.",
+      "timestamp": "2026-10-30"
+    }
+  ],
+  "procedural_memory": [
+    {
+      "id": "r1",
+      "name": "release",
+      "content": "Tag, build and publish."
+    }
+  ],
+  "working_memory": [
+    {
+      "id": "w1",
+      "content": "Check the 1.4 changelog."
+    }
+  ],
+  "kinds": [
+    "semantic",
+    "working"
+  ]
+}

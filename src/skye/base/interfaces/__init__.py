@@ -15,7 +15,7 @@ from skye.base.interfaces.event_handler import EventHandlerInterface
 from skye.base.interfaces.memory import MemoryInterface
 from skye.base.interfaces.model import ModelInterface
 from skye.base.interfaces.observer import EventType, ObserverInterface
-from skye.base.interfaces.plugin import PluginInterface
+from skye.base.interfaces.plugin import RegistrarInterface
 from skye.base.interfaces.prompt import (
     OutputSchema,
     PromptBuilderInterface,
@@ -39,6 +39,7 @@ from skye.base.interfaces.runnable import Runnable
 from skye.base.interfaces.safety import SafetyFilterInterface, SafetyResult
 from skye.base.interfaces.storage import (
     CounterStore,
+    ExpiryStore,
     KeyValueStore,
     ScanStore,
     StorageBackend,
@@ -81,6 +82,7 @@ __all__ = [
     "StorageBackend",
     "KeyValueStore",
     "CounterStore",
+    "ExpiryStore",
     "ScanStore",
     # Safety and filtering interfaces
     "SafetyFilterInterface",
@@ -90,7 +92,7 @@ __all__ = [
     "EventType",
     "EventHandlerInterface",
     # Plugin and extension interfaces
-    "PluginInterface",
+    "RegistrarInterface",
     # Content handling interfaces
     "ContentReaderInterface",
     "Resource",

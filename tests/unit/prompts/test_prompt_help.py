@@ -13,6 +13,7 @@ from skye.prompts import (
     describe_prompt,
     prompt_help,
 )
+from tests.unit.prompts.bundled import gallery_builder
 
 TEXT = """---
 title = "Invoice extractor"
@@ -125,12 +126,12 @@ def test_output_from_variables() -> None:
     assert prompt_help(info).endswith("Output (from variable fmt)\n  fields from variable fields\n")
 
 
-def test_builder_help_of_a_bundled_prompt() -> None:
-    builder = BasePromptBuilder()
-    text = builder.help("planner_agent")
-    assert text.startswith("planner_agent — ")
+def test_builder_help_of_a_prompt_registered_from_a_file() -> None:
+    builder = gallery_builder()
+    text = builder.help("agent_planner")
+    assert text.startswith("agent_planner — ")
     assert "\nInputs\n" in text and "  task " in text
-    info = builder.describe("planner_agent")
+    info = builder.describe("agent_planner")
     assert info.version == "1.0"
     assert "history" in info.placeholders
 

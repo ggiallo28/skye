@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from skye.auth import aws
+from skye.auth.plugins.aws import source as aws
 from skye.auth.errors import LoginRequiredError
 from skye.base.exceptions import ConfigurationError, ProviderError
 
@@ -45,6 +45,7 @@ def test_assume_role_is_signed_and_returns_the_role_session(server):
     provider = aws.CredentialProvider(
         access_key="AKSRC",
         secret_key="SRC",
+        region="us-east-1",  # AssumeRole is signed: it needs a region (there is no default)
         role_arn="arn:aws:iam::222222222222:role/cross",
         role_session_name="s1",
         external_id="ext",
@@ -93,7 +94,11 @@ def test_an_sts_error_is_a_provider_error(server):
     server.respond(lambda seen: (403, b"<Error>AccessDenied</Error>"))
     with pytest.raises(ProviderError) as caught:
         aws.CredentialProvider(
-            access_key="a", secret_key="b", role_arn="arn", sts_endpoint=server.url + "/"
+            access_key="a",
+            secret_key="b",
+            role_arn="arn",
+            region="us-east-1",
+            sts_endpoint=server.url + "/",
         ).get()
     assert caught.value.details["status_code"] == 403
 
@@ -111,7 +116,7 @@ def test_a_profile_that_assumes_a_role_from_another_profile(server, tmp_path):
         "AWS_CONFIG_FILE": str(tmp_path / "config"),
     }
     creds = aws.CredentialProvider(
-        profile_name="admin", env=env, sts_endpoint=server.url + "/"
+        profile_name="admin", env=env, region="us-east-1", sts_endpoint=server.url + "/"
     ).get()
     assert creds.access_key == "ASIAROLE"
     assert (

@@ -1,4 +1,4 @@
-"""Unit tests for models/transport stdlib pieces (task 4.2)."""
+"""Unit tests for the stdlib pieces of models/utilities (rest, streaming, retry, eventstream) and models/cost (task 4.2)."""
 
 import datetime as dt
 import io
@@ -7,11 +7,11 @@ from unittest.mock import patch
 
 import pytest
 
-from skye.auth.sigv4 import sign_request
+from skye.auth.plugins.aws.sigv4 import sign_request
 from skye.base.exceptions import ProviderError, ServerError
-from skye.models.transport import http
-from skye.models.transport.retry import with_retry
-from skye.models.transport.streaming import SSEEvent, parse_sse
+from skye.base import http
+from skye.models.utilities.retry import with_retry
+from skye.models.utilities.streaming import SSEEvent, parse_sse
 
 
 class TestSSE:

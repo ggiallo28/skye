@@ -17,8 +17,8 @@ import pytest
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.exceptions import ProviderError
 from skye.base.messages import SystemMessage, UserMessage
-from skye.models.llm.anthropic import AnthropicProvider
-from skye.models.transport.rest import JsonObject
+from skye.models.plugins.anthropic.provider import AnthropicProvider
+from skye.models.utilities.rest import JsonObject
 
 
 class TestAnthropicProviderInitialization:
@@ -42,9 +42,16 @@ class TestAnthropicProviderInitialization:
         import ast
         import inspect
 
-        from skye.models.llm import anthropic_compatible as mod
+        import importlib
+        import pkgutil
 
-        for node in ast.walk(ast.parse(inspect.getsource(mod))):
+        from skye.models.utilities import anthropic_compatible as pkg
+
+        # The shared base is a package split by responsibility (D110): check every module of it, not only the __init__.
+        modules = [importlib.import_module(m.name) for m in pkgutil.iter_modules(pkg.__path__, pkg.__name__ + ".")]
+        assert {m.__name__.rsplit(".", 1)[-1] for m in modules} == {"capabilities", "provider", "request", "response"}
+        sources = [inspect.getsource(pkg), *(inspect.getsource(m) for m in modules)]
+        for node in (n for source in sources for n in ast.walk(ast.parse(source))):
             if isinstance(node, ast.Import):
                 assert all(a.name.split(".")[0] != "anthropic" for a in node.names)
             elif isinstance(node, ast.ImportFrom):
@@ -370,8 +377,8 @@ class TestAnthropicStreamTransformation:
 
 
 URL = "https://api.anthropic.com/v1/messages"
-POST = "skye.models.transport.rest.post_json"
-STREAM = "skye.models.transport.rest.stream_sse_json"
+POST = "skye.models.utilities.rest.post_json"
+STREAM = "skye.models.utilities.rest.stream_sse_json"
 
 
 def _msg(blocks: list[dict[str, Any]], stop: str = "end_turn", i: int = 10, o: int = 5) -> JsonObject:

@@ -1,0 +1,99 @@
+---
+title       = "Group chat summarizer"
+description = "Condenses a conversation shared by several agents into decisions, open questions and action items per agent."
+version     = "1.0"
+tags        = ["agent", "group-chat"]
+---
+
+include "common/system_prompt.skye" as system_prompt
+include "common/tools.skye" as tools
+include "common/memories.skye" as memories
+
+prompt "agent_groupchat_summarizer" {
+  variables = {
+    use system_prompt
+    transcript        = list({
+      speaker = string            "Who spoke"
+      content = string            "What they said"
+    })                            "Conversation to summarize"
+    goal              = string("")          "What the group is trying to achieve"
+    participants      = list({
+      name = string               "Agent name"
+      role = string("")           "What the agent does"
+    }, [])                        "Agents in the conversation"
+    previous_summary  = string("")          "Earlier summary to extend with the new messages"
+    focus_agent       = string("")          "Participant the summary is written for"
+    max_words         = number(0)           "Maximum length of the summary in words; 0 means no limit"
+    output_format     = string("markdown")  "\"markdown\" or \"json\""
+    use tools
+    use memories
+  }
+
+  message "system" {
+    use system_prompt
+    when not system_prompt {
+      text = "You write the minutes of a conversation shared by several agents. The summary is read later by the participants and stored as memory, so it must stand on its own: someone who did not read the conversation should know what was settled, what is still open and who has to do what."
+    }
+
+    when goal {
+      text = "## Goal of the group"
+      text = "{{ goal }}"
+    }
+
+    when participants {
+      text = "## Participants"
+      each p in participants {
+        when "role" in p and p.role       { text = "- {{ p.name }}: {{ p.role }}" }
+        when not ("role" in p and p.role) { text = "- {{ p.name }}" }
+      }
+    }
+
+    use tools
+
+    use memories
+    text = """
+      ## What to write
+      - Keep only what matters for what comes next; leave out greetings, passes and repetitions.
+      - Attribute decisions and proposals to the participant who made them.
+      - Record a decision only when the conversation actually settled it; anything still debated is an open question.
+      - Give each action item an owner taken from the participants.
+      """
+    when focus_agent { text = "- Write for {{ focus_agent }}: put first what concerns {{ focus_agent }}." }
+    when max_words   { text = "- Use at most {{ max_words }} words." }
+
+    when output_format == "json" {
+      text = """
+        ## Answer format
+        Reply with one JSON object and nothing else:
+        {"summary": "<a few sentences>", "decisions": ["<decision>"], "open_questions": ["<question>"], "action_items": {"<participant>": ["<task>"]}}
+        """
+    }
+    when output_format != "json" {
+      text = """
+        ## Answer format
+        Use these sections, writing "None" under any that is empty:
+        ### Summary
+        ### Decisions
+        ### Open questions
+        ### Action items
+        (one line per participant: "- name: task, task")
+        """
+    }
+  }
+
+  placeholder "history"
+
+  message "user" {
+    when previous_summary {
+      text = "## Summary so far"
+      text = "{{ previous_summary }}"
+      text = "Update it with the new messages below."
+    }
+    text = "## Conversation"
+    when transcript {
+      each entry in transcript { text = "{{ entry.speaker }}: {{ entry.content }}" }
+    }
+    when not transcript { text = "(no messages)" }
+    text = "Summarize the conversation."
+  }
+}

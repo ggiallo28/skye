@@ -1,0 +1,7 @@
+{
+  "context": "The Eiffel Tower was completed in 1889 for the World's Fair in Paris.",
+  "question": "When was the Eiffel Tower completed?",
+  "examples": "Context: Rome is the capital of Italy. Question: What is the capital of Italy? Answer: Rome",
+  "answer_length": "short",
+  "output_format": "json"
+}

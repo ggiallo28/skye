@@ -36,7 +36,7 @@ Google, Cohere) is called through a built-in REST adapter, so you never need an 
 | `postgres-asyncpg` | the PostgreSQL store backend with the asyncpg driver, faster | `asyncpg` | yes | 15 MB |
 | `aws` | DynamoDB and the PostgreSQL RDS Data API outside AWS Lambda | `boto3` | no | not gated: preinstalled in Lambda |
 | `tokens` | exact token counts for `gpt-*`, `o1-*` and `o3-*` models; without it a standard-library estimate is used | `tiktoken` | yes | 20 MB |
-| `mcp` | the optional `fastmcp` MCP client, chosen with `create_mcp_client(target, impl="fastmcp")`; the built-in client needs nothing | `fastmcp-slim[client]` | yes, among its dependencies | not gated |
+| `mcp` | the optional `fastmcp` MCP client, chosen with `skye.mcp_client(target, impl="fastmcp")` (or `create_mcp_client`); the built-in client needs nothing | `fastmcp-slim[client]` | yes, among its dependencies | not gated |
 
 Each budget is the most megabytes the extra may add over the core on Linux x86_64. `tests/budget` measures it in a clean environment
 on every pull request; see [Size and load budgets](../project/budgets.md). `mcp` and `aws` are not gated because they install a

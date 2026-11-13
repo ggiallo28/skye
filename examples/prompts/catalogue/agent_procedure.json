@@ -1,0 +1,52 @@
+{
+  "input": "I was charged twice for order 42.",
+  "procedural_memory": [
+    {
+      "name": "refund",
+      "content": "Refund an order",
+      "steps": [
+        "Check the order",
+        "Refund the duplicate charge"
+      ]
+    },
+    {
+      "name": "open_ticket",
+      "content": "Open a support ticket"
+    },
+    {
+      "content": "Refunds need an order number"
+    }
+  ],
+  "examples": [
+    {
+      "question": "Give me my money back for order 7",
+      "action": "refund",
+      "action_input": "order 7"
+    }
+  ],
+  "tools": [
+    {
+      "name": "order_lookup",
+      "description": "Finds an order by number",
+      "parameters": {
+        "number": "order number"
+      }
+    }
+  ],
+  "episodic_memory": [
+    {
+      "content": "Reported a late delivery for order 40",
+      "timestamp": "2026-10-30"
+    }
+  ],
+  "history": [
+    {
+      "role": "user",
+      "content": "Hi, I have a billing problem."
+    },
+    {
+      "role": "assistant",
+      "content": "Sorry to hear that. What happened?"
+    }
+  ]
+}

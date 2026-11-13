@@ -1,9 +1,10 @@
+# decision D105
 """Custom exceptions for Skye.
 
 This module defines the exception hierarchy for the Skye GenAI platform.
 All Skye-specific exceptions inherit from SkyeError.
 
-An error never logs itself (decision D105): creating one emits no log record; the code that
+An error never logs itself: creating one emits no log record; the code that
 handles an error logs it once, with structured ``extra``.
 """
 
@@ -47,12 +48,13 @@ class SkyeError(Exception):
         return f"{self.__class__.__name__}(message={self.message!r}, details={self.details!r})"
 
 
+# decision D104
 class ProviderError(SkyeError):
     """Error from an LLM provider.
 
     Raised when an error occurs during communication with an LLM provider
     (e.g., OpenAI, Anthropic, AWS Bedrock). The HTTP layer raises the subclass that the response
-    calls for (decision D104): :class:`RateLimitError`, :class:`ServerError`,
+    calls for: :class:`RateLimitError`, :class:`ServerError`,
     :class:`ProviderTimeoutError`, :class:`AuthenticationError`, :class:`BadRequestError` (and
     its :class:`ContentPolicyError`); a failure that fits none of them is a plain
     ``ProviderError``, so ``except ProviderError`` catches every one.
@@ -128,8 +130,9 @@ class ContentPolicyError(BadRequestError):
     """
 
 
+# Requirement 26.3
 class UnsupportedModalityError(ProviderError):
-    """The input has a form the provider does not accept (Requirement 26.3).
+    """The input has a form the provider does not accept.
 
     Raised by the adapter before anything is sent, so there is no ``status_code``; the input is
     left unchanged. Not retryable: sending it again fails the same way.
@@ -150,8 +153,9 @@ class UnsupportedModalityError(ProviderError):
         self.modality = modality
 
 
+# decision D109
 class CapabilityChoiceError(ProviderError):
-    """The model answered without the capability call the request forced (decision D109).
+    """The model answered without the capability call the request forced.
 
     Raised only for a model that refuses a forced ``capability_choice``: Skye asked for the call in
     an instruction, tried twice, and got an answer without it. There is no ``status_code`` (both

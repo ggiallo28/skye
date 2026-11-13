@@ -1,4 +1,4 @@
-"""MCP client: BuiltinMCPClient vs FastMCPClient (real fastmcp) against a local fake server (Requirement 14).
+"""MCP client: SkyeMCPClient vs FastMCPClient (real fastmcp) against a local fake server (Requirement 14).
 
 Only the subset Skye consumes is compared: exact field-subset equality for structured values,
 epsilon for numeric/timing values, category-level equivalence for errors.
@@ -12,15 +12,15 @@ pytest.importorskip("fastmcp", reason="fastmcp not installed (dev/test dependenc
 
 from skye.base.exceptions import ProviderError  # noqa: E402
 from skye.tools.exceptions import CapabilityExecutionError  # noqa: E402
-from skye.tools.mcp_client import BuiltinMCPClient  # noqa: E402
-from skye.tools.mcp_fastmcp import FastMCPClient  # noqa: E402
+from skye.tools.engines.skyemcp import SkyeMCPClient  # noqa: E402
+from skye.tools.engines.fastmcp import FastMCPClient  # noqa: E402
 
 EPS = 1e-9
 
 
 @pytest.fixture
 def clients(mcp_server):
-    return BuiltinMCPClient(mcp_server.url), FastMCPClient(mcp_server.url)
+    return SkyeMCPClient(mcp_server.url), FastMCPClient(mcp_server.url)
 
 
 async def test_list_tools_same_schema_subset(clients):
@@ -92,5 +92,5 @@ async def test_read_resource_text_and_blob(clients):
 
 async def test_headers_reach_server(mcp_server):
     h = {"Authorization": "Bearer secret"}
-    assert await BuiltinMCPClient(mcp_server.url, headers=h).call_tool("headers") == "Bearer secret"
+    assert await SkyeMCPClient(mcp_server.url, headers=h).call_tool("headers") == "Bearer secret"
     assert await FastMCPClient(mcp_server.url, headers=h).call_tool("headers") == "Bearer secret"

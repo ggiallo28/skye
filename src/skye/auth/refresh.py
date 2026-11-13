@@ -1,4 +1,5 @@
-"""The 401-refresh-and-retry-once helper shared by the HTTP callers (Requirement 11.2)."""
+# Requirement 11.2
+"""The 401-refresh-and-retry-once helper shared by the HTTP callers."""
 
 from __future__ import annotations
 

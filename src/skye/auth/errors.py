@@ -5,10 +5,11 @@ from __future__ import annotations
 from skye.base.exceptions import ConfigurationError
 
 
+# Requirement 11.3
 class LoginRequiredError(ConfigurationError):
     """A mode needs an earlier vendor-tool login whose cache is missing or expired.
 
-    ``auth`` never runs an interactive login (Requirement 11.3): it reads the cache the tool left
+    ``auth`` never runs an interactive login: it reads the cache the tool left
     and, when that is not usable, says which command to run again.
 
     Args:

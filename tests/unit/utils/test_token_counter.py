@@ -6,7 +6,7 @@ Tests token counting functionality for various models and scenarios.
 import pytest
 
 from skye.base.messages import AssistantMessage, SystemMessage, UserMessage
-from skye.models.transport.token_counter import TokenCounter
+from skye.models.token_counter import TokenCounter
 
 
 class TestTokenCounter:
@@ -194,7 +194,7 @@ class TestTokenCounterNoVendorSdk:
         import ast
         import inspect
 
-        from skye.models.transport import token_counter
+        from skye.models import token_counter
 
         tree = ast.parse(inspect.getsource(token_counter))
         for node in ast.walk(tree):
@@ -204,3 +204,161 @@ class TestTokenCounterNoVendorSdk:
                 assert (node.module or "").split(".")[0] != "anthropic"
             elif isinstance(node, ast.Constant) and isinstance(node.value, str):
                 assert node.value != "anthropic"
+
+
+# -- the counts come from the profiles (plugins:6.2, Requirements 60.2, 59.3, 59.10) ----------------------------------
+
+
+def _old_overhead(model: str) -> int:
+    """The prefix rules ``TokenCounter`` held before the profiles: the oracle the profiles must reproduce."""
+    if model.startswith("gpt-4"):
+        return 3
+    if model.startswith("gpt-3.5"):
+        return 4
+    if model.startswith(("o1-", "o3-")):
+        return 3
+    if model.startswith("claude-"):
+        return 4
+    return 3
+
+
+OLD_RULE_MODELS = [
+    "gpt-4",
+    "gpt-4-0613",
+    "gpt-4-turbo",
+    "gpt-4o",
+    "gpt-4o-2024-08-06",
+    "gpt-4o-mini",
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gpt-3.5-turbo",
+    "gpt-3.5-turbo-0125",
+    "gpt-3.5-turbo-instruct",
+    "gpt-5",
+    "o1-preview",
+    "o1-mini",
+    "o3-mini",
+    "claude-3-opus-20240229",
+    "claude-3-5-sonnet-20241022",
+    "claude-3-5-haiku-20241022",
+    "claude-sonnet-4-20250514",
+    "claude-opus-4-1-20250805",
+    "anthropic.claude-3-sonnet-20240229-v1:0",
+    "gemini-1.5-pro",
+    "unknown-model",
+]
+
+
+@pytest.mark.parametrize("model", OLD_RULE_MODELS)
+def test_the_overhead_is_the_one_the_old_prefix_rules_gave(model: str):
+    expected = 3 if model.startswith("anthropic.") else _old_overhead(model)
+    assert TokenCounter._get_message_overhead(model) == expected
+
+
+@pytest.mark.parametrize("model", OLD_RULE_MODELS)
+def test_a_gpt_or_o_model_has_the_tiktoken_tokenizer_and_the_others_the_estimate(model: str):
+    uses_tiktoken = model.startswith(("gpt-", "o1-", "o3-"))
+    profile = TokenCounter._model_profile(model)
+    assert (profile is not None and profile.tokenizer == "tiktoken") is uses_tiktoken
+
+
+def test_a_model_with_no_profile_gets_the_estimate_and_the_default_overhead():
+    from skye.models.token_counter import DEFAULT_MESSAGE_OVERHEAD
+
+    assert TokenCounter._model_profile("nobody-makes-this") is None
+    assert TokenCounter._get_message_overhead("nobody-makes-this") == DEFAULT_MESSAGE_OVERHEAD
+    assert len(TokenCounter._get_tokenizer("nobody-makes-this").encode("a" * 40)) == 10
+
+
+def test_the_counter_holds_no_table_of_prefixes_or_overheads():
+    import ast
+    import inspect
+
+    from skye.models import token_counter
+
+    tree = ast.parse(inspect.getsource(token_counter))
+    docstrings = {
+        id(node.body[0].value)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Module | ast.ClassDef | ast.FunctionDef)
+        and node.body
+        and isinstance(node.body[0], ast.Expr)
+        and isinstance(node.body[0].value, ast.Constant)
+    }
+    literals = {
+        node.value
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and id(node) not in docstrings
+    }
+    for prefix in ("gpt-4", "gpt-3.5", "claude-", "o1-", "o3-", "gpt-"):
+        assert not any(lit.startswith(prefix) for lit in literals), prefix
+
+
+def test_a_plugin_provider_profile_sets_its_own_overhead_and_tokenizer():
+    from skye.base.plugins import get_registrar
+    from skye.base.profile import ModelProfile, ProviderProfile
+
+    class Words:
+        def encode(self, text: str) -> list[str]:
+            return text.split()
+
+    registrar = get_registrar()
+    registrar.tokenizer("words-for-acme-test", lambda model: Words())
+    registrar.provider(
+        "acme-token-test",
+        object,
+        profile=ProviderProfile(
+            "acme-token-test",
+            models={"acme-tok": ModelProfile(tokenizer="words-for-acme-test", message_overhead=7)},
+        ), function="model",
+    )
+    try:
+        assert TokenCounter._get_message_overhead("acme-tok-2025-01-01") == 7
+        assert TokenCounter.count_tokens("one two three", "acme-tok") == 3
+        assert TokenCounter.count_message_tokens([UserMessage(content="one two")], "acme-tok") == 9
+    finally:
+        registrar.unregister("provider", "acme-token-test", "model")
+        registrar.unregister("tokenizer", "words-for-acme-test")
+        registrar._profiles.pop("acme-token-test", None)
+        TokenCounter._tokenizers.pop("acme-tok", None)
+        TokenCounter._tokenizers.pop("acme-tok-2025-01-01", None)
+
+
+def test_a_profile_that_names_an_unregistered_tokenizer_is_a_configuration_error():
+    from skye.base.exceptions import ConfigurationError
+    from skye.base.plugins import Registrar
+    from skye.base.profile import ModelProfile, ProviderProfile
+
+    # a private registrar is not the one the counter reads, so go through the profile directly
+    assert (
+        ProviderProfile("p", models={"m": ModelProfile(tokenizer="nope")}).models["m"].tokenizer
+        == "nope"
+    )
+    with pytest.raises(ConfigurationError):
+        Registrar().get("tokenizer", "nope")
+
+
+def test_register_tokenizer_keeps_its_own_table_and_unregister_removes_it():
+    from skye.base.plugins import get_registrar
+
+    class Words:
+        def encode(self, text: str) -> list[str]:
+            return text.split()
+
+    before = get_registrar().names("tokenizer")
+    TokenCounter.register_tokenizer("zz-model-", Words())
+    try:
+        assert get_registrar().names("tokenizer") == before  # the registrar is not written
+        assert TokenCounter.count_tokens("a b c d", "zz-model-1") == 4
+    finally:
+        assert TokenCounter.unregister_tokenizer("zz-model-") is True
+    assert TokenCounter.unregister_tokenizer("zz-model-") is False
+
+
+def test_unregister_does_not_remove_the_tokenizer_a_profile_names():
+    from skye.base.plugins import get_registrar
+
+    assert TokenCounter.unregister_tokenizer("tiktoken") is False
+    assert "tiktoken" in get_registrar().names("tokenizer")

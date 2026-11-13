@@ -29,6 +29,7 @@ from skye.base.exceptions import (
 from skye.base.interfaces.router import RoutingStrategy
 from skye.base.messages import UserMessage
 from skye.models.registry import ProviderRegistry
+from tests.unit.plugins.registrar_state import restored_default_registrar
 from skye.router import (
     AllowedFailsPolicyConfig,
     FallbackConfig,
@@ -38,8 +39,9 @@ from skye.router import (
     RouteConfig,
 )
 from skye.router.health_tracker import ModelHealth
-from skye.store.memory import InMemoryBackend
-from tests.unit.router.fakes import FakeClock, FakeModel
+from skye.store.plugins.memory import InMemoryBackend
+from skye.store import FakeClock
+from tests.unit.router.fakes import FakeModel, timed
 
 MESSAGES = [UserMessage(content="hi")]
 
@@ -58,11 +60,10 @@ class RecordingProvider(FakeModel):
 
 @pytest.fixture(autouse=True)
 def recording_provider() -> Iterator[None]:
-    saved = dict(ProviderRegistry._model_providers)
-    RecordingProvider.built = []
-    ProviderRegistry.register_model_provider("rec", RecordingProvider)
-    yield
-    ProviderRegistry._model_providers = saved
+    with restored_default_registrar():
+        RecordingProvider.built = []
+        ProviderRegistry.register_model_provider("rec", RecordingProvider)
+        yield
 
 
 class Sleeps:
@@ -93,6 +94,7 @@ async def test_an_alias_whose_targets_are_all_in_cooldown_uses_its_fallback_chai
     clock: FakeClock,
 ) -> None:
     router = ModelRouter(
+        **timed(clock),
         routes=[
             RouteConfig(alias="main", targets=[ModelTarget(model="a", provider="rec")]),
             RouteConfig(alias="backup", targets=[ModelTarget(model="b", provider="rec")]),
@@ -109,6 +111,7 @@ async def test_an_alias_whose_targets_are_all_in_cooldown_uses_its_fallback_chai
 
 async def test_an_alias_over_its_rpm_uses_its_fallback_chain(clock: FakeClock) -> None:
     router = ModelRouter(
+        **timed(clock),
         routes=[
             RouteConfig(alias="main", targets=[ModelTarget(model="a", provider="rec", rpm=1)]),
             RouteConfig(alias="backup", targets=[ModelTarget(model="b", provider="rec")]),
@@ -121,7 +124,8 @@ async def test_an_alias_over_its_rpm_uses_its_fallback_chain(clock: FakeClock) -
 
 async def test_with_no_fallback_the_selection_error_is_still_raised(clock: FakeClock) -> None:
     router = ModelRouter(
-        routes=[RouteConfig(alias="main", targets=[ModelTarget(model="a", provider="rec")])]
+        **timed(clock),
+        routes=[RouteConfig(alias="main", targets=[ModelTarget(model="a", provider="rec")])],
     )
     await router.health[_id(router, "main")].set_cooldown(60)
     with pytest.raises(ProviderError, match="No available targets for alias 'main'"):
@@ -140,7 +144,7 @@ def test_from_config_dict_passes_the_storage_through() -> None:
     store = InMemoryBackend()
     router = ModelRouter.from_config_dict(CONFIG, storage=store)
     assert router.storage_backend is store
-    assert router.health[_id(router, "main")].storage is store
+    assert router.health[_id(router, "main")].storage.store is store  # the router state is the namespace ``router`` of it
 
 
 def test_from_file_passes_the_storage_through(tmp_path: Path) -> None:
@@ -207,6 +211,7 @@ async def test_the_allowed_fails_policy_matches_through_the_class_hierarchy(
     clock: FakeClock,
 ) -> None:
     router = ModelRouter(
+        **timed(clock),
         retry_policies=[RetryPolicyConfig(error_type="ProviderError", max_retries=0)],
         allowed_fails_policies=[
             AllowedFailsPolicyConfig(error_type="ProviderError", allowed_fails_per_minute=2)
@@ -498,7 +503,7 @@ def test_set_rate_limits_on_an_unknown_model_uses_the_router_store() -> None:
     store = InMemoryBackend()
     router = ModelRouter(storage=store)
     router.set_rate_limits("new", tpm=10, rpm=1)
-    assert router.rate_limits["new"].storage is store
+    assert router.rate_limits["new"].storage.store is store
     assert router.rate_limits["new"].model_id == "new"
 
 
