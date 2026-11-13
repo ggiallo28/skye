@@ -195,7 +195,9 @@ def format_instructions(schema: Mapping[str, Any], output_format: str, name: str
     check_format(output_format)
     if output_format == "text":
         style = schema.get("style")
-        return "Answer in plain text" + (f": {style}." if style else ", with no JSON, table or markup around it.")
+        return "Answer in plain text" + (
+            f": {style}." if style else ", with no JSON, table or markup around it."
+        )
     if output_format == "table":
         return _table(schema)
     if output_format == "xml":

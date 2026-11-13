@@ -52,7 +52,7 @@ def compiles(monkeypatch):
 def test_the_construction_compiles_nothing(compiles):
     builder = BasePromptBuilder()
     assert compiles == []
-    assert len(BUNDLED) >= 11
+    assert len(BUNDLED) >= 6
     assert builder.get_template("agent_react")  # the text is read at registration
     assert compiles == []
 
@@ -252,5 +252,5 @@ def test_the_bundled_templates_render_the_same_with_and_without_the_validation()
         assert outcome[0] == outcome[1], path.stem
         rendered += isinstance(outcome[0], list)
     assert (
-        rendered >= 8
+        rendered >= 4
     )  # most templates render with the sample values, so the test sees real output

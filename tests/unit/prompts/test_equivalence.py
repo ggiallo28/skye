@@ -91,9 +91,7 @@ INTENDED_DIFFERENCES: list[str] = [
     # 5. Lines glued by the old whitespace control.
     "Lines that the old templates glued together because an '{% endif %}' swallowed the newline "
     "(trim_blocks) are separate lines in .skye. Seen in agent_memory_assistant and agent_memory_recall (2+ "
-    "memories: '- I like tea (2024-01-01)- I live in Rome'), sql_generation ('Description: "
-    "DColumns:', 2+ columns '- a (int) - x- b (text)'), extraction_relations (examples on a "
-    "relation that is not the last) and extraction_table (2+ columns). A case that exercises "
+    "memories: '- I like tea (2024-01-01)- I live in Rome'). A case that exercises "
     'such a shape sets "glued_lines": true; the harness then compares each message with its '
     "whitespace removed, so the text and its order must still match exactly."
     " Also seen in agent_form (field Type / Options / Validation lines) and agent_multimodal "
@@ -113,6 +111,11 @@ INTENDED_DIFFERENCES: list[str] = [
     "the old agent templates printed before the history is gone (the history is a placeholder, "
     "real messages); the harness drops exactly that line from the legacy system message of the "
     "templates listed in LEGACY_HISTORY_HEADINGS.",
+    # 9. Task 24.12: two templates are one.
+    "generation_code and generation_sql are one template, generation_code, with generic variables (language, "
+    "input, references, environment, constraints, examples, detailed, format); their legacy cases are no "
+    "longer compared, and tests/unit/prompts/test_generation_merge.py pins the renderings of both old templates "
+    "and lists every intended change.",
 ]
 
 # Intended difference 8: the heading line each old template printed before its history.

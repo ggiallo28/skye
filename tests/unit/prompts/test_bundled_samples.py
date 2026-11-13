@@ -1,4 +1,5 @@
-"""Every bundled prompt has a data file of sample variables in ``examples/prompts/bundled`` (task 24.9).
+"""Every bundled prompt has a data file of sample variables in ``examples/prompts/bundled`` (task
+24.9).
 
 A file holds one object (the variables of one render) or a list of them. The example
 ``examples/prompts/bundled_templates.py`` renders them all, so a new bundled prompt needs a sample.

@@ -11,8 +11,10 @@ Key features:
 - Default values, optional variables and partial builders
 - Few-shot examples with an example selector, as text or as user/assistant messages
 - Roles from ``[SYSTEM]``, ``[USER]`` and ``[ASSISTANT]`` markers
-- Output instructions from a declared schema, as JSON, a Markdown table or XML
-- Bundled templates (``text_classification``, ``extraction_structured``, ``text_summarization``, ...)
+- Output instructions from a declared schema, as JSON, a Markdown table, XML or plain text
+- Six bundled templates (``extraction_generic``, ``generation_code``, ``text_summarization``, ``agent_react``, ...) and a
+  gallery of 26 more to copy in ``examples/prompts/catalogue``
+- Shared parts of a ``.skye`` file with ``include``, ``from ... import``, ``use`` and ``override``
 - ``.skye`` prompt blocks rendered with real roles (``load_prompt``, ``render_prompt``)
 - A rendered prompt as provider-agnostic parts for a native call (``render_parts`` gives a
   ``PromptParts``; ``output_json_schema`` the JSON Schema of the ``output`` block)

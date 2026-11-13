@@ -24,7 +24,7 @@ from tests.unit.prompts.bundled import build_template
 
 ROOT = measure.ROOT
 SOURCE = ROOT / "src" / "skye" / "prompts" / "templates"
-NAMES = ("text_classification", "text_explanation", "text_summarization")
+NAMES = ("extraction_generic", "text_explanation", "text_summarization")
 PARTIALS = sorted((SOURCE / "common").glob("*.skye"))
 
 
@@ -54,7 +54,7 @@ def archive(tmp_path, monkeypatch) -> Path:
 def test_a_source_checkout_reads_the_folder() -> None:
     assert loaders._folder_has_templates()
     names = loaders.bundled_names()
-    assert len(names) == 11 and names == sorted(names)
+    assert len(names) == 6 and names == sorted(names)
     assert loaders.read_bundled("text_summarization") == (SOURCE / "text_summarization.skye").read_text(encoding="utf-8")
     assert loaders.bundled_origin("text_summarization") == str(SOURCE / "text_summarization.skye")
 
@@ -118,6 +118,7 @@ def test_a_template_of_the_archive_builds_to_the_objects_of_the_file(archive) ->
         from_archive = build(loaders.read_bundled(name), resolver=loaders.catalogue_resolver, key=name)
         from_file = build_template(SOURCE / f"{name}.skye")
         values = json.loads((ROOT / "examples" / "prompts" / "bundled" / f"{name}.json").read_text(encoding="utf-8"))
+        values = values[0] if isinstance(values, list) else values  # the first render of a list of cases
         archive_messages = render_prompt(from_archive.prompt(name), values)
         assert [(m.role, m.content) for m in archive_messages] == [
             (m.role, m.content) for m in render_prompt(from_file.prompt(name), values)

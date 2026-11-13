@@ -1,4 +1,4 @@
-"""A gallery of prompts to copy: 27 `.skye` files rendered from their own sample variables.
+"""A gallery of prompts to copy: 26 `.skye` files rendered from their own sample variables.
 
 The package bundles only a few prompts (`skye prompt list`). The rest were written for Skye as
 starting points and live in `examples/prompts/catalogue/`: agents (tool, planner, reasoning,
@@ -13,13 +13,6 @@ from pathlib import Path
 from skye.prompts import BasePromptBuilder
 
 GALLERY = Path(__file__).parent / "catalogue"
-# `extraction_generic` does the job of three bundled prompts; its samples are named after them
-BUNDLED = {"entities": "extraction_entities", "relations": "extraction_relations", "table": "extraction_table"}
-
-
-def samples(path: Path) -> list[Path]:
-    """The sample files of a prompt: `name.json` and any `name.<part>.json`."""
-    return sorted(GALLERY.glob(f"{path.stem}.json")) + sorted(GALLERY.glob(f"{path.stem}.*.json"))
 
 
 def main() -> None:
@@ -27,13 +20,11 @@ def main() -> None:
     total = 0
     for path in sorted(GALLERY.glob("*.skye")):
         builder.register_template(path.stem, str(path), from_string=False)
-        for sample in samples(path):
-            variables = json.loads(sample.read_text(encoding="utf-8"))
-            messages = builder.render(path.stem, variables)
-            part = sample.stem.removeprefix(path.stem).lstrip(".")
-            note = f"  like the bundled {BUNDLED[part]}" if part in BUNDLED else ""
-            print(f"{sample.stem:34} {len(messages)} messages{note}")
-            total += 1
+        sample = path.with_suffix(".json")
+        variables = json.loads(sample.read_text(encoding="utf-8"))
+        messages = builder.render(path.stem, variables)
+        print(f"{path.stem:34} {len(messages)} messages")
+        total += 1
     print(f"\n{total} renders, no model called")
 
 

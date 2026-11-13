@@ -28,8 +28,14 @@ from skye.prompts.skye_prompts import load_prompt, render_prompt
 
 ROOT = Path(__file__).resolve().parents[3]
 BUNDLED = sorted((ROOT / "src" / "skye" / "prompts" / "templates").glob("*.skye"))
-# the gallery has its own test (test_catalogue_gallery.py): its files carry no example comment (D118)
-EXAMPLES = sorted(p for p in (ROOT / "examples").rglob("*.skye") if "catalogue" not in p.parts)
+# the gallery has its own test (test_catalogue_gallery.py): its files carry no example comment (D118);
+# the files of `shared_parts` are a multi-file example (a partial and two prompts): the runner
+# `examples/prompts/shared_parts.py` renders them (tests/examples) and `skye check` passes on each
+EXAMPLES = sorted(
+    p
+    for p in (ROOT / "examples").rglob("*.skye")
+    if "catalogue" not in p.parts and "shared_parts" not in p.parts
+)
 FILES = BUNDLED + EXAMPLES
 
 

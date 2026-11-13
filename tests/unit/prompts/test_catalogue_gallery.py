@@ -1,6 +1,7 @@
 """The gallery `examples/prompts/catalogue/` (task 24.11, D118): prompts to copy, not bundled.
 
-Every file builds with the file resolver of its folder, renders with its sample variables, follows the naming
+Every file builds with the file resolver of its folder, renders with its sample variables, follows
+the naming
 convention, and the shared parts it includes (`common/`) are the bundled ones byte for byte.
 """
 
@@ -21,7 +22,8 @@ IDS = [p.stem for p in FILES]
 
 
 def _samples(stem: str) -> list[dict]:
-    """The variables of every render of a prompt: `stem.json` and any `stem.<part>.json`, an object or a list."""
+    """The variables of every render of a prompt: `stem.json` and any `stem.<part>.json`, an object
+    or a list."""
     files = sorted(GALLERY_DIR.glob(f"{stem}.json")) + sorted(GALLERY_DIR.glob(f"{stem}.*.json"))
     renders: list[dict] = []
     for path in files:
@@ -31,7 +33,7 @@ def _samples(stem: str) -> list[dict]:
 
 
 def test_the_gallery_holds_the_prompts_that_are_not_bundled():
-    assert len(FILES) == 27
+    assert len(FILES) == 26
     assert not {p.stem for p in FILES} & {p.stem for p in BUNDLED_DIR.glob("*.skye")}
 
 
@@ -59,16 +61,14 @@ def test_a_gallery_file_renders_with_its_samples(path):
 
 def test_every_sample_file_belongs_to_a_gallery_file():
     stems = {p.stem for p in FILES}
-    orphans = [
-        p.name for p in GALLERY_DIR.glob("*.json") if p.name.split(".")[0] not in stems
-    ]
+    orphans = [p.name for p in GALLERY_DIR.glob("*.json") if p.name.split(".")[0] not in stems]
     assert orphans == []
 
 
 @pytest.mark.parametrize("path", FILES, ids=IDS)
 def test_a_gallery_name_follows_the_convention(path):
     assert PATTERN.match(path.stem), path.stem
-    assert (path.stem in AGENTS) == path.stem.startswith("agent_") or path.stem == "extraction_generic"
+    assert (path.stem in AGENTS) == path.stem.startswith("agent_")
     assert f'prompt "{path.stem}"' in path.read_text(encoding="utf-8")
 
 

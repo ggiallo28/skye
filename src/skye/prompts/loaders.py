@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 
-#: The archive that holds the bundled templates in an installed wheel (made at build by ``hatch_build.py``, task 24.7); a
+#: The archive that holds the bundled templates in an installed wheel (made at build by ``scripts/hatch_build.py``, task 24.7); a
 #: source checkout keeps the loose files in ``TEMPLATES_DIR`` and has no archive.
 TEMPLATES_ARCHIVE = Path(__file__).parent / "templates.zip"
 

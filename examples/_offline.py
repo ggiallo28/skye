@@ -10,6 +10,7 @@ from typing import Any
 
 import skye
 from skye import CapabilityMessage, CompleteResponse, ProviderError, StreamChunk, TokenUsage
+from skye.interfaces import VectorEncoderInterface
 from skye.completion import CapabilityCall
 from skye.data import from_mapping, json_schema
 
@@ -104,26 +105,26 @@ class FlakyProvider(ScriptedProvider):
         raise ProviderError("simulated outage", provider="flaky")
 
 
-class ScriptedEmbedder:
-    """A local stand-in for an embedding client: a small vector made from the letters of the text, so similar texts are close."""
+class ScriptedEmbedder(VectorEncoderInterface):
+    """A local stand-in for an embedding client: a small vector made from the letters of the text, so similar texts are close.
+
+    Written as a plugin author writes an embedder: only the async methods and the dimension. ``encode`` and ``encode_batch`` are derived from them.
+    """
 
     DIMENSION = 16
 
-    def encode(self, text: str) -> list[float]:
+    def _vector(self, text: str) -> list[float]:
         vector = [0.0] * self.DIMENSION
         for char in text.lower():
             if char.isalpha():
                 vector[(ord(char) - 97) % self.DIMENSION] += 1.0
         return vector
 
-    def encode_batch(self, texts: list[str]) -> list[list[float]]:
-        return [self.encode(text) for text in texts]
-
     async def aencode(self, text: str) -> list[float]:
-        return self.encode(text)
+        return self._vector(text)
 
     async def aencode_batch(self, texts: list[str]) -> list[list[float]]:
-        return self.encode_batch(texts)
+        return [self._vector(text) for text in texts]
 
     def get_vector_dimension(self) -> int:
         return self.DIMENSION

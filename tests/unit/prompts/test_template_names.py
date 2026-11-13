@@ -1,7 +1,9 @@
 """The names of the bundled templates and of the gallery follow one convention (task 24.10, D118).
 
-A name is ``scope_detail[_detail]``: the scope is one of ``agent``, ``chat``, ``text``, ``extraction`` or
-``generation``, in lower case with underscores. Every agent starts with ``agent_`` (a memory agent is
+A name is ``scope_detail[_detail]``: the scope is one of ``agent``, ``chat``, ``text``,
+``extraction`` or
+``generation``, in lower case with underscores. Every agent starts with ``agent_`` (a memory agent
+is
 ``agent_memory_<x>``); a prompt that is not an agent takes the scope of its task.
 """
 

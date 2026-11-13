@@ -148,7 +148,7 @@ def _catalogue(texts: dict[str, str]):
 def test_every_bundled_template_builds_to_equal_objects(built) -> None:
     prefix = "skye/prompts/templates/"
     entries = {n: d for n, d in _entries(built["wheel"]).items() if n.endswith(".skye")}
-    assert len(entries) >= 11
+    assert len(entries) >= 9  # 6 templates and the 3 shared parts
     stripped = {n[len(prefix) :]: d.decode("utf-8") for n, d in entries.items()}
     original = {n: (ROOT / "src" / prefix / n).read_text(encoding="utf-8") for n in stripped}
     with_comments, without = _catalogue(original), _catalogue(stripped)
@@ -192,7 +192,7 @@ def test_the_sdist_keeps_the_comments_and_the_hook(built) -> None:
     with tarfile.open(built["sdist"]) as archive:
         members = {m.name.split("/", 1)[1]: m for m in archive.getmembers() if "/" in m.name}
         assert "scripts/hatch_build.py" in members
-        template = "src/skye/prompts/templates/extraction_structured.skye"
+        template = "src/skye/prompts/templates/extraction_generic.skye"
         assert archive.extractfile(members[template]).read() == (ROOT / template).read_bytes()
         for relative in ("src/skye/base/plugins.py", "src/skye/utils/cli.py"):
             original = (ROOT / relative).read_bytes()

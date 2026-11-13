@@ -1,4 +1,4 @@
-"""Tests for the bundled structured extraction prompt (json, table and xml through its ``format`` variable).
+"""Tests for the output block of the bundled ``extraction_generic`` prompt (json, table and xml through its ``format`` variable).
 
 The prompt declares two conditional outputs, ``when schema { output F { schema = schema } }``
 and ``when not schema { output F { name = string, value = string } }``: the format instructions
@@ -23,7 +23,7 @@ from tests.unit.prompts.bundled import build_template, load_template
 
 TEMPLATES = Path(__file__).resolve().parents[3] / "src" / "skye" / "prompts" / "templates"
 
-TEMPLATE = "extraction_structured"
+TEMPLATE = "extraction_generic"
 FORMATS = ("json", "table", "xml")
 
 SCHEMA: dict[str, Any] = {"name": "string", "price": "number", "in_stock": "bool"}
@@ -147,18 +147,20 @@ def test_table_instructions_hold_the_header_row() -> None:
 def test_xml_instructions_hold_the_skeleton() -> None:
     spec = _load(TEMPLATE)
     text = _content(render_prompt(spec, _variables("xml"))[-1])
-    assert "<extraction_structured>" in text
-    assert "</extraction_structured>" in text
-    root = text[text.index("<extraction_structured>") : text.rindex("</extraction_structured>")]
+    assert "<extraction_generic>" in text
+    assert "</extraction_generic>" in text
+    root = text[text.index("<extraction_generic>") : text.rindex("</extraction_generic>")]
     for child in ("name", "tags", "vendor", "city"):
         assert f"<{child}" in root, child
 
 
-def test_task_is_required(fmt: str) -> None:
+def test_task_and_input_are_optional(fmt: str) -> None:
     variables = _variables(fmt)
     del variables["task"]
-    with pytest.raises(ValueError, match="task"):
-        render_prompt(_load(TEMPLATE), variables)
+    last = _content(render_prompt(_load(TEMPLATE), variables)[-1])
+    assert INPUT in last and "## Task" not in last and "## Input" not in last
+    del variables["input"]
+    assert render_prompt(_load(TEMPLATE), variables)  # a task given later, in a history turn
 
 
 def test_schema_has_a_default(fmt: str) -> None:
@@ -230,7 +232,7 @@ def test_builder_output_instructions(fmt: str) -> None:
     assert got.strip() == expected.strip()
 
 
-# -- extraction_structured: the format comes from the ``format`` variable ----------------------------
+# -- extraction_generic: the format comes from the ``format`` variable ----------------------------
 
 DESCRIBED_SCHEMA: dict[str, Any] = {
     "name": {"type": "string", "description": "Product name"},
@@ -268,8 +270,8 @@ def test_the_usage_comment_schemas_work_as_shown() -> None:
 
 def test_structured_output_loads_and_defaults_to_json() -> None:
     metadata = build_template(TEMPLATES / f"{TEMPLATE}.skye").metadata
-    assert metadata["title"] == "Structured extraction" and metadata["version"] == "1.0"
-    assert metadata["tags"] == ["structured-output"]
+    assert metadata["title"] == "Generic extraction" and metadata["version"] == "1.0"
+    assert metadata["tags"] == ["extraction", "classification", "structured-output"]
     spec = _load(TEMPLATE)
     assert [o.format_from for _, o in spec.output_variants()] == ["format", "format"]
     default = _instructions(spec, {"schema": DESCRIBED_SCHEMA})
@@ -329,7 +331,7 @@ def _check_shape(fmt: str, text: str) -> None:
     elif fmt == "table":
         assert "| name | price | in_stock |" in text
     else:
-        root = text[text.index("<extraction_structured>") : text.index("</extraction_structured>")]
+        root = text[text.index("<extraction_generic>") : text.index("</extraction_generic>")]
         for child in ("<name>", "<price>", "<in_stock>"):
             assert child in root, child
 
@@ -398,7 +400,7 @@ def test_render_with_and_without_schema(format_: str) -> None:
         assert all(d in without for d in DEFAULT_DESCRIPTIONS)
         assert "tags" not in without
         if format_ == "xml":
-            assert "<extraction_structured>" in without and "<name>" in without
+            assert "<extraction_generic>" in without and "<name>" in without
         else:
             assert without.count("Answer with a single JSON object") == 1
             (found,) = _json_schemas(without)

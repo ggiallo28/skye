@@ -1,4 +1,5 @@
-"""``register_template`` and the folder loader read ``include``, ``from ... import``, ``use`` and ``override`` from a path (task 26.5)."""
+"""``register_template`` and the folder loader read ``include``, ``from ... import``, ``use`` and
+``override`` from a path (task 26.5)."""
 
 from __future__ import annotations
 
@@ -15,7 +16,7 @@ partial = true
 prompt "memory" {
   variables = {
     show_ids       = bool(false)  "Show item ids"
-    persona_memory = list({ id = string("") "Item id", content = string "What is known" }, []) "Who the user is"
+    persona_memory = list({ id = string("") "Id", content = string "The fact" }, []) "The user"
   }
   message "system" {
     when persona_memory {

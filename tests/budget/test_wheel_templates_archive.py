@@ -59,7 +59,7 @@ def test_the_wheel_has_the_archive_and_no_loose_template(wheels) -> None:
 def test_the_archive_has_the_templates_and_their_partials_sorted(wheels) -> None:
     with zipfile.ZipFile(io.BytesIO(_archive_bytes(wheels[0]))) as z:
         names = z.namelist()
-    assert len([n for n in names if "/" not in n]) == 11
+    assert len([n for n in names if "/" not in n]) == 6
     assert [n for n in names if "/" in n] == [
         "common/memories.skye",
         "common/system_prompt.skye",
@@ -119,7 +119,7 @@ def test_an_installed_wheel_lists_shows_and_exports_the_prompts(wheels, tmp_path
     out = tmp_path / "exported"
     done = _run(python, "prompt", "export", str(out), cwd=tmp_path)
     assert done.returncode == 0, done.stderr
-    assert len(list(out.glob("*.skye"))) == 11
+    assert len(list(out.glob("*.skye"))) == 6
     again = _run(python, "prompt", "export", str(out), cwd=tmp_path)
     assert again.returncode == 2
     assert _run(python, "prompt", "export", str(out), "--force", cwd=tmp_path).returncode == 0

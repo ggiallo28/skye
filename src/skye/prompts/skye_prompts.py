@@ -38,8 +38,9 @@ Semantics:
       :meth:`SkyeMessage.from_dict`. Nothing is inserted when neither is present (or it is
       ``None``).
 
-    * ``output "json" | "table" | "xml" { ... }`` (or ``output "text" { style = "..." }``): :func:`output_instructions`
-      writes the instructions that ask for an answer of that shape and format, and
+    * ``output "json" | "table" | "xml" { ... }`` (or ``output "text" { style = "..." }``):
+      :func:`output_instructions` writes the instructions that ask for an answer of that shape
+      and format, and
       :func:`render_prompt` appends them as the last text of the last user message (a new user
       message when the prompt has none). ``output { schema = VAR }`` reads the fields from the
       map variable ``VAR`` at render time, and ``output VAR { ... }`` the format from the string

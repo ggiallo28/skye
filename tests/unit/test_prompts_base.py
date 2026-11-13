@@ -39,7 +39,7 @@ class TestBasePromptBuilder:
         assert len(template_names) > 0
 
         # Check that common templates exist (these should be in the templates folder)
-        expected_templates = ["extraction_entities", "text_classification", "text_summarization", "text_question_answering"]
+        expected_templates = ["extraction_generic", "text_explanation", "text_summarization", "text_question_answering"]
         found_templates = [
             name
             for name in expected_templates

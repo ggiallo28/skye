@@ -776,12 +776,6 @@
   },
   "working_memory_agent/full": {
    "digest": "6ccc7cee53b97aadc94be07c31b3b225031376a8c1562564b84bbef48e54d9fd"
-  },
-  "structured_output/full": {
-   "digest": "571ebf8f5a56d9a9a699173f7eba55224f97e008065c5c4a13de4e9349544fb8"
-  },
-  "structured_output/ids": {
-   "digest": "571ebf8f5a56d9a9a699173f7eba55224f97e008065c5c4a13de4e9349544fb8"
   }
  }
 }

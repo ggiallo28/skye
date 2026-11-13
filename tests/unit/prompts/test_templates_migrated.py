@@ -44,9 +44,7 @@ SHARED = {"system_prompt", "tools", *MEMORIES}
 NEW_NAME = {
     "chain_of_thought_agent": "agent_reasoning_chain_of_thought",
     "chat": "chat_assistant",
-    "classification": "text_classification",
     "code_agent": "agent_code",
-    "code_generation": "generation_code",
     "explanation": "text_explanation",
     "form_agent": "agent_form",
     "group_chat_manager": "agent_groupchat_manager",
@@ -57,29 +55,30 @@ NEW_NAME = {
     "memory_consolidation_agent": "agent_memory_consolidation",
     "memory_update_agent": "agent_memory_update",
     "multimodal_agent": "agent_multimodal",
-    "ner": "extraction_entities",
     "planner_agent": "agent_planner",
     "procedure_agent": "agent_procedure",
     "question_answering": "text_question_answering",
     "reasoning_agent": "agent_reasoning",
-    "relation_extraction": "extraction_relations",
     "self_reflection_agent": "agent_reasoning_self_reflection",
     "smol_code_agent": "agent_smol_code",
     "smol_managed_agent": "agent_smol_managed",
     "smol_planning": "agent_smol_planning",
     "smol_tool_calling_agent": "agent_react",
-    "sql_generation": "generation_sql",
-    "structured_output": "extraction_structured",
     "summarization": "text_summarization",
     "supervisor_hierarchical": "agent_supervisor_hierarchical",
     "supervisor_planner": "agent_supervisor_planner",
     "supervisor_reviewer": "agent_supervisor_reviewer",
     "supervisor_router": "agent_supervisor_router",
-    "tabular_extraction": "extraction_table",
     "tool_agent": "agent_tool",
     "tree_of_thoughts_agent": "agent_reasoning_tree_of_thoughts",
     "working_memory_agent": "agent_memory_working",
 }
+#: Merged into one template (task 24.12): `generation_code` takes the generation of SQL as `language = "SQL"`;
+#: tests/unit/prompts/test_generation_merge.py pins the renderings of both old templates.
+MERGED = ("code_generation", "sql_generation")
+#: Replaced by the one bundled `extraction_generic` (task 24.13): an extraction of entities, relations, a table
+#: or structured data and a classification are cases of it; tests/unit/prompts/test_extraction_generic.py pins its renders.
+REPLACED = ("classification", "ner", "relation_extraction", "structured_output", "tabular_extraction")
 #: Removed from the catalogue (task 24.10): ``structured_output`` takes the format in its ``format`` variable.
 REMOVED = ("structured_output_json", "structured_output_table", "structured_output_xml")
 
@@ -92,10 +91,6 @@ _IDS_SENTENCE = (
     "without an id are '[ts] content' as in every other template (they were 'content (at ts)')."
 )
 CHANGES: dict[str, tuple[tuple[str, ...], str]] = {
-    "structured_output": (
-        ("full", "ids"),
-        "The error for an unknown value of the `format` variable lists the four formats (json, table, xml or text).",
-    ),
     "code_agent": (("full", "only_tools"), _TOOLS + " (it said 'You can call these tools:')."),
     "reasoning_agent": (("full", "only_tools"), _TOOLS + " (it said 'You can call these tools:')."),
     "procedure_agent": (("full", "only_tools"), _TOOLS + " (it said 'You can call these tools:')."),
@@ -274,7 +269,7 @@ def write_fixture(folder: Path) -> None:
     old, new = _from_folder(folder), BasePromptBuilder()
     before, after = {}, {}
     for stem in sorted(p.stem for p in folder.glob("*.skye")):
-        if stem in REMOVED:
+        if stem in REMOVED or stem in MERGED or stem in REPLACED:
             continue
         renders = _renders(old, stem)
         before[stem] = {"heads": _heads(old, stem), **{k: _digest(v) for k, v in renders.items()}}
@@ -293,17 +288,17 @@ def write_fixture(folder: Path) -> None:
 DATA = json.loads(FIXTURE.read_text(encoding="utf-8"))
 BEFORE, AFTER = DATA["before"], DATA["after"]
 LABELS = ("empty", "full", "system", "ids")
-OLD_NAMES = sorted(n for n in BEFORE if n not in REMOVED)  # the names of the fixture that are still templates
+OLD_NAMES = sorted(n for n in BEFORE if n not in REMOVED and n not in MERGED and n not in REPLACED)  # the names of the fixture that are still templates
 
 
 def test_the_fixture_has_the_forty_templates_and_the_catalogue_has_the_renamed_ones():
     bundled = sorted(p.stem for p in loaders.TEMPLATES_DIR.glob("*.skye"))
     on_disk = sorted({*bundled, *(p.stem for p in GALLERY_DIR.glob("*.skye"))} - {"extraction_generic"})
     assert len(BEFORE) == 40
-    assert sorted(set(BEFORE) - set(REMOVED)) == sorted(NEW_NAME)  # every other one was renamed or kept
-    assert on_disk == sorted(NEW_NAME.values())
+    assert sorted(set(BEFORE) - set(REMOVED) - set(MERGED) - set(REPLACED)) == sorted(NEW_NAME)  # every other one was renamed or kept
+    assert on_disk == sorted([*NEW_NAME.values(), "generation_code"])  # the two generation templates are one, the five extraction ones too
     assert sorted(loaders.bundled_names()) == bundled  # no partial is listed as a template
-    assert not set(REMOVED) & set(on_disk)
+    assert not (set(REMOVED) | set(REPLACED)) & set(on_disk)
 
 
 @pytest.mark.parametrize("name", OLD_NAMES)
@@ -358,4 +353,4 @@ def test_the_templates_that_use_a_partial_say_so_and_the_partials_are_not_templa
     ]
     assert all("partial = true" in p.read_text(encoding="utf-8") for p in partials)
     users = [p.stem for p in folder.glob("*.skye") if 'include "common/' in p.read_text("utf-8")]
-    assert len(users) == 11  # every bundled template takes the system prompt of the shared part
+    assert len(users) == 6  # every bundled template takes the system prompt of the shared part

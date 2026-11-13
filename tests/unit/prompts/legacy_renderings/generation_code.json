@@ -1,5 +1,0 @@
-[
- "[SYSTEM]\nYou are an expert programmer. Generate clean, efficient, and well-documented code.\n\n[USER]\nGenerate Python code for the following task: sort a list\n\nCode:",
- "[SYSTEM]\nYou write Go.\n\n\n[USER]\nA parser\n\nGenerate Go code for the following task: parse CSV\n\nRequirements:\n- stream\n- no deps\n\nExamples:\nInput: a,b\nOutput: [a b]\n\nInput format: CSV text\nExpected output format: slice\nPlease include unit tests for your code.\nPlease include detailed comments explaining the code.\nCode:",
- "[SYSTEM]\nYou are an expert programmer. Generate clean, efficient, and well-documented code.\n\n[USER]\nGenerate Python code for the following task: x\n\nCode:"
-]
