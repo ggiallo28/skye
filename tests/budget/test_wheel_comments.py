@@ -12,6 +12,7 @@ import ast
 import hashlib
 import importlib.util
 import io
+import posixpath
 import tarfile
 import tokenize
 import zipfile
@@ -20,6 +21,7 @@ from types import ModuleType
 
 import pytest
 
+from skye.base.dsl import Resolved
 from skye.dsl import build
 from tests.budget import measure
 
@@ -28,7 +30,9 @@ SRC = ROOT / "src" / "skye"
 
 
 def _load_hook() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("hatch_build", ROOT / "hatch_build.py")
+    spec = importlib.util.spec_from_file_location(
+        "hatch_build", ROOT / "scripts" / "hatch_build.py"
+    )
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -68,7 +72,8 @@ def built(tmp_path_factory) -> dict:
 
 
 def _entries(wheel: Path) -> dict[str, bytes]:
-    """The files of the wheel under `skye/`; the templates of `templates.zip` appear as the `.skye` files they were (task 24.7)."""
+    """The files of the wheel under `skye/`; the templates of `templates.zip` appear as the `.skye`
+    files they were (task 24.7)."""
     found: dict[str, bytes] = {}
     with zipfile.ZipFile(wheel) as archive:
         for name in archive.namelist():
@@ -127,15 +132,32 @@ def test_every_python_file_keeps_its_line_numbers(built) -> None:
     assert not different, different
 
 
+def _catalogue(texts: dict[str, str]):
+    """The catalogue resolver over a mapping from a path in the templates folder to its text.
+
+    The partials are in the mapping too.
+    """
+
+    def resolve(target: str, from_key: str | None) -> Resolved:
+        path = posixpath.normpath(posixpath.join(posixpath.dirname(from_key or ""), target))
+        return Resolved(text=texts[path], name=path, key=path)
+
+    return resolve
+
+
 def test_every_bundled_template_builds_to_equal_objects(built) -> None:
-    names = [n for n in _entries(built["wheel"]) if n.endswith(".skye")]
-    assert len(names) >= 40
-    different = []
-    for name in names:
-        stripped = _entries(built["wheel"])[name].decode("utf-8")
-        original = (ROOT / "src" / name).read_text(encoding="utf-8")
-        if build(stripped) != build(original):
-            different.append(name)
+    prefix = "skye/prompts/templates/"
+    entries = {n: d for n, d in _entries(built["wheel"]).items() if n.endswith(".skye")}
+    assert len(entries) >= 11
+    stripped = {n[len(prefix) :]: d.decode("utf-8") for n, d in entries.items()}
+    original = {n: (ROOT / "src" / prefix / n).read_text(encoding="utf-8") for n in stripped}
+    with_comments, without = _catalogue(original), _catalogue(stripped)
+    different = [
+        n
+        for n in stripped
+        if build(stripped[n], resolver=without, key=n)
+        != build(original[n], resolver=with_comments, key=n)
+    ]
     assert not different, different
 
 
@@ -151,7 +173,7 @@ def test_the_templates_lose_their_comments_and_keep_their_front_matter(built, ho
         assert stripped[:head] == original[:head], name
         assert "/*" not in stripped[head:] or "/*" in _strings_of(stripped[head:]), name
         lost += len(original) - len(stripped)
-    assert lost > 0
+    assert lost == 0  # the bundled templates keep no comment (task 24.11): nothing to take out
 
 
 def _strings_of(text: str) -> str:
@@ -169,9 +191,9 @@ def test_the_source_tree_is_not_written_to_by_a_wheel_build(built) -> None:
 def test_the_sdist_keeps_the_comments_and_the_hook(built) -> None:
     with tarfile.open(built["sdist"]) as archive:
         members = {m.name.split("/", 1)[1]: m for m in archive.getmembers() if "/" in m.name}
-        assert "hatch_build.py" in members
-        template = "src/skye/prompts/templates/chain_of_thought_agent.skye"
-        assert b"/*" in archive.extractfile(members[template]).read()
+        assert "scripts/hatch_build.py" in members
+        template = "src/skye/prompts/templates/extraction_structured.skye"
+        assert archive.extractfile(members[template]).read() == (ROOT / template).read_bytes()
         for relative in ("src/skye/base/plugins.py", "src/skye/utils/cli.py"):
             original = (ROOT / relative).read_bytes()
             assert archive.extractfile(members[relative]).read() == original

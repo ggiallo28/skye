@@ -28,7 +28,7 @@ ALLOWED_WIRE_KEYS = {"base/openai_shape.py": {"tool_calls", "function_call"}}
 
 # Adapter modules of `models`: the folders of `models/plugins` (one per provider, D110) and the two wire-format bases of `models/utilities`. An adapter may use
 # the modules of its own provider family (Google embeddings reuse the Google adapter, Azure builds on the OpenAI-compatible base) and nothing of another
-# provider. The vendor `__init__.py` files are part of their folder; `models/plugins/__init__.py` and `_vendor.py` belong to no provider.
+# provider. The vendor `__init__.py` files are part of their folder; `models/plugins/__init__.py` belongs to no provider.
 ADAPTER_DIRS = ("models/plugins", "models/utilities/openai_compatible", "models/utilities/anthropic_compatible")
 FAMILY_OF_FOLDER = {
     "openai": "openai", "azure": "openai", "anthropic": "anthropic", "bedrock": "bedrock", "google": "google", "cohere": "cohere", "typesafe": "typesafe",
@@ -123,7 +123,7 @@ def test_the_adapters_do_not_import_each_other():
     bad = []
     for path, rel in _sources(ADAPTER_DIRS):
         own = family_of_path(rel)
-        if own is None:  # models/plugins/__init__.py and _vendor.py belong to no provider
+        if own is None:  # models/plugins/__init__.py belongs to no provider
             continue
         for module in adapter_cross_imports(path.read_text(encoding="utf-8"), own):
             bad.append(f"{rel} imports {module}")

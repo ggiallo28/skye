@@ -61,10 +61,10 @@ EXTRA_PATHS: dict[str, list[str]] = {
         "tools/registry.py",
         "tools/remote_api.py",
         "tools/plugins/__init__.py",
-        "tools/plugins/skyemcp",
+        "tools/engines/skyemcp",
     ],
     "mcp": [
-        "tools/plugins/fastmcp",
+        "tools/engines/fastmcp",
     ],
     # Store backends: one extra per backend (D99). The drivers are imported lazily through `missing_extra`, which names
     # the extra, so `store/plugins/postgres/backend.py` (three drivers) and `store/plugins/redis/backend.py` (two) are attributed by those hints, not by its path.

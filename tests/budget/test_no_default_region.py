@@ -1,7 +1,9 @@
 """No module of the code holds a cloud region as a default (task 6.6, Requirement 59.6).
 
-A region comes from the caller, the authenticator or the variables of the profile, and when none is found the library raises: there is no
-``us-east-1`` in the code. The test scans the string constants (docstrings are documentation and are left out) for the shape of a region.
+A region comes from the caller, the authenticator or the variables of the profile, and when none is
+found the library raises: there is no
+``us-east-1`` in the code. The test scans the string constants (docstrings are documentation and are
+left out) for the shape of a region.
 """
 
 from __future__ import annotations
@@ -29,7 +31,8 @@ def _docstring_nodes(tree: ast.AST) -> set[int]:
 
 
 def regions_in(source: str) -> list[tuple[int, str]]:
-    """The string constants of ``source`` that look like a cloud region, outside the docstrings: ``(line, value)``."""
+    """The string constants of ``source`` that look like a cloud region, outside the docstrings:
+    ``(line, value)``."""
     tree = ast.parse(source)
     skip = _docstring_nodes(tree)
     return [
@@ -48,9 +51,9 @@ def test_no_module_holds_a_region_as_a_default():
         for path in sorted(SRC.rglob("*.py"))
     }
     found = {file: hits for file, hits in found.items() if hits and file not in KNOWN}
-    assert not found, (
-        f"a region is written in the code; it must come from the caller or the profile: {found}"
-    )
+    assert (
+        not found
+    ), f"a region is written in the code; it must come from the caller or the profile: {found}"
 
 
 def test_the_known_files_still_need_their_entry():
@@ -59,6 +62,9 @@ def test_the_known_files_still_need_their_entry():
 
 
 def test_the_scanner_finds_a_region_and_leaves_a_docstring_and_a_name_alone():
-    code = '"""Region ``us-east-1``."""\n\nDEFAULT = "us-east-1"\n\n\ndef f(region="eu-west-2"):\n    """``ap-south-1``."""\n    return "region-name"\n'
+    code = (
+        '"""Region ``us-east-1``."""\n\nDEFAULT = "us-east-1"\n\n\ndef f(region="eu-west-2"):\n '
+        '   """``ap-south-1``."""\n    return "region-name"\n'
+    )
     assert regions_in(code) == [(3, "us-east-1"), (6, "eu-west-2")]
     assert regions_in('x = "us-gov-west-1"\ny = "name"\n') == [(1, "us-gov-west-1")]

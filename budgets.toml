@@ -24,7 +24,7 @@
 # Measured 2026-11-07 (task 14.4 of 0-base-structure): wheel built with `uv build --wheel`, installed with `uv pip install --no-deps` in a
 # fresh venv (Python 3.13, macOS arm64; the wheel is pure Python, py3-none-any): 1 distribution, 1.13 MB (the whole package, no compiled file).
 max_distributions = 1               # now 1 (skyeai); was 12, 10 with pydantic and tenacity
-max_installed_mb = 2                # now 1.8 (2026-11-11); was 11, 9.0 with pydantic-core (compiled)
+max_installed_mb = 2                # now 1.92 (2026-11-13, macOS arm64, built wheel); was 11, 9.0 with pydantic-core (compiled)
 allowed_dependencies = []
 # Modules that fail to import on a core-only install. Each entry must be fixed
 # (move the import behind LazyImporter, or declare the dependency) and removed.
@@ -68,8 +68,8 @@ runs = 10
 # in a clean core-only environment (tests/budget/test_footprint_budget.py), because a
 # development environment has extra libraries installed. The forbidden-import check
 # also runs in every normal test run.
-max_modules_loaded = 80             # now 58 (was 340, 293 with pydantic)
-max_import_ms = 100                 # best of 5, now about 16 on a laptop (CI runners are slower)
+max_modules_loaded = 80             # now 61 (was 340, 293 with pydantic)
+max_import_ms = 100                 # best of 5, now about 19.5 on a laptop (CI runners are slower)
 max_rss_delta_mb = 16               # now about 5
 # Importing skye must not import any provider SDK or optional dependency.
 # Known leaks: libraries that `import skye` still imports when they are installed.

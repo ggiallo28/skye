@@ -17,7 +17,64 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  LINTED: examples/plugins
+  LINTED: >-
+    examples/plugins
+    src/skye/tools/engines
+    src/skye/tools/plugins
+    src/skye/router/plugins
+    src/skye/agents/plugins
+    src/skye/auth/plugins
+    src/skye/models/plugins
+    src/skye/store/plugins
+    tests/unit/plugins
+    scripts/hatch_build.py
+    src/skye/agents/conformance.py
+    src/skye/agents/skills.py
+    src/skye/auth/conformance.py
+    src/skye/base/api_keys.py
+    src/skye/base/conformance.py
+    src/skye/base/plugins.py
+    src/skye/base/profile.py
+    src/skye/base/regions.py
+    src/skye/base/sync.py
+    src/skye/models/conformance.py
+    src/skye/models/cost.py
+    src/skye/models/decision.py
+    src/skye/models/token_counter.py
+    src/skye/models/utilities/blocking.py
+    src/skye/plugins.py
+    src/skye/prompts/conformance.py
+    src/skye/router/conformance.py
+    src/skye/store/conformance.py
+    src/skye/store/namespace.py
+    src/skye/tools/conformance.py
+    src/skye/tools/toolkit.py
+    src/skye/utils/plugins.py
+    tests/budget/size_report.py
+    tests/budget/test_api_key_variables.py
+    tests/budget/test_docstring_references.py
+    tests/budget/test_no_default_region.py
+    tests/budget/test_prompts_builder_time.py
+    tests/budget/test_provider_knowledge.py
+    tests/budget/test_size_report.py
+    tests/budget/test_storage_knowledge.py
+    tests/budget/test_wheel_comments.py
+    tests/budget/test_wheel_templates_archive.py
+    tests/unit/agents/test_skills_seam.py
+    tests/unit/models/test_async_only_embeddings.py
+    tests/unit/models/test_async_only_providers.py
+    tests/unit/test_sync.py
+    tests/unit/tools/test_capability_descriptor.py
+    tests/unit/tools/test_capability_return_direct.py
+    tests/unit/tools/test_files_toolkit.py
+    tests/unit/tools/test_human_toolkit.py
+    tests/unit/tools/test_mcp_impl_registry.py
+    tests/unit/tools/test_openapi_toolkit.py
+    tests/unit/tools/test_shell_toolkit.py
+    tests/unit/tools/test_skye_toolkit_builder.py
+    tests/unit/tools/test_toolkit.py
+    tests/unit/tools/test_toolkit_base.py
+    tests/unit/tools/test_toolkit_tools.py
 
 jobs:
   lint:

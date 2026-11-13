@@ -1,4 +1,5 @@
-"""Build hook of the wheel: no comment is shipped (task 24.3) and the templates are one archive (task 24.7).
+"""Build hook of the wheel: no comment is shipped (task 24.3) and the templates are one archive
+(task 24.7).
 
 The repository and the sdist keep every comment. The wheel gets a copy of each Python file and of
 each bundled ``.skye`` template with the comments removed. The hook never writes to the source: it
@@ -13,9 +14,12 @@ files of the same path.
   language. The front matter stays byte for byte. The result must give the same tokens as the
   source, else the file is shipped as it is.
 
-* Templates (task 24.7): the stripped ``.skye`` templates are not shipped as loose files. They go into ONE archive,
-  ``skye/prompts/templates.zip`` (``zipfile``, deflate level 9, entries sorted by name, a fixed date and fixed
-  permissions, so two builds give the same bytes). The loader reads the archive by name in an installed wheel and
+* Templates (task 24.7): the stripped ``.skye`` templates are not shipped as loose files. They go
+  into ONE archive,
+  ``skye/prompts/templates.zip`` (``zipfile``, deflate level 9, entries sorted by name, a fixed date
+  and fixed
+  permissions, so two builds give the same bytes). The loader reads the archive by name in an
+  installed wheel and
   the folder in a source checkout. ``pyproject.toml`` leaves the loose files out of the wheel.
 
 The hook does nothing for an editable install and for the sdist, so the tree of a developer is
@@ -258,9 +262,11 @@ def make_copies(source_root: Path, target: Path) -> dict[str, str]:
 
 
 def pack_templates(templates: dict[str, bytes]) -> bytes:
-    """The bytes of one zip archive that holds ``templates`` (a name such as ``chat.skye`` to its bytes).
+    """The bytes of one zip archive that holds ``templates`` (a name such as ``chat.skye`` to its
+    bytes).
 
-    The entries are sorted by name, deflated at level 9, with a fixed date, a fixed system and fixed permissions, so the
+    The entries are sorted by name, deflated at level 9, with a fixed date, a fixed system and fixed
+    permissions, so the
     same templates always give the same bytes.
     """
     buffer = io.BytesIO()
@@ -277,25 +283,32 @@ def pack_templates(templates: dict[str, bytes]) -> bytes:
 
 
 def collect_templates(source_root: Path, copies: dict[str, str]) -> dict[str, bytes]:
-    """The bundled templates, each one stripped when ``make_copies`` made a copy of it, else as it is in the source.
+    """The bundled templates, each one stripped when ``make_copies`` made a copy of it, else as it
+    is in the source.
 
     Returns:
-        A mapping from the file name (``chat.skye``) to its bytes, sorted by name.
+        A mapping from a path inside the templates folder (``chat.skye``, ``common/x.skye``) to its
+        bytes, sorted by name.
     """
     by_destination = {destination: copy for copy, destination in copies.items()}
     found: dict[str, bytes] = {}
-    for path in sorted((source_root / "prompts" / "templates").glob("*.skye")):
+    templates = source_root / "prompts" / "templates"
+    for path in sorted(templates.rglob("*.skye")):
         destination = path.relative_to(source_root.parent).as_posix()
         copy = by_destination.get(destination)
-        found[path.name] = Path(copy).read_bytes() if copy else path.read_bytes()
+        found[path.relative_to(templates).as_posix()] = (
+            Path(copy).read_bytes() if copy else path.read_bytes()
+        )
     return found
 
 
 def make_wheel_files(source_root: Path, target: Path) -> dict[str, str]:
-    """The files that the wheel gets in place of the source: stripped Python files and the archive of the templates.
+    """The files that the wheel gets in place of the source: stripped Python files and the archive
+    of the templates.
 
     Returns:
-        A mapping from the absolute path of each file to its path in the wheel (``skye/...``). The loose ``.skye`` templates
+        A mapping from the absolute path of each file to its path in the wheel (``skye/...``). The
+        loose ``.skye`` templates
         are not in it: they are in the archive.
     """
     copies = make_copies(source_root, target)

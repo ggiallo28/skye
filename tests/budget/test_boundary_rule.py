@@ -23,7 +23,7 @@ import ast
 import dataclasses
 import re
 import sys
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -44,8 +44,8 @@ SDK_OWNERS: dict[str, tuple[str, ...]] = {
     # PostgreSQL (decision D100).
     "boto3": ("store/plugins/dynamodb/backend.py", "store/plugins/postgres/backend.py"),
     "botocore": ("store/plugins/dynamodb/backend.py", "store/plugins/postgres/backend.py"),
-    "fastmcp": ("tools/plugins/fastmcp/client.py",),
-    "mcp": ("tools/plugins/fastmcp/client.py",),
+    "fastmcp": ("tools/engines/fastmcp/client.py",),
+    "mcp": ("tools/engines/fastmcp/client.py",),
 }
 # Import helpers that take a module name as the first string argument.
 IMPORT_CALLS = {"import_module", "missing_extra"}
@@ -179,7 +179,7 @@ def test_models_public_port_returns_skye_types_only():
     """The `models` public Port method `complete()` returns Skye types, never an SDK object.
 
     Symmetric with the `tools` runtime check: the only thing mocked is the vendor call
-    (`_call_provider`), so the real boundary conversion runs end-to-end on the public API.
+    (`_acall_provider`), so the real boundary conversion runs end-to-end on the public API.
     Guards Requirement 16 for `models` (REST vs SDK) the same way the MCP checks guard `tools`.
     """
     from skye.base.completion import CompleteRequest
@@ -187,7 +187,7 @@ def test_models_public_port_returns_skye_types_only():
     from skye.models.plugins.openai.provider import OpenAIProvider
 
     provider = OpenAIProvider(api_key="sk-test")
-    provider._call_provider = Mock(return_value=_sdk_shaped_response())  # type: ignore[method-assign]
+    provider._acall_provider = AsyncMock(return_value=_sdk_shaped_response())  # type: ignore[method-assign]
     request = CompleteRequest(messages=[UserMessage(content="hi")], model="gpt-4")
     result = provider.complete(request)
     assert type(result).__module__.startswith("skye")
