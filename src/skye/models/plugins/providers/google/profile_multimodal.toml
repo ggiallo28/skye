@@ -1,0 +1,7 @@
+name = "google-multimodal"
+api_key_variables = ["GOOGLE_API_KEY"]
+
+# The multimodal embedding model: the size of the vector.
+
+[models."multimodalembedding@001".info]
+vector_dimension = 1408

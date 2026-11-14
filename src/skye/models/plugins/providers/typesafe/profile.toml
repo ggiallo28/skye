@@ -1,0 +1,9 @@
+# TypeSafe AI, the provider of the Jev decision model (https://typesafe.ai/). Price from the announcement
+# https://typesafe.ai/blog/introducing-system-one-models-and-jev : 0.042 USD per million input tokens, output free (early access).
+# The profile is kept under the registered name of the provider, `jev` (one profile for one provider name, Requirement 59.7), so its name is `jev`;
+# the folder stays `typesafe` (the company). It is registered with the decision provider and read by the CostCalculator.
+name = "jev"
+
+[models."jev"]
+prompt_price = 0.042
+completion_price = 0.0

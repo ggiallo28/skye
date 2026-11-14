@@ -176,3 +176,86 @@ The `models` component holds the adapters for every model API kind — language 
 3. THE spec SHALL realize Requirement 7.8 of #[[file:.kiro/steering/10-requirements.md]].
 4. THE spec SHALL honor decision D28 of #[[file:.kiro/steering/12-decisions.md]].
 5. THE spec SHALL honor decision D18 of #[[file:.kiro/steering/12-decisions.md]].
+
+### Requirement 17: Model sizes and the size table
+
+**User Story:** As a developer, I want to name a model by its size instead of a provider-specific id, so that I change provider in one place and no call changes.
+
+#### Acceptance Criteria
+
+1. THE spec SHALL realize Requirement 64.1 of #[[file:.kiro/steering/10-requirements.md]].
+2. THE spec SHALL realize Requirement 64.2 of #[[file:.kiro/steering/10-requirements.md]].
+3. THE spec SHALL realize Requirement 64.3 of #[[file:.kiro/steering/10-requirements.md]].
+4. THE spec SHALL realize Requirement 64.4 of #[[file:.kiro/steering/10-requirements.md]].
+5. THE spec SHALL realize Requirement 64.5 of #[[file:.kiro/steering/10-requirements.md]].
+6. THE spec SHALL realize Requirement 64.6 of #[[file:.kiro/steering/10-requirements.md]].
+7. THE spec SHALL realize Requirement 64.7 of #[[file:.kiro/steering/10-requirements.md]].
+8. THE spec SHALL realize Requirement 64.8 of #[[file:.kiro/steering/10-requirements.md]].
+9. THE spec SHALL realize Requirement 64.9 of #[[file:.kiro/steering/10-requirements.md]].
+10. THE spec SHALL realize Requirement 64.10 of #[[file:.kiro/steering/10-requirements.md]].
+11. THE spec SHALL realize Requirement 64.11 of #[[file:.kiro/steering/10-requirements.md]].
+12. THE spec SHALL realize Requirement 64.12 of #[[file:.kiro/steering/10-requirements.md]].
+13. THE spec SHALL honor decision D121 of #[[file:.kiro/steering/12-decisions.md]].
+14. THE spec SHALL realize Requirement 64.13 of #[[file:.kiro/steering/10-requirements.md]].
+15. THE spec SHALL honor decision D122 of #[[file:.kiro/steering/12-decisions.md]].
+
+### Requirement 18: The model catalog
+
+**User Story:** As a developer, I want the library to know what each model accepts, so that the same call works on every model and an agent knows the limits of the model it runs on.
+
+#### Acceptance Criteria
+
+1. THE spec SHALL realize Requirement 65.1 of #[[file:.kiro/steering/10-requirements.md]].
+2. THE spec SHALL realize Requirement 65.2 of #[[file:.kiro/steering/10-requirements.md]].
+3. THE spec SHALL realize Requirement 65.3 of #[[file:.kiro/steering/10-requirements.md]].
+4. THE spec SHALL realize Requirement 65.4 of #[[file:.kiro/steering/10-requirements.md]].
+5. THE spec SHALL realize Requirement 65.5 of #[[file:.kiro/steering/10-requirements.md]].
+6. THE spec SHALL realize Requirement 65.6 of #[[file:.kiro/steering/10-requirements.md]].
+7. THE spec SHALL realize Requirement 65.7 of #[[file:.kiro/steering/10-requirements.md]].
+8. THE spec SHALL honor decision D121 of #[[file:.kiro/steering/12-decisions.md]].
+
+### Requirement 19: Parameters that fit the model
+
+**User Story:** As a developer, I want the parameters of a call to mean the same on every model, so that changing the model or the provider needs no change in my calls and raises no error for a parameter the new model lacks.
+
+#### Acceptance Criteria
+
+1. THE spec SHALL realize Requirement 66.1 of #[[file:.kiro/steering/10-requirements.md]].
+2. THE spec SHALL realize Requirement 66.2 of #[[file:.kiro/steering/10-requirements.md]].
+3. THE spec SHALL realize Requirement 66.3 of #[[file:.kiro/steering/10-requirements.md]].
+4. THE spec SHALL realize Requirement 66.4 of #[[file:.kiro/steering/10-requirements.md]].
+5. THE spec SHALL realize Requirement 66.5 of #[[file:.kiro/steering/10-requirements.md]].
+6. THE spec SHALL realize Requirement 66.6 of #[[file:.kiro/steering/10-requirements.md]].
+7. THE spec SHALL realize Requirement 66.7 of #[[file:.kiro/steering/10-requirements.md]].
+8. THE spec SHALL realize Requirement 66.8 of #[[file:.kiro/steering/10-requirements.md]].
+9. THE spec SHALL realize Requirement 66.9 of #[[file:.kiro/steering/10-requirements.md]].
+10. THE spec SHALL realize Requirement 66.10 of #[[file:.kiro/steering/10-requirements.md]].
+11. THE spec SHALL realize Requirement 66.11 of #[[file:.kiro/steering/10-requirements.md]].
+12. THE spec SHALL realize Requirement 66.12 of #[[file:.kiro/steering/10-requirements.md]].
+13. THE spec SHALL honor decision D121 of #[[file:.kiro/steering/12-decisions.md]].
+14. THE spec SHALL honor decision D13 of #[[file:.kiro/steering/12-decisions.md]].
+15. THE spec SHALL realize Requirement 66.13 of #[[file:.kiro/steering/10-requirements.md]].
+16. THE spec SHALL honor decision D122 of #[[file:.kiro/steering/12-decisions.md]].
+
+### Requirement 20: One client for the three kinds and the composition of providers
+
+**User Story:** As a developer, I want one client for a provider and one object for the providers I use together, so that I configure them in one place and pass one object to the rest of my program.
+
+#### Acceptance Criteria
+
+1. THE spec SHALL realize Requirement 67.1 of #[[file:.kiro/steering/10-requirements.md]].
+2. THE spec SHALL realize Requirement 67.2 of #[[file:.kiro/steering/10-requirements.md]].
+3. THE spec SHALL realize Requirement 67.3 of #[[file:.kiro/steering/10-requirements.md]].
+4. THE spec SHALL realize Requirement 67.4 of #[[file:.kiro/steering/10-requirements.md]].
+5. THE spec SHALL realize Requirement 67.5 of #[[file:.kiro/steering/10-requirements.md]].
+6. THE spec SHALL realize Requirement 67.6 of #[[file:.kiro/steering/10-requirements.md]].
+7. THE spec SHALL realize Requirement 67.7 of #[[file:.kiro/steering/10-requirements.md]].
+8. THE spec SHALL realize Requirement 67.8 of #[[file:.kiro/steering/10-requirements.md]].
+9. THE spec SHALL realize Requirement 67.9 of #[[file:.kiro/steering/10-requirements.md]].
+10. THE spec SHALL realize Requirement 67.10 of #[[file:.kiro/steering/10-requirements.md]].
+11. THE spec SHALL realize Requirement 67.11 of #[[file:.kiro/steering/10-requirements.md]].
+12. THE spec SHALL realize Requirement 67.12 of #[[file:.kiro/steering/10-requirements.md]].
+13. THE spec SHALL honor decision D121 of #[[file:.kiro/steering/12-decisions.md]].
+14. THE spec SHALL realize Requirement 59.13 of #[[file:.kiro/steering/10-requirements.md]].
+15. THE spec SHALL realize Requirement 59.12 of #[[file:.kiro/steering/10-requirements.md]].
+16. THE spec SHALL realize Requirement 60.1 of #[[file:.kiro/steering/10-requirements.md]].

@@ -1,0 +1,14 @@
+name = "cohere"
+api_key_variables = ["COHERE_API_KEY"]
+default_api_base = "https://api.cohere.com"
+
+# Embedding models: the size of the vector (read by get_vector_dimension of CohereEmbeddingProvider).
+
+[models."embed-english-v3.0".info]
+vector_dimension = 1024
+
+[models."embed-english-light-v3.0".info]
+vector_dimension = 384
+
+[models."embed-multilingual-v3.0".info]
+vector_dimension = 1024
