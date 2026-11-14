@@ -3,14 +3,16 @@ Requirement 60.8).
 
 A static (AST) rule over ``src/skye``. A string constant (docstrings are documentation and are left
 out) fails the test when it is, outside
-the folder of the provider that owns it (``models/plugins/<folder>/``, adapter and profile):
+the folder of the provider that owns it (``models/plugins/providers/<folder>/``, adapter and
+profile):
 
 1. the name of a built-in provider (``"openai"``, ``"bedrock"``, ...);
 2. a variable that holds the API key of a provider (``"OPENAI_API_KEY"``, ...);
 3. the id of a model that has a price in a profile (``"gpt-4o"``, ...): a price is data of the
    profile, and the id is how code would look it up.
 
-None of the three is listed here. They are read from ``models/plugins/*/profile.toml``, so a
+None of the three is listed here. They are read from
+``models/plugins/providers/*/profile.toml``, so a
 provider that is added is covered when its profile
 is written. The folder that owns a name is the folder of the profile that holds it. ``KNOWN`` lists
 the files that still write one of them, each
@@ -28,7 +30,7 @@ from pathlib import Path
 from tests.budget.measure import ROOT
 
 SRC = ROOT / "src" / "skye"
-PLUGINS = SRC / "models" / "plugins"
+PLUGINS = SRC / "models" / "plugins" / "providers"
 
 # : Files that write a name of a built-in provider outside its folder, with the reason. The list
 # only shrinks.
@@ -53,7 +55,8 @@ KNOWN: dict[str, str] = {
     "bearer key, by their names",
     "auth/plugins/secrets/source.py": "reads the secret of the Azure and Google providers, by "
     "their names",
-    "models/plugins/__init__.py": "the list of the built-in providers that registers each one by "
+    "models/plugins/providers/__init__.py": "the list of the built-in providers, registers each "
+    "one by "
     "name",
     "models/utilities/credentials.py": "asks for the AWS region variables through the provider "
     "name `bedrock` (task 6.6)",
@@ -71,7 +74,7 @@ KNOWN: dict[str, str] = {
 
 def knowledge() -> dict[str, tuple[str, str]]:
     """Every name a profile owns: ``{literal: (kind, owner folder)}``, from
-    ``models/plugins/*/profile.toml``."""
+    ``models/plugins/providers/*/profile.toml``."""
     found: dict[str, tuple[str, str]] = {}
     for path in sorted(PLUGINS.glob("*/profile.toml")):
         data = tomllib.loads(path.read_text(encoding="utf-8"))
@@ -114,9 +117,9 @@ def literals_in(
 
 
 def folder_of(path: Path) -> str | None:
-    """The provider folder a source file lives in (``models/plugins/<folder>/``), or ``None``."""
+    """The provider folder of a source file (under ``models/plugins/providers``), or ``None``."""
     parts = path.relative_to(SRC).parts
-    return parts[2] if parts[:2] == ("models", "plugins") and len(parts) > 3 else None
+    return parts[3] if parts[:3] == ("models", "plugins", "providers") and len(parts) > 4 else None
 
 
 def scan() -> dict[str, list[tuple[int, str, str]]]:

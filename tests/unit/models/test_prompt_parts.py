@@ -20,7 +20,7 @@ from skye.base.interfaces import PromptParts as ExportedPromptParts
 from skye.base.messages import UserMessage
 from skye.base.prompt_parts import OutputSchema, PromptParts
 from skye.models.utilities.prompt_parts import request_from_parts
-from skye.models.plugins.google.schema import gemini_schema
+from skye.models.plugins.providers.google.schema import gemini_schema
 from skye.models.utilities.structured import STRUCTURED_TOOL, parse_structured
 from tests.examples.fake_network import FakeResponse
 

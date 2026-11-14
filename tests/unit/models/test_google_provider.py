@@ -8,14 +8,14 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import skye.models.plugins.google.embeddings as emb_mod
-import skye.models.plugins.google.multimodal_embeddings as mm_mod
-import skye.models.plugins.google.provider as prov_mod
+import skye.models.plugins.providers.google.embeddings as emb_mod
+import skye.models.plugins.providers.google.multimodal_embeddings as mm_mod
+import skye.models.plugins.providers.google.provider as prov_mod
 from skye.auth.plugins.google.source import GoogleBearerAuth
 from skye.base.completion import CapabilityCall, CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.exceptions import ProviderError
 from skye.base.messages import AssistantMessage, CapabilityMessage, SystemMessage, UserMessage
-from skye.models.plugins.google.provider import GoogleProvider
+from skye.models.plugins.providers.google.provider import GoogleProvider
 from skye.models.utilities.rest import JsonObject
 
 URL = (

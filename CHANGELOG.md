@@ -4,6 +4,10 @@ All notable changes to Skye are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Changed
+
+- The built-in providers, MCP clients and toolkits moved one folder down, by kind: `skye.models.plugins.providers.<name>`, `skye.tools.plugins.engines.<name>` and `skye.tools.plugins.toolkits.<name>` (they were `skye.models.plugins.<name>`, `skye.tools.engines.<name>` and `skye.tools.plugins.<name>`). The public names and the registered names do not change; only code that imported these internal paths is affected.
+
 ## [0.3.1] - 2026-11-13
 
 ### Fixed

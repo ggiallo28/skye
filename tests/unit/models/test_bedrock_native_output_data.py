@@ -16,7 +16,7 @@ from skye.base.messages import UserMessage
 from skye.base.plugins import Plugins, get_registrar
 from skye.base.profile import ModelProfile, ProviderProfile
 from skye.base.prompt_parts import OutputSchema
-from skye.models.plugins.bedrock.provider import BedrockProvider
+from skye.models.plugins.providers.bedrock.provider import BedrockProvider
 
 CLAUDE = [
     "anthropic.claude-3-opus-20240229-v1:0",
@@ -97,7 +97,7 @@ def test_the_request_takes_the_native_format_for_the_same_models(model: str) -> 
 
 
 def test_the_adapter_has_no_function_that_decides_by_the_name_of_the_model() -> None:
-    from skye.models.plugins.bedrock import provider
+    from skye.models.plugins.providers.bedrock import provider
 
     assert not hasattr(provider, "_native_json_output")
 

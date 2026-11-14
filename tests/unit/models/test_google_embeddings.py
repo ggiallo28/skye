@@ -7,9 +7,9 @@ from unittest.mock import patch
 
 import pytest
 
-import skye.models.plugins.google.embeddings as mod
+import skye.models.plugins.providers.google.embeddings as mod
 from skye.auth.plugins.google.source import GoogleBearerAuth
-from skye.models.plugins.google.embeddings import GoogleEmbeddingProvider
+from skye.models.plugins.providers.google.embeddings import GoogleEmbeddingProvider
 from skye.models.utilities.rest import JsonObject
 
 

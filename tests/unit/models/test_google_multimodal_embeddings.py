@@ -6,9 +6,9 @@ from unittest.mock import patch
 
 import pytest
 
-import skye.models.plugins.google.multimodal_embeddings as mod
+import skye.models.plugins.providers.google.multimodal_embeddings as mod
 from skye.auth.plugins.google.source import GoogleBearerAuth
-from skye.models.plugins.google.multimodal_embeddings import GoogleMultimodalEmbeddingProvider
+from skye.models.plugins.providers.google.multimodal_embeddings import GoogleMultimodalEmbeddingProvider
 from skye.models.utilities.rest import JsonObject
 
 URL = (

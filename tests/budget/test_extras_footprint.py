@@ -39,13 +39,17 @@ EXTRA_PATHS: dict[str, list[str]] = {
     # auth: authentication and credentials (Layer 0). `rsa` is declared for RS256 signing
     # (`auth/rsa_signing.py`); the SigV4 signer and the other strategies are standard library.
     "auth": ["auth"],
-    "openai": ["models/utilities/openai_compatible", "models/plugins/openai", "models/plugins/azure"],
+    "openai": [
+        "models/utilities/openai_compatible",
+        "models/plugins/providers/openai",
+        "models/plugins/providers/azure",
+    ],
     # tokens: exact token counting (`tiktoken`, lazy and optional; D33).
     "tokens": ["models/token_counter.py"],
-    "anthropic": ["models/utilities/anthropic_compatible", "models/plugins/anthropic"],
-    "bedrock": ["models/plugins/bedrock"],
-    "google": ["models/plugins/google"],
-    "cohere": ["models/plugins/cohere"],
+    "anthropic": ["models/utilities/anthropic_compatible", "models/plugins/providers/anthropic"],
+    "bedrock": ["models/plugins/providers/bedrock"],
+    "google": ["models/plugins/providers/google"],
+    "cohere": ["models/plugins/providers/cohere"],
     # tools carries no third-party library (known_empty). fastmcp, the optional MCP substitute,
     # belongs to the separate `mcp` extra (Requirement 15).
     "tools": [
@@ -60,11 +64,11 @@ EXTRA_PATHS: dict[str, list[str]] = {
         "tools/mcp_resource.py",
         "tools/registry.py",
         "tools/remote_api.py",
-        "tools/plugins/__init__.py",
-        "tools/engines/skyemcp",
+        "tools/plugins/toolkits/__init__.py",
+        "tools/plugins/engines/skyemcp",
     ],
     "mcp": [
-        "tools/engines/fastmcp",
+        "tools/plugins/engines/fastmcp",
     ],
     # Store backends: one extra per backend (D99). The drivers are imported lazily through `missing_extra`, which names
     # the extra, so `store/plugins/postgres/backend.py` (three drivers) and `store/plugins/redis/backend.py` (two) are attributed by those hints, not by its path.
@@ -88,7 +92,7 @@ IMPORT_NAMES: dict[str, set[str]] = {
     "asyncpg": {"asyncpg"},
     "fastmcp": {"fastmcp"},
     "fastmcp-slim": {"fastmcp"},
-    }
+}
 
 # Libraries that stay out of the comparison: the standard library and Skye itself.
 CORE_IMPORTS = {"skye"} | set(sys.stdlib_module_names)
@@ -146,8 +150,11 @@ def _scan(path) -> list[tuple[str, str | None]]:
             and isinstance(node.args[0].value, str)
         ):
             extra = next(
-                (k.value.value for k in node.keywords
-                 if k.arg in ("install_extra", "extra") and isinstance(k.value, ast.Constant)),
+                (
+                    k.value.value
+                    for k in node.keywords
+                    if k.arg in ("install_extra", "extra") and isinstance(k.value, ast.Constant)
+                ),
                 None,
             )
             found.append((node.args[0].value.split(".")[0], extra))
@@ -190,7 +197,9 @@ EXTRA_XFAIL: dict[str, str] = {}
 
 
 @pytest.mark.parametrize("extra", sorted(EXTRA_PATHS))
-def test_extra_declares_exactly_what_its_component_imports(extra: str, request: pytest.FixtureRequest) -> None:
+def test_extra_declares_exactly_what_its_component_imports(
+    extra: str, request: pytest.FixtureRequest
+) -> None:
     if extra in EXTRA_XFAIL:
         request.applymarker(pytest.mark.xfail(reason=EXTRA_XFAIL[extra], strict=True))
     used = set(_code_libraries()[extra])
@@ -221,7 +230,9 @@ def test_every_third_party_import_belongs_to_an_extra_or_core() -> None:
     """Counterpart of [imports.max_files]: no library imported by src/skye is unowned."""
     owned = {lib for libs in _code_libraries().values() for lib in libs}
     preinstalled = {n for d in BUDGETS["lambda"]["preinstalled"] for n in _import_names(d)}
-    mapped = {str(f.relative_to(SRC)) for f in _files([p for ps in EXTRA_PATHS.values() for p in ps])}
+    mapped = {
+        str(f.relative_to(SRC)) for f in _files([p for ps in EXTRA_PATHS.values() for p in ps])
+    }
     stray: dict[str, list[str]] = {}
     for file in sorted(SRC.rglob("*.py")):
         rel = str(file.relative_to(SRC))
@@ -252,7 +263,9 @@ def fresh_import() -> dict:
 def test_import_loads_nothing_forbidden(fresh_import: dict) -> None:
     forbidden, known = set(LOAD["forbidden_at_import"]), set(LOAD["known_leaks"])
     leaked = sorted((forbidden & set(fresh_import["loaded"])) - known)
-    assert not leaked, f"`import skye` imports {leaked}; keep optional libraries behind a lazy import."
+    assert (
+        not leaked
+    ), f"`import skye` imports {leaked}; keep optional libraries behind a lazy import."
 
 
 def test_import_has_no_known_leak(fresh_import: dict) -> None:
@@ -265,15 +278,21 @@ def test_known_leaks_are_current(fresh_import: dict) -> None:
 
     installed = {k for k in LOAD["known_leaks"] if importlib.util.find_spec(k)}
     fixed = sorted(installed - set(fresh_import["loaded"]))
-    assert not fixed, f"`import skye` no longer imports {fixed}: remove them from known_leaks in budgets.toml."
+    assert (
+        not fixed
+    ), f"`import skye` no longer imports {fixed}: remove them from known_leaks in budgets.toml."
 
 
 def test_import_stays_within_module_budget(fresh_import: dict) -> None:
-    assert fresh_import["modules"] <= LOAD["max_modules_loaded"], f"`import skye` loads {fresh_import['modules']} modules"
+    assert (
+        fresh_import["modules"] <= LOAD["max_modules_loaded"]
+    ), f"`import skye` loads {fresh_import['modules']} modules"
 
 
 def test_import_stays_within_time_budget(fresh_import: dict) -> None:
-    assert fresh_import["ms"] <= LOAD["max_import_ms"], f"`import skye` takes {fresh_import['ms']:.0f} ms"
+    assert (
+        fresh_import["ms"] <= LOAD["max_import_ms"]
+    ), f"`import skye` takes {fresh_import['ms']:.0f} ms"
 
 
 def test_known_import_failures_are_current() -> None:
@@ -289,7 +308,11 @@ def test_known_import_failures_are_current() -> None:
     for module in BUDGETS["core"]["known_import_failures"]:
         pkg_dir = module.replace(".", "/")
         files = [f for fs in found.values() for f in fs if f.startswith(pkg_dir + "/")]
-        offenders = {lib for lib, fs in found.items() if lib not in core and any(f.startswith(pkg_dir + "/") for f in fs)}
+        offenders = {
+            lib
+            for lib, fs in found.items()
+            if lib not in core and any(f.startswith(pkg_dir + "/") for f in fs)
+        }
         assert files and offenders, (
             f"{module} no longer imports a non-core library at module level; remove it from "
             "known_import_failures in budgets.toml."

@@ -254,7 +254,7 @@ def test_default_set_scans_once_and_loads_no_built_in(monkeypatch):
         plugins_module, "DISCOVER", "tests.unit.plugins.test_default_sets:_counting_discover"
     )
     _SCANS.clear()
-    private = Registrar(scan=True, builtin_plugins=("skye.models.plugins:register",))
+    private = Registrar(scan=True, builtin_plugins=("skye.models.plugins.providers:register",))
     assert private.default_set("template_filter") == {}
     assert _SCANS == [1]  # one scan, whatever the number of reads
     assert private._builtins_loaded is False  # reading a default set loads no built-in plugin

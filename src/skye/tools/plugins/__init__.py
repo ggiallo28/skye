@@ -1,17 +1,16 @@
-# Requirement 56.6, 58.2, 62.7, plugins:7.7, D110
-"""The built-in toolkits of ``tools``: one folder per toolkit, registered by text (the MCP clients
-are in ``tools/engines``).
+# D123: one folder per kind inside ``plugins`` where a component has more than one kind of built-in.
+"""The built-ins of ``tools``, one folder per kind: ``engines`` and ``toolkits``.
 
-``register(registrar)`` is the same call a third-party plugin makes. It calls the ``register`` of
-each folder of ``IMPLEMENTATIONS``: ``"files"``, ``"openapi"``, ``"human"`` and ``"shell"`` are
-toolkits. Each one is a ``"module:attribute"`` text, so the code of a toolkit is imported only when
-it is built,
-never at registration or at ``import skye``. A folder has an ``__init__.py`` that is the only door
-to it and a ``toolkit.py``.
+An engine is an implementation of the MCP client Port, chosen by name (``skyemcp``, ``fastmcp``).
+A toolkit is what an agent is given (``files``, ``human``, ``openapi``, ``shell``). Each of the two
+folders has its own ``IMPLEMENTATIONS`` and its own ``register``; ``register(registrar)`` here is
+the one call the registrar makes for ``tools``, and it calls the engines first and the toolkits
+after, importing each folder only then.
 
 Raises: ``ConfigurationError`` from the registrar when a name is already registered (a plugin that
-wants to replace one passes ``replace=True``).
-Missing: nothing is read or imported here except the doors, which import no inner file.
+    wants to replace one passes ``replace=True``).
+Missing: nothing is imported by importing this package; the two folders are imported by
+    ``register``.
 Concurrency: called once per registrar, from one thread.
 """
 
@@ -20,11 +19,11 @@ from __future__ import annotations
 import importlib
 from typing import Any
 
-#: The folders of this package (the toolkits), in registration order (D110).
-IMPLEMENTATIONS: tuple[str, ...] = ("files", "openapi", "human", "shell")
+#: The kinds of built-in of ``tools``, in registration order; each is a folder of this package.
+KINDS: tuple[str, ...] = ("engines", "toolkits")
 
 
 def register(registrar: Any) -> None:
-    """Register the toolkits of ``tools``."""
-    for name in IMPLEMENTATIONS:
-        importlib.import_module(f"{__name__}.{name}").register(registrar)
+    """Register the MCP clients and then the toolkits of ``tools``."""
+    for kind in KINDS:
+        importlib.import_module(f"{__name__}.{kind}").register(registrar)

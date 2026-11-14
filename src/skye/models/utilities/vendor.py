@@ -1,5 +1,5 @@
 # D110
-"""What every provider folder of ``models/plugins`` shares: the lazy names of its ``__init__.py``
+"""What every provider folder of ``models/plugins/providers`` shares: the lazy names of its ``__init__.py``
 and the reading of its ``profile.toml``.
 
 A provider folder is a small package whose ``__init__.py`` is the only door to it. ``lazy_names``

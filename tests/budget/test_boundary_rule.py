@@ -44,13 +44,15 @@ SDK_OWNERS: dict[str, tuple[str, ...]] = {
     # PostgreSQL (decision D100).
     "boto3": ("store/plugins/dynamodb/backend.py", "store/plugins/postgres/backend.py"),
     "botocore": ("store/plugins/dynamodb/backend.py", "store/plugins/postgres/backend.py"),
-    "fastmcp": ("tools/engines/fastmcp/client.py",),
-    "mcp": ("tools/engines/fastmcp/client.py",),
+    "fastmcp": ("tools/plugins/engines/fastmcp/client.py",),
+    "mcp": ("tools/plugins/engines/fastmcp/client.py",),
 }
 # Import helpers that take a module name as the first string argument.
 IMPORT_CALLS = {"import_module", "missing_extra"}
 EXTERNAL = set(SDK_OWNERS)
-LIBS_RE = re.compile(r"\b(openai|anthropic|boto3|botocore|vertexai|aiplatform|cohere|fastmcp|mcp\.types|mcp)\b")
+LIBS_RE = re.compile(
+    r"\b(openai|anthropic|boto3|botocore|vertexai|aiplatform|cohere|fastmcp|mcp\.types|mcp)\b"
+)
 
 
 def _files():
@@ -63,6 +65,7 @@ def _files():
 
 def _external_imports(tree: ast.AST):
     """Yield (top-level module, lineno, in_function) for static imports and import-helper calls."""
+
     def walk(node: ast.AST, in_fn: bool):
         for child in ast.iter_child_nodes(node):
             fn = in_fn or isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
@@ -74,10 +77,15 @@ def _external_imports(tree: ast.AST):
             elif isinstance(child, ast.Call):
                 f = child.func
                 name = f.attr if isinstance(f, ast.Attribute) else getattr(f, "id", "")
-                if name in IMPORT_CALLS and child.args and isinstance(child.args[0], ast.Constant) \
-                        and isinstance(child.args[0].value, str):
+                if (
+                    name in IMPORT_CALLS
+                    and child.args
+                    and isinstance(child.args[0], ast.Constant)
+                    and isinstance(child.args[0].value, str)
+                ):
                     yield child.args[0].value.split(".")[0], child.lineno, in_fn
             yield from walk(child, fn)
+
     yield from walk(tree, False)
 
 
@@ -89,15 +97,20 @@ def test_external_libraries_imported_only_by_owning_component():
                 continue
             allowed = set(SDK_OWNERS[mod])
             if rel not in allowed:
-                bad.append(f"'{mod}' imported outside its owning Component files: src/skye/{rel}:{line}")
+                bad.append(
+                    f"'{mod}' imported outside its owning Component files: src/skye/{rel}:{line}"
+                )
     assert not bad, "\n".join(bad)
 
 
 def test_external_imports_are_lazy():
     """Never at module level: `import skye` must not load a vendor SDK (Requirement 20)."""
-    bad = [f"module-level import of '{mod}': src/skye/{rel}:{line}"
-           for rel, tree in _files() for mod, line, in_fn in _external_imports(tree)
-           if mod in EXTERNAL and not in_fn]
+    bad = [
+        f"module-level import of '{mod}': src/skye/{rel}:{line}"
+        for rel, tree in _files()
+        for mod, line, in_fn in _external_imports(tree)
+        if mod in EXTERNAL and not in_fn
+    ]
     assert not bad, "\n".join(bad)
 
 
@@ -108,8 +121,12 @@ def test_mcp_boundary_has_no_third_party_import():
     for node in ast.walk(tree):  # also every plain import
         if isinstance(node, ast.Import):
             bad += [a.name for a in node.names if a.name.split(".")[0] not in stdlib | {"skye"}]
-        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module \
-                and node.module.split(".")[0] not in stdlib | {"skye", "__future__"}:
+        elif (
+            isinstance(node, ast.ImportFrom)
+            and node.level == 0
+            and node.module
+            and node.module.split(".")[0] not in stdlib | {"skye", "__future__"}
+        ):
             bad.append(node.module)
     assert not bad, f"tools/mcp_boundary.py must import no third-party library: {sorted(set(bad))}"
 
@@ -119,7 +136,9 @@ def _public_annotations():
         if not rel.startswith(("models/", "tools/")):
             continue
         for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and not node.name.startswith("_"):
+            if isinstance(
+                node, (ast.FunctionDef, ast.AsyncFunctionDef)
+            ) and not node.name.startswith("_"):
                 anns = [a.annotation for a in node.args.args + node.args.kwonlyargs if a.annotation]
                 anns.append(node.returns)
                 for a in anns:
@@ -128,8 +147,11 @@ def _public_annotations():
 
 
 def test_public_annotations_name_no_external_type():
-    bad = [f"src/skye/{rel}:{ln} {name}() annotation '{text}'"
-           for rel, ln, name, text in _public_annotations() if LIBS_RE.search(text)]
+    bad = [
+        f"src/skye/{rel}:{ln} {name}() annotation '{text}'"
+        for rel, ln, name, text in _public_annotations()
+        if LIBS_RE.search(text)
+    ]
     assert not bad, "\n".join(bad)
 
 
@@ -168,7 +190,7 @@ def _sdk_shaped_response():
 
 def test_provider_response_is_skye_types_only():
     """The single boundary point (`_transform_response`) converts an SDK object to a Skye type."""
-    from skye.models.plugins.openai.provider import OpenAIProvider
+    from skye.models.plugins.providers.openai.provider import OpenAIProvider
 
     result = OpenAIProvider(api_key="sk-test")._transform_response(_sdk_shaped_response())
     assert type(result).__module__.startswith("skye")
@@ -184,7 +206,7 @@ def test_models_public_port_returns_skye_types_only():
     """
     from skye.base.completion import CompleteRequest
     from skye.base.messages import UserMessage
-    from skye.models.plugins.openai.provider import OpenAIProvider
+    from skye.models.plugins.providers.openai.provider import OpenAIProvider
 
     provider = OpenAIProvider(api_key="sk-test")
     provider._acall_provider = AsyncMock(return_value=_sdk_shaped_response())  # type: ignore[method-assign]
@@ -196,6 +218,7 @@ def test_models_public_port_returns_skye_types_only():
 
 class _FastMCPShaped:
     """Stand-in for an `mcp.types` object (pydantic-like), as fastmcp hands them to the boundary."""
+
     __module__ = "mcp.types"
 
     def __init__(self, d):
@@ -209,7 +232,9 @@ class _FastMCPShaped:
 def test_mcp_boundary_returns_skye_types_for_dict_and_library_objects(wrap):
     from skye.tools import mcp_boundary as b
 
-    tool = wrap({"name": "add", "description": "d", "inputSchema": {"type": "object", "properties": {}}})
+    tool = wrap(
+        {"name": "add", "description": "d", "inputSchema": {"type": "object", "properties": {}}}
+    )
     prompt = wrap({"name": "greet", "arguments": [{"name": "who", "required": True}]})
     resource = wrap({"uri": "file:///a", "name": "a", "mimeType": "text/plain"})
     for out in (b.to_tool_schema(tool), b.to_prompt(prompt), b.to_resource(resource)):

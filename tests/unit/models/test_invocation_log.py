@@ -14,7 +14,7 @@ import pytest
 
 import skye
 from skye.base.exceptions import ServerError
-from skye.models.plugins.openai.provider import OpenAIProvider
+from skye.models.plugins.providers.openai.provider import OpenAIProvider
 from skye.models.utilities.rest import wrap
 
 SECRET = "mario.rossi@example.com wants the quarterly report"

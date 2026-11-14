@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from skye.models.plugins.cohere.embeddings import CohereEmbeddingProvider
+from skye.models.plugins.providers.cohere.embeddings import CohereEmbeddingProvider
 from skye.models.utilities.rest import JsonObject
 
 
@@ -83,7 +83,7 @@ class TestCohereNoVendorSdk:
     def test_module_imports_no_cohere_sdk(self) -> None:
         import ast
 
-        import skye.models.plugins.cohere.embeddings as mod
+        import skye.models.plugins.providers.cohere.embeddings as mod
 
         tree = ast.parse(Path(mod.__file__).read_text())
         for node in ast.walk(tree):

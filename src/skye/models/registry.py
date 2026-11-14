@@ -5,12 +5,12 @@ This module provides a central registry for discovering and instantiating
 model and embedding providers. Providers can be registered by name and
 retrieved with configuration. It keeps no table of its own: it is a view of the
 default registrar (``skye.base.plugins``), where the built-in
-providers are registered by ``skye.models.plugins`` and a third-party plugin
+providers are registered by ``skye.models.plugins.providers`` and a third-party plugin
 registers its own with ``registrar.provider`` (``function="model"`` or ``"embedding"``).
 
 Example:
     >>> from skye.models.registry import ProviderRegistry
-    >>> from skye.models.plugins.openai.provider import OpenAIProvider
+    >>> from skye.models.plugins.providers.openai.provider import OpenAIProvider
     >>>
     >>> # Register a provider
     >>> ProviderRegistry.register_model_provider("openai", OpenAIProvider)
@@ -137,7 +137,7 @@ class ProviderRegistry(ProviderRegistryInterface):
             provider_class: The provider class that implements ModelInterface.
 
         Example:
-            >>> from skye.models.plugins.openai.provider import OpenAIProvider
+            >>> from skye.models.plugins.providers.openai.provider import OpenAIProvider
             >>> ProviderRegistry.register_model_provider("openai", OpenAIProvider)
         """
         _registrar().provider(name, provider_class, function=_MODEL, replace=True)
@@ -153,7 +153,7 @@ class ProviderRegistry(ProviderRegistryInterface):
             provider_class: The provider class that implements VectorEncoderInterface.
 
         Example:
-            >>> from skye.models.plugins.openai.embeddings import OpenAIEmbeddingProvider
+            >>> from skye.models.plugins.providers.openai.embeddings import OpenAIEmbeddingProvider
             >>> ProviderRegistry.register_embedding_provider("openai", OpenAIEmbeddingProvider)
         """
         _registrar().provider(name, provider_class, function=_EMBEDDING, replace=True)

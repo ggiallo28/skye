@@ -11,9 +11,9 @@ import pytest
 from skye.base.exceptions import ConfigurationError
 from skye.base.plugins import Registrar, get_registrar
 from skye.tools import create_mcp_client
-from skye.tools import engines as tools_engines
-from skye.tools.engines.skyemcp import SkyeMCPClient
 from skye.tools.mcp_client import MCPClientInterface
+from skye.tools.plugins import engines as tools_engines
+from skye.tools.plugins.engines.skyemcp import SkyeMCPClient
 
 
 def test_the_built_in_plugin_registers_both_names_by_text():
@@ -27,12 +27,12 @@ def test_registering_imports_neither_the_fastmcp_adapter_nor_fastmcp():
     code = (
         "import sys\n"
         "from skye.base.plugins import Registrar\n"
-        "from skye.tools import engines as _plugin\n"
+        "from skye.tools.plugins import engines as _plugin\n"
         "r = Registrar(); _plugin.register(r)\n"
-        "assert 'skye.tools.engines.fastmcp.client' not in sys.modules "
+        "assert 'skye.tools.plugins.engines.fastmcp.client' not in sys.modules "
         "and 'fastmcp' not in sys.modules\n"
         "r.get('mcp_client', 'skyemcp')\n"
-        "assert 'skye.tools.engines.fastmcp.client' not in sys.modules "
+        "assert 'skye.tools.plugins.engines.fastmcp.client' not in sys.modules "
         "and 'fastmcp' not in sys.modules\n"
     )
     subprocess.run([sys.executable, "-c", code], check=True)
@@ -74,7 +74,7 @@ def test_a_third_party_client_is_chosen_by_name(third_party_name):
 
 
 def test_a_third_party_client_given_as_a_function_and_as_text(third_party_name):
-    get_registrar().mcp_client(third_party_name, "skye.tools.engines.skyemcp:SkyeMCPClient")
+    get_registrar().mcp_client(third_party_name, "skye.tools.plugins.engines.skyemcp:SkyeMCPClient")
     assert isinstance(create_mcp_client("http://x", impl=third_party_name), SkyeMCPClient)
 
 

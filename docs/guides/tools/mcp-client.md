@@ -93,7 +93,7 @@ client = create_mcp_client("http://localhost:8000/mcp", impl="fastmcp")  # or sk
 The choice is this argument only: no environment variable, no configuration entry, no automatic fallback. Without the extra,
 `impl="fastmcp"` raises `MissingExtraError` naming `mcp`; any name that is not registered raises `ConfigurationError` listing the registered ones. A plugin adds an implementation with the decorator
 `@plugins.mcp_client("name")` on a class (or on a factory, called as `factory(target, headers=..., timeout=...)`) that implements the
-`MCPClientInterface`; `skye.mcp_client(target, impl="name")` then builds it. The built-in clients live in `skye.tools.engines`
+`MCPClientInterface`; `skye.mcp_client(target, impl="name")` then builds it. The built-in clients live in `skye.tools.plugins.engines`
 (`skyemcp` and `fastmcp`), apart from the toolkits.
 
 ## See also

@@ -19,8 +19,8 @@ Capabilities: the registry, local functions, remote APIs and the MCP client. Gen
 
 | Folder | Holds | Chosen with |
 |---|---|---|
-| `skye.tools.engines` | the MCP clients: `skyemcp` (the default, standard library) and `fastmcp` (optional) | `skye.mcp_client(target, impl="fastmcp")` |
-| `skye.tools.plugins` | the toolkits: `files`, `openapi`, `human`, `shell` | `skye.toolkit("files", root="docs")` |
+| `skye.tools.plugins.engines` | the MCP clients: `skyemcp` (the default, standard library) and `fastmcp` (optional) | `skye.mcp_client(target, impl="fastmcp")` |
+| `skye.tools.plugins.toolkits` | the toolkits: `files`, `openapi`, `human`, `shell` | `skye.toolkit("files", root="docs")` |
 
 An engine is one of several implementations of the same Port (today `MCPClientInterface`), and a toolkit is what an agent is given. Both are
 registered by `"module:attribute"` text, so `import skye` imports none of them.

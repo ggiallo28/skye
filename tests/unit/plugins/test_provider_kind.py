@@ -86,8 +86,8 @@ def test_the_function_is_deduced_from_the_methods(registrar, cls, function):
 
 def test_the_built_in_classes_are_deduced():
     from skye.models import OpenAICompatibleProvider
-    from skye.models.plugins.openai.embeddings import OpenAIEmbeddingProvider
-    from skye.models.plugins.typesafe.decision import JevDecisionModel
+    from skye.models.plugins.providers.openai.embeddings import OpenAIEmbeddingProvider
+    from skye.models.plugins.providers.typesafe.decision import JevDecisionModel
 
     registrar = Registrar()
     registrar.provider("chat", OpenAICompatibleProvider)

@@ -1,6 +1,6 @@
-"""The layout of ``tools/engines`` and ``tools/plugins`` (D110, O80 option D, Requirements 56.9 and
-56.10): one folder per MCP client in ``engines`` and one per toolkit in ``plugins``, one door in
-each, a ``client.py`` or a ``toolkit.py``."""
+"""The layout of ``tools/plugins/engines`` and ``tools/plugins/toolkits`` (D110, D123, Requirements
+56.9 and 56.10): one folder per MCP client in ``engines`` and one per toolkit in ``toolkits``, one
+door in each, a ``client.py`` or a ``toolkit.py``."""
 
 from __future__ import annotations
 
@@ -12,7 +12,8 @@ from pathlib import Path
 import pytest
 
 from skye.base.plugins import Registrar
-from skye.tools import engines, plugins
+from skye.tools.plugins import engines
+from skye.tools.plugins import toolkits as plugins
 
 ROOT = Path(plugins.__file__).parent
 SKELETONS = [
@@ -23,7 +24,10 @@ ENGINES_ROOT = Path(engines.__file__).parent
 CLIENTS = list(engines.IMPLEMENTATIONS)
 TOOLKITS = list(plugins.IMPLEMENTATIONS)
 FOLDERS = [*CLIENTS, *TOOLKITS]
-PACKAGE = {**dict.fromkeys(CLIENTS, "engines"), **dict.fromkeys(TOOLKITS, "plugins")}
+PACKAGE = {
+    **dict.fromkeys(CLIENTS, "plugins.engines"),
+    **dict.fromkeys(TOOLKITS, "plugins.toolkits"),
+}
 FOLDER_ROOT = {**dict.fromkeys(CLIENTS, ENGINES_ROOT), **dict.fromkeys(TOOLKITS, ROOT)}
 MAIN_FILE = {
     "skyemcp": "client.py",
@@ -54,22 +58,22 @@ def test_a_folder_has_its_door_and_its_main_file(folder):
 
 
 def test_the_skyemcp_door_resolves_its_class():
-    package = importlib.import_module("skye.tools.engines.skyemcp")
+    package = importlib.import_module("skye.tools.plugins.engines.skyemcp")
     assert set(package._LAZY) == {"SkyeMCPClient"}
-    assert package.SkyeMCPClient.__module__ == "skye.tools.engines.skyemcp.client"
+    assert package.SkyeMCPClient.__module__ == "skye.tools.plugins.engines.skyemcp.client"
     with pytest.raises(AttributeError):
         package.not_a_name  # noqa: B018
 
 
 def test_the_fastmcp_door_names_its_class_without_importing_fastmcp():
     """Reading the door and the registered text imports neither the inner file nor the library."""
-    package = importlib.import_module("skye.tools.engines.fastmcp")
+    package = importlib.import_module("skye.tools.plugins.engines.fastmcp")
     assert package._LAZY == {"FastMCPClient": "client"}
     registrar = Registrar()
     engines.register(registrar)
     assert (
         registrar._tables["mcp_client"]["fastmcp"].target
-        == "skye.tools.engines.fastmcp:FastMCPClient"
+        == "skye.tools.plugins.engines.fastmcp:FastMCPClient"
     )
 
 
@@ -89,13 +93,16 @@ def test_the_registered_skyemcp_text_resolves_and_the_names_are_both_there():
 
 
 def test_the_files_door_resolves_its_class_and_registers_the_toolkit_by_text():
-    package = importlib.import_module("skye.tools.plugins.files")
+    package = importlib.import_module("skye.tools.plugins.toolkits.files")
     assert package._LAZY == {"FilesToolkit": "toolkit"}
-    assert package.FilesToolkit.__module__ == "skye.tools.plugins.files.toolkit"
+    assert package.FilesToolkit.__module__ == "skye.tools.plugins.toolkits.files.toolkit"
     registrar = Registrar()
     plugins.register(registrar)
     assert registrar.names("toolkit") == ["files", "human", "openapi", "shell"]
-    assert registrar._tables["toolkit"]["files"].target == "skye.tools.plugins.files:FilesToolkit"
+    assert (
+        registrar._tables["toolkit"]["files"].target
+        == "skye.tools.plugins.toolkits.files:FilesToolkit"
+    )
     assert registrar.get("toolkit", "files") is package.FilesToolkit
 
 
@@ -103,12 +110,14 @@ def test_the_files_door_resolves_its_class_and_registers_the_toolkit_by_text():
     ("folder", "cls"), [("openapi", "OpenApiToolkit"), ("human", "HumanToolkit")]
 )
 def test_the_openapi_and_human_doors_resolve_their_class_and_register_by_text(folder, cls):
-    package = importlib.import_module(f"skye.tools.plugins.{folder}")
+    package = importlib.import_module(f"skye.tools.plugins.toolkits.{folder}")
     assert package._LAZY[cls] == "toolkit"
-    assert getattr(package, cls).__module__ == f"skye.tools.plugins.{folder}.toolkit"
+    assert getattr(package, cls).__module__ == f"skye.tools.plugins.toolkits.{folder}.toolkit"
     registrar = Registrar()
     plugins.register(registrar)
-    assert registrar._tables["toolkit"][folder].target == f"skye.tools.plugins.{folder}:{cls}"
+    assert (
+        registrar._tables["toolkit"][folder].target == f"skye.tools.plugins.toolkits.{folder}:{cls}"
+    )
 
 
 def test_a_text_points_at_the_door_and_never_at_an_inner_file():
@@ -128,7 +137,7 @@ def test_importing_a_door_imports_no_inner_file_and_no_fastmcp(folder):
     ``skye.tools`` imports the built-in client when it is imported (it is a public name), so the
     subprocess stands an empty package in its place.
     """
-    tools_dir = ROOT.parent
+    tools_dir = ROOT.parents[1]
     package = PACKAGE[folder]
     code = (
         "import sys, types\n"
@@ -145,7 +154,7 @@ def test_importing_a_door_imports_no_inner_file_and_no_fastmcp(folder):
         [sys.executable, "-I", "-c", code],
         capture_output=True,
         text=True,
-        env={"PYTHONPATH": str(ROOT.parents[2])},
+        env={"PYTHONPATH": str(ROOT.parents[3])},
     )
     assert done.returncode == 0, done.stderr[-800:]
 
@@ -153,12 +162,12 @@ def test_importing_a_door_imports_no_inner_file_and_no_fastmcp(folder):
 def test_the_old_module_is_gone():
     with pytest.raises(ImportError):
         importlib.import_module("skye.tools.mcp_fastmcp")
-    assert not (ROOT.parent / "mcp_fastmcp.py").exists()
+    assert not (ROOT.parents[1] / "mcp_fastmcp.py").exists()
 
 
 def test_the_public_names_did_not_move():
     import skye.tools as tools
-    from skye.tools.engines.skyemcp import SkyeMCPClient
+    from skye.tools.plugins.engines.skyemcp import SkyeMCPClient
 
     assert tools.SkyeMCPClient is SkyeMCPClient
     assert callable(tools.create_mcp_client)
@@ -171,7 +180,7 @@ def test_the_a2a_skeletons_are_not_registered_and_implement_nothing():
     registered = set(registrar.names("mcp_client")) | set(registrar.names("toolkit"))
     assert not {"a2a", "skyea2a"} & registered
     for folder, cls in (("skyea2a", "SkyeA2AClient"), ("a2a", "A2AClient")):
-        package = importlib.import_module(f"skye.tools.engines.{folder}")
+        package = importlib.import_module(f"skye.tools.plugins.engines.{folder}")
         client = getattr(package, cls)("http://agent.example")
         for call in (
             client.describe(),

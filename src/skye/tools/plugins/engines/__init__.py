@@ -4,7 +4,8 @@ text (option D).
 
 An engine is an implementation of a Port (today the kind ``mcp_client``), chosen with ``impl=``; a
 toolkit is what an agent is given and lives in
-``tools/plugins/toolkits``. ``register(registrar)`` is the same call a third-party plugin makes. It calls the
+``tools/plugins/toolkits``. ``register(registrar)`` is the same call a third-party plugin makes.
+It calls the
 ``register`` of each folder of ``IMPLEMENTATIONS``:
 ``"skyemcp"`` is the default and needs nothing, ``"fastmcp"`` is the optional one. Each one is a
 ``"module:attribute"`` text, so ``fastmcp`` is

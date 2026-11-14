@@ -387,9 +387,6 @@ def builtin_modules(tmp_path, monkeypatch):
 def test_the_builtin_plugins_are_the_owners_and_never_imported_by_base():
     owners = ("models", "store", "auth", "router", "tools", "prompts", "agents")
     expected = [f"skye.{owner}.plugins:register" for owner in owners]
-    expected.insert(
-        owners.index("tools"), "skye.tools.engines:register"
-    )  # the MCP clients of tools (O80 option D)
     assert BUILTIN_PLUGINS == tuple(expected)
     assert all(_TEXT_RE.match(text) for text in BUILTIN_PLUGINS)
 

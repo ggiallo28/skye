@@ -17,7 +17,7 @@ import pytest
 
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.messages import SystemMessage, UserMessage
-from skye.models.plugins.bedrock.provider import BedrockProvider
+from skye.models.plugins.providers.bedrock.provider import BedrockProvider
 from skye.models.utilities import rest
 
 
@@ -55,11 +55,11 @@ class TestBedrockProviderInitialization:
 
     def test_sources_do_not_import_boto3(self):
         """Bedrock sources contain no boto3/botocore import."""
-        import skye.models.plugins.bedrock.capabilities as caps
-        import skye.models.plugins.bedrock.embeddings as emb
-        import skye.models.plugins.bedrock.provider as llm
-        import skye.models.plugins.bedrock.request as req
-        import skye.models.plugins.bedrock.response as resp
+        import skye.models.plugins.providers.bedrock.capabilities as caps
+        import skye.models.plugins.providers.bedrock.embeddings as emb
+        import skye.models.plugins.providers.bedrock.provider as llm
+        import skye.models.plugins.providers.bedrock.request as req
+        import skye.models.plugins.providers.bedrock.response as resp
 
         for mod in (llm, emb, req, resp, caps):
             text = Path(mod.__file__).read_text()
@@ -439,7 +439,7 @@ class TestBedrockProviderCalls:
         assert resp.capability_calls[0].arguments == {"a": 1}
         assert resp.usage.total_tokens == 3
 
-    @patch("skye.models.plugins.bedrock.provider.post_eventstream_json")
+    @patch("skye.models.plugins.providers.bedrock.provider.post_eventstream_json")
     def test_call_provider_stream(self, mock_stream):
         events = [
             {"contentBlockDelta": {"delta": {"text": "Hello"}}},

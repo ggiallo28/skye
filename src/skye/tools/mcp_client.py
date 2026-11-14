@@ -2,8 +2,8 @@
 """Tri-faceted MCP client in ``tools``: tools, prompts and resources behind one Port (Req. 15).
 
 * :class:`MCPClientInterface` is the one Port. ``SkyeMCPClient`` (stdlib JSON-RPC over
-  stateless HTTP, built on ``skye.base.http``; ``skye.tools.engines.skyemcp``) and ``FastMCPClient``
-  (``skye.tools.engines.fastmcp``, lazily imported) both implement it and return the same
+  stateless HTTP, built on ``skye.base.http``; ``skye.tools.plugins.engines.skyemcp``) and ``FastMCPClient``
+  (``skye.tools.plugins.engines.fastmcp``, lazily imported) both implement it and return the same
   Skye types: ``CapabilityInterface``
   objects for tools, ``base`` messages for prompts (never ``prompts`` objects),
   :class:`Resource` for resources.

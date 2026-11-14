@@ -44,17 +44,17 @@ from skye.models.base import BaseEmbeddingProvider, BaseModelProvider
 from skye.models.decision import create_decision_model
 from skye.models.lazy_import import LazyImporter
 from skye.models.utilities.openai_compatible import OpenAICompatibleProvider
-from skye.models.plugins.anthropic import AnthropicProvider
-from skye.models.plugins.azure import AzureOpenAIProvider
-from skye.models.plugins.bedrock import BedrockEmbeddingProvider, BedrockProvider
-from skye.models.plugins.cohere import CohereEmbeddingProvider
-from skye.models.plugins.google import (
+from skye.models.plugins.providers.anthropic import AnthropicProvider
+from skye.models.plugins.providers.azure import AzureOpenAIProvider
+from skye.models.plugins.providers.bedrock import BedrockEmbeddingProvider, BedrockProvider
+from skye.models.plugins.providers.cohere import CohereEmbeddingProvider
+from skye.models.plugins.providers.google import (
     GoogleEmbeddingProvider,
     GoogleMultimodalEmbeddingProvider,
     GoogleProvider,
 )
-from skye.models.plugins.openai import OpenAIEmbeddingProvider, OpenAIProvider
-from skye.models.plugins.typesafe import JevDecisionModel
+from skye.models.plugins.providers.openai import OpenAIEmbeddingProvider, OpenAIProvider
+from skye.models.plugins.providers.typesafe import JevDecisionModel
 from skye.models.registry import ProviderRegistry
 from skye.models.cost import CostCalculator
 from skye.models.utilities.multimodal import ImageHandler
@@ -66,7 +66,7 @@ JsonObject = _rest.JsonObject
 post_json = _rest.post_json
 stream_sse_json = _rest.stream_sse_json
 
-# The built-in providers are not registered here: ``skye.models.plugins`` registers them with the default registrar at its first lookup, and
+# The built-in providers are not registered here: ``skye.models.plugins.providers`` registers them with the default registrar at its first lookup, and
 # ``ProviderRegistry`` is a view of that registrar (Requirement 56.7).
 
 # The offline check is read at first use, so importing the package does not import it.

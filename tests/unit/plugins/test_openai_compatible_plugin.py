@@ -255,7 +255,7 @@ def test_a_second_different_profile_for_the_same_provider_name_is_refused(regist
     with pytest.raises(ConfigurationError, match="different profile") as caught:
         registrar.provider(
             "acme",
-            "skye.models.plugins.openai:OpenAIEmbeddingProvider",
+            "skye.models.plugins.providers.openai:OpenAIEmbeddingProvider",
             profile=OTHER,
             function="embedding",
         )
@@ -265,7 +265,7 @@ def test_a_second_different_profile_for_the_same_provider_name_is_refused(regist
 
     registrar.provider(
         "acme",
-        "skye.models.plugins.openai:OpenAIEmbeddingProvider",
+        "skye.models.plugins.providers.openai:OpenAIEmbeddingProvider",
         profile=PROFILE,
         function="embedding",
     )

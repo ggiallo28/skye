@@ -49,7 +49,7 @@ def _raise_missing(variables: tuple[str, ...]) -> str:
 def resolve_aws_region(region: str | None, authenticator: Any = None) -> str:
     """The AWS region: the one given, the authenticator's ``region``, then the variables of the ``bedrock`` profile.
 
-    The names of the variables are in ``[region]`` of ``models/plugins/bedrock/profile.toml``, and ``region_for`` reads them.
+    The names of the variables are in ``[region]`` of ``models/plugins/providers/bedrock/profile.toml``, and ``region_for`` reads them.
 
     Raises:
         ConfigurationError: None is set; the message names the variables (no silent default).

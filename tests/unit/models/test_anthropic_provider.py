@@ -17,7 +17,7 @@ import pytest
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.exceptions import ProviderError
 from skye.base.messages import SystemMessage, UserMessage
-from skye.models.plugins.anthropic.provider import AnthropicProvider
+from skye.models.plugins.providers.anthropic.provider import AnthropicProvider
 from skye.models.utilities.rest import JsonObject
 
 
