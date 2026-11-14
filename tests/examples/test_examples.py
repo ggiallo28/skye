@@ -17,7 +17,9 @@ from tests.examples.fake_network import patched
 from tests.unit.plugins.registrar_state import restored_default_registrar
 
 EXAMPLES = ROOT / "examples"
-SCRIPTS = sorted(p for p in EXAMPLES.rglob("*.py") if p.name != "__init__.py" and "__pycache__" not in p.parts)
+SCRIPTS = sorted(
+    p for p in EXAMPLES.rglob("*.py") if p.name != "__init__.py" and "__pycache__" not in p.parts
+)
 
 DUMMY_ENV = {
     "OPENAI_API_KEY": "sk-test",
@@ -41,6 +43,11 @@ EXPECTED_TO_FAIL = {
     # A single script is keyed by its path. These two are written against the planned hook API of the agents spec.
     "agents/hooks.py": "waits for the hooks of the agents spec (3-runtime-agents); remove this entry when they exist",
     "agents/hooks_memory.py": "waits for the hooks of the agents spec (3-runtime-agents); remove this entry when they exist",
+    "models/catalog_dates.py": "waits for the model sizes and the single client of the models spec (1-adapters-models, decision D121); remove this entry when they exist",
+    "models/emulated_features.py": "waits for the model sizes and the single client of the models spec (1-adapters-models, decision D121); remove this entry when they exist",
+    "models/fitted_parameters.py": "waits for the model sizes and the single client of the models spec (1-adapters-models, decision D121); remove this entry when they exist",
+    "models/model_sizes.py": "waits for the model sizes and the single client of the models spec (1-adapters-models, decision D121); remove this entry when they exist",
+    "models/providers_together.py": "waits for the model sizes and the single client of the models spec (1-adapters-models, decision D121); remove this entry when they exist",
 }
 
 
@@ -48,7 +55,9 @@ def with_expected_failures(scripts):
     """The scripts as test parameters, the folders in EXPECTED_TO_FAIL marked as strict expected failures."""
     params = []
     for script in scripts:
-        reason = EXPECTED_TO_FAIL.get(_id(script)) or EXPECTED_TO_FAIL.get(script.relative_to(EXAMPLES).parts[0])
+        reason = EXPECTED_TO_FAIL.get(_id(script)) or EXPECTED_TO_FAIL.get(
+            script.relative_to(EXAMPLES).parts[0]
+        )
         marks = [pytest.mark.xfail(strict=True, reason=reason)] if reason else []
         params.append(pytest.param(script, marks=marks, id=_id(script)))
     return params
@@ -62,7 +71,17 @@ def test_example_compiles(script):
 # Most examples catch their errors and print them, so an example can drift and still exit cleanly. These markers mean "the example
 # failed and said so": a failed call, a traceback, an exception printed by the library. `Expected` marks an error that an example
 # provokes on purpose to show how it is handled.
-FAILURE_MARKERS = ("❌", "✗", "Traceback", "ProviderError:", "ConfigurationError:", "ValidationError:", "AttributeError", "TypeError", "KeyError")
+FAILURE_MARKERS = (
+    "❌",
+    "✗",
+    "Traceback",
+    "ProviderError:",
+    "ConfigurationError:",
+    "ValidationError:",
+    "AttributeError",
+    "TypeError",
+    "KeyError",
+)
 
 
 def _optional_libraries() -> set[str]:
@@ -104,6 +123,8 @@ def test_example_runs_offline(script, monkeypatch, capsys):
 def test_the_failure_markers_catch_a_swallowed_error(tmp_path, monkeypatch, capsys):
     """An example that catches an error and prints it is reported: this is how drift from the library shows up."""
     script = tmp_path / "swallows.py"
-    script.write_text('try:\n    {}["x"]\nexcept Exception as e:\n    print(f"❌ Error: {e}")\n', encoding="utf-8")
+    script.write_text(
+        'try:\n    {}["x"]\nexcept Exception as e:\n    print(f"❌ Error: {e}")\n', encoding="utf-8"
+    )
     output = run_offline(script, monkeypatch, capsys)
     assert any(marker in output for marker in FAILURE_MARKERS)
