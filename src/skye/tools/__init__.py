@@ -39,7 +39,7 @@ from skye.tools.mcp_client import (
     MCPToolCapability,
     create_mcp_client,
 )
-from skye.tools.engines.skyemcp import SkyeMCPClient
+from skye.tools.plugins.engines.skyemcp import SkyeMCPClient
 from skye.tools.mcp_resource import Resource, ResourceProviderInterface
 from skye.tools.registry import CapabilityRegistry
 from skye.tools.remote_api import RemoteAPICapability

@@ -12,8 +12,8 @@ import pytest
 from skye.base.completion import CompleteResponse, StreamChunk, TokenUsage
 from skye.base.exceptions import ProviderError, RateLimitError
 from skye.models import BaseModelProvider
-from skye.models.plugins.bedrock.provider import BedrockProvider
-from skye.models.plugins.google.provider import GoogleProvider
+from skye.models.plugins.providers.bedrock.provider import BedrockProvider
+from skye.models.plugins.providers.google.provider import GoogleProvider
 from skye.models.utilities.anthropic_compatible.provider import AnthropicCompatibleProvider
 from skye.models.utilities.openai_compatible.provider import OpenAICompatibleProvider
 

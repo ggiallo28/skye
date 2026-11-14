@@ -1,7 +1,7 @@
 name = "anthropic"
 api_key_variables = ["ANTHROPIC_API_KEY"]
 default_api_base = "https://api.anthropic.com"
-map_error = "skye.models.plugins.anthropic.errors:map_error"
+map_error = "skye.models.plugins.providers.anthropic.errors:map_error"
 
 [models."claude-3-opus-20240229"]
 prompt_price = 15.0

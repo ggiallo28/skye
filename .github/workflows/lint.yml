@@ -19,7 +19,6 @@ concurrency:
 env:
   LINTED: >-
     examples/plugins
-    src/skye/tools/engines
     src/skye/tools/plugins
     src/skye/router/plugins
     src/skye/agents/plugins

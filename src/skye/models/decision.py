@@ -1,7 +1,8 @@
 # Requirement 58.3, plugins:9.3
 """Decision models by name: ``create_decision_model`` reads the registrar.
 
-Jev is registered as the built-in ``"jev"`` by ``skye.models.plugins``. A third party adds its own
+Jev is registered as the built-in ``"jev"`` by ``skye.models.plugins.providers``. A third party adds
+its own
 with
 ``registrar.provider(name, target, function="decision")``, where ``target`` is a class or a factory
 that takes the configuration as keyword arguments

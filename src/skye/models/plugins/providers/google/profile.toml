@@ -1,6 +1,6 @@
 name = "google"
 api_key_variables = ["GOOGLE_API_KEY"]
-map_error = "skye.models.plugins.google.errors:map_error"
+map_error = "skye.models.plugins.providers.google.errors:map_error"
 
 [models."gemini-pro"]
 prompt_price = 0.5

@@ -69,3 +69,7 @@ site/
 rust/
 npm/
 mojo/
+
+# Trial of a README with a banner per component (not decided, kept out of the repository)
+src/skye/*/README.md
+.github/assets/components/

@@ -14,8 +14,8 @@ from skye.base.exceptions import CapabilityError, ValidationError
 from skye.base.messages import CapabilityStatus
 from skye.base.plugins import Registrar
 from skye.completion import CapabilityCall
-from skye.tools.plugins import shell
-from skye.tools.plugins.shell import ShellToolkit
+from skye.tools.plugins.toolkits import shell
+from skye.tools.plugins.toolkits.shell import ShellToolkit
 
 posix = pytest.mark.skipif(os.name != "posix", reason="uses POSIX programs")
 
@@ -139,7 +139,10 @@ async def test_a_refused_command_is_an_error_message_and_not_an_exception():
 def test_the_door_registers_the_toolkit_by_text():
     registrar = Registrar()
     shell.register(registrar)
-    assert registrar._tables["toolkit"]["shell"].target == "skye.tools.plugins.shell:ShellToolkit"
+    assert (
+        registrar._tables["toolkit"]["shell"].target
+        == "skye.tools.plugins.toolkits.shell:ShellToolkit"
+    )
     assert registrar.get("toolkit", "shell") is ShellToolkit
 
 
@@ -147,10 +150,10 @@ def test_importing_the_door_does_not_import_the_class():
     code = (
         "import sys\n"
         "import skye.tools\n"
-        "import skye.tools.plugins.shell as door\n"
-        "assert 'skye.tools.plugins.shell.toolkit' not in sys.modules\n"
+        "import skye.tools.plugins.toolkits.shell as door\n"
+        "assert 'skye.tools.plugins.toolkits.shell.toolkit' not in sys.modules\n"
         "door.ShellToolkit\n"
-        "assert 'skye.tools.plugins.shell.toolkit' in sys.modules\n"
+        "assert 'skye.tools.plugins.toolkits.shell.toolkit' in sys.modules\n"
     )
     done = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True)
     assert done.returncode == 0, done.stderr[-800:]

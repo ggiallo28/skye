@@ -11,7 +11,7 @@ from skye.base.exceptions import ConfigurationError, ValidationError
 from skye.base.interfaces.decision import DecisionModel, DecisionResult
 from skye.base.plugins import Registrar
 from skye.models import JevDecisionModel, create_decision_model
-from skye.models import plugins as _plugin
+from skye.models.plugins import providers as _plugin
 
 
 class FirstOption:
@@ -73,7 +73,7 @@ def test_a_factory_function_and_a_text_target_also_work(registrar):
     registrar.provider("factory", lambda **config: FirstOption(**config), function="decision")
     registrar.provider(
         "text",
-        "skye.models.plugins.typesafe.decision:JevDecisionModel",
+        "skye.models.plugins.providers.typesafe.decision:JevDecisionModel",
         replace=False,
         function="decision",
     )

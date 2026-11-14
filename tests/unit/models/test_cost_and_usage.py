@@ -18,8 +18,8 @@ import pytest
 import skye
 from skye.base.completion import StreamChunk, TokenUsage
 from skye.base.exceptions import ValidationError
-from skye.models.plugins.azure.provider import AzureOpenAIProvider
-from skye.models.plugins.openai.provider import OpenAIProvider
+from skye.models.plugins.providers.azure.provider import AzureOpenAIProvider
+from skye.models.plugins.providers.openai.provider import OpenAIProvider
 from skye.models.cost import CostCalculator, check_pricing, usage_of
 from skye.models.utilities.rest import wrap
 from skye.models.token_counter import TokenCounter

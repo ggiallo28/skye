@@ -180,9 +180,87 @@ honors.
   - [ ] 14.3 Check the request shapes of task 11 against the provider documentation: Gemini `responseSchema` (upper-case types), OpenAI `response_format` json_schema with `strict`, Anthropic `system`, and Bedrock Converse top-level `system`.
     - _Requirements: 9, 27.1, 33.9; D81, D101_
 
+- [~] 15. Catalog data and its development tools (D121)
+  - [x] 15.1 `scripts/build_catalog.py`: one pass from the source named in D121 to one `catalog.json` per built-in platform (limits, capabilities, input modalities, endpoints, reasoning levels, vector size; no prices, no retirement dates, no notes), with the lists of names once at the top and one row of the same columns per model; two runs on the same inputs give the same bytes; the header names the source and the date of the fetch. The script is never imported by the package or by the tests.
+    - Evidence (2026-11-14): `scripts/build_catalog.py` (standard library only; five stages: read, normalise, geography, platforms, encode). Run on the source at commit `d2bae98` of 2026-11-13 with `--fetched 2026-11-13` into a temporary folder: six files (`anthropic` 24 models, `azure` 110, `bedrock` 170, `cohere` 20, `google` 163, `openai` 130; 617 models, 102.6 KB as text, 12.3 KB compressed with `zlib`); two runs compared with `diff -r`: identical. Every model of the size table of D121 is in the file of its platform. Left out on purpose: the Gemini API, Bedrock Mantle and Azure Foundry (no adapter calls them), Jev (it is not in the source: 15.2). `uv run ruff check` and `black --check` pass; `grep -rn build_catalog src tests` finds nothing. The files are not yet written into `src/`: that is 15.4, with the build step, because the plain files would count against the size budget.
+    - _Requirements: 65.1, 65.3; D121, D14_
+  - [ ] 15.2 `scripts/model_corrections.json`, applied over the source: the output ceiling of `gemini-4-argon`; Nova Premier and the Nova 2 Pro preview left out (no model card at AWS); the regions of Nova Multimodal Embeddings; the reasoning levels of every model of the size table, built from the separate flags of the source where it gives no list. Each correction names where it was checked and on which date.
+    - _Requirements: 65.3, 66.5_
+  - [ ] 15.3 Check against the documentation of each provider, when the task starts and not from memory (the first reading of 2026-11-14 is in the design, "Checked against the documentation of the providers"), and write the source next to the value: the native interval of every parameter of Requirement 66.1 on OpenAI, Azure OpenAI, Anthropic, Vertex AI (Gemini), Cohere and Bedrock Converse (per family); the native `top_k` of Anthropic and Cohere; whether Cohere `embed-v5.0` exists (`embed-v4.0` otherwise); the launch date of each Bedrock row on its AWS model card.
+    - _Requirements: 66.2, 66.12, 64.3_
+  - [ ] 15.4 The build step: `scripts/hatch_build.py` compresses the catalog files with `zlib` in the wheel; a test decodes the plain and the compressed form and compares them; the size of the files is inside `max_installed_mb` and the row is recorded in `budgets.toml` (the budget does not rise).
+    - _Requirements: 65.4, 65.6; D3_
+
+- [ ] 16. The data shapes and the pure functions in `base` (D121)
+  - [ ] 16.1 `base/sizes.py`: the enums `Size` (`SMALL`, `MEDIUM`, `LARGE`, `XLARGE`) and `Reasoning` (ordered), `SizeRow`, `resolve_size` (pure: the latest row on or before the date, a `ConfigurationError` naming the first date otherwise), the two default dates of the release, the `TypedDict` `ProviderDefaults`; the reserved words of a configuration file. Property test of Property 6.
+    - _Requirements: 64.1, 64.2, 64.4, 64.5, 64.6, 64.7, 64.8, 64.10, 67.8_
+  - [ ] 16.2 `base/model_info.py` (`ModelInfo`) and, in `base/completion.py`, `Adjustment` and the fields `provider`, `adjustments` and `requests` of `CompleteResponse`.
+    - _Requirements: 65.1, 66.10, 66.11, 67.11_
+  - [ ] 16.3 `base/lenient_json.py`, written here with the standard library: text around the JSON, a code fence, a trailing comma, single quotes, an unquoted key, the Python literals, a comment, a missing closing bracket. Unit tests, the property test of Property 9, and a differential test against a development-only library; the size of the module is recorded against the margin.
+    - _Requirements: 66.8, 9.4_
+
+- [ ] 17. Profiles in JSON, with the size table and without prices (with `plugins:27`)
+  - [ ] 17.1 `profile.json` in place of `profile.toml` for the seven built-in providers (and `profile_multimodal.json` for Google), read with the standard library; `ProviderProfile` gains `families`, `sizes` and `parameters` through `profile_from_mapping`. Measure with the cold-start test whether `tomllib` leaves the path of `provider(...)` (it is also imported by `base/dsl/metadata.py`) and write the number, not a promise.
+    - _Requirements: 56.10, 59.13, 65.4; D27_
+  - [ ] 17.2 The prices leave: `ModelProfile` loses `prompt_price` and `completion_price`, the 31 prices leave the profiles (the one of Jev included), `CostCalculator` reads no profile and reports the cost as unknown, never 0, when the user gave no price (`add_custom_pricing`, the `pricing=` of a client, the prices of a router target stay). `tests/budget/test_provider_knowledge.py` and the cost example and pages follow.
+    - _Requirements: 19.1, 19.2, 59.2, 59.3, 59.10, 59.12, 60.1, 60.8_
+  - [ ] 17.3 The rows of the size table of 2026-11-14 in each profile, for language, embedding and decision, as D121 and D122 list them (every embedding row a multilingual model, Requirement 64.13; the second Google row for `SMALL`, dated 2027-04-01, included) (a family with fewer models repeats one in rows of its own), and the parameter table of each platform from 15.3. A test fails when a built-in family lacks a row for a member of `Size`; a development check compares every id with the catalog of its platform on the route the adapter calls.
+    - _Requirements: 64.3, 64.5, 64.11, 66.12_
+
+- [ ] 18. The catalog reader
+  - [ ] 18.1 `models/catalog.py`: the file of one platform read at the first use of a model of that platform and kept for the process, the plain file of the source tree or the compressed one of the wheel; a row decoded into a `ModelInfo` only when asked; what differs by route and by place applied; `None` for a model it does not know. `get_model_info()` answers from it. The cost of reading one file is measured by the cold-start test.
+    - _Requirements: 65.2, 65.4, 65.5, 65.6, 65.7, 25.3_
+
+- [ ] 19. Fitting the parameters to the model
+  - [ ] 19.1 `models/utilities/fitting.py` (`fit`): the common names, the scaling to the native interval, the nearest value (`max_tokens` to the ceiling, and the ceiling when it is not given), the room for reasoning on top of the visible text, the nearest reasoning level (the lower one on a tie, `MAX` and `NONE` as the requirement says), what is left out; the list of `Adjustment`; `strict=True` raises a `ValidationError` before anything is sent. No provider name in the module. Property tests of Properties 7 and 8.
+    - _Requirements: 66.1, 66.2, 66.3, 66.4, 66.5, 66.6, 66.11, 66.12, 9.10_
+  - [ ] 19.2 `BaseModelProvider` calls `fit` once, after the model is resolved and before the adapter builds its request; each adapter takes the native names from the result and keeps no table of its own; a model the catalog does not know is sent as given and the response says so.
+    - _Requirements: 66.1, 66.6, 65.7, 9.10_
+  - [ ] 19.3 One request per `complete`; `continue_on_limit=True` continues with the native way the catalog names or a follow-up message and writes the count in `requests`.
+    - _Requirements: 66.10_
+
+- [ ] 20. Emulation of what a model lacks
+  - [ ] 20.1 `models/utilities/emulation.py`: capabilities described in the prompt and the answer read back as a `CapabilityCall` with `base/lenient_json.py`, at most 2 more requests when the JSON cannot be read, then a `ProviderError`; a streamed answer held until it is known whether it is a call. The same path for a structured output where the model has neither the native mechanism nor function calling.
+    - _Requirements: 66.7, 66.8, 27.1_
+  - [ ] 20.2 An image, a document or an audio that the model cannot read replaced by one line of text, listed as a fit, the caller's input unchanged; an error only with `strict=True`.
+    - _Requirements: 66.9, 26.3_
+
+- [ ] 21. The single client and the composition
+  - [ ] 21.1 `models/client.py` (`ProviderClient`), returned by `provider(name, **config)`: the name split into platform and family (a `ConfigurationError` that lists the families for a size on a platform with several and none named), `place`, the defaults (`models`, `language_model`, `embedding_model`, `decision_model`), the two dates, `strict`; one slot per kind, built at the first call of that kind; `resolve`, `info`, `assignments`. `provider_type` leaves the function and every caller.
+    - _Requirements: 67.1, 67.2, 67.3, 67.5, 67.11, 64.9, 9.11, 9.12_
+  - [ ] 21.2 `encode` and `aencode` take one text or a list (Property 11); the `VectorEncoder` Port loses the batch methods, and the adapters, the conformance check, the callers in `base` and the components that hold an encoder follow in the same change.
+    - _Requirements: 67.4, 25.2, 25.3_
+  - [ ] 21.3 `providers(language=..., embedding=..., decision=..., **defaults)`, typed with `Unpack[ProviderDefaults]`: a name or a client per kind, never a router; a default reaches the providers that have that setting and the value on a client wins; a key outside the set and a secret raise a `ConfigurationError` (Property 12). `models` imports nothing of the router.
+    - _Requirements: 67.6, 67.7, 67.8, 67.9, 67.10_
+  - [ ] 21.4 Decide, with a decision line, whether `decide` gets the sync and async forms of the project rule (it is asynchronous in the Port of today and `gateway`, `router` and `guard` call it), and how a plugin adds rows for a family on a platform it does not own.
+    - _Requirements: 67.1, 59.13_
+
+- [ ] 22. The public surface, the examples and the documentation
+  - [ ] 22.1 `<pkg>` exports `Size`, `Reasoning`, `ProviderDefaults` and `providers`, resolved lazily; `import <pkg>` does not import the catalog, the profiles or an adapter (cold-start test).
+    - _Requirements: 7.8, 9.11, 64.2, 67.7_
+  - [ ] 22.2 The five examples written first run: `examples/models/model_sizes.py`, `catalog_dates.py`, `fitted_parameters.py`, `emulated_features.py`, `providers_together.py`, and their entries leave `EXPECTED_TO_FAIL` of the two example tests. The other examples and pages stop using `provider_type`, `encode_batch` and a literal model that has left the range (`gpt-4o-mini`), and choose the model by size.
+    - _Requirements: 67.12, 24.11, 64.12; D89_
+  - [ ] 22.3 The documentation of the component (sizes and the two dates, what changes at a minor and at a major version, fitting and `adjustments`, emulation, the composition), the changelog (the scale of `temperature`, `provider_type`, `encode_batch`, the prices) and the reference of the Claude skill that ships with the package, in the same change as the code.
+    - _Requirements: 64.7, 64.12, 67.12_
+
+- [ ] 24. The Responses API in the OpenAI adapter (D122; built after 19 and before 22)
+  - [ ] 24.1 Read the reference of `/v1/responses` when the task starts (request body, output items, streaming events, how a function call and its result are written) and check on the model cards of AWS and on the Azure pages whether the GPT-6 models take capabilities through Bedrock Converse and through Azure OpenAI Chat Completions; write the pages and the answers in the design.
+    - _Requirements: 66.13; D122_
+  - [ ] 24.2 `plugins/providers/openai/responses.py`: the request built from the same `CompleteRequest` and the output mapped to the same `CompleteResponse`, `StreamChunk` and `CapabilityCall`, sync, async and streamed; the endpoint chosen from the catalog (capabilities on a model that needs `/v1/responses` for them), Chat Completions otherwise; `OpenAICompatibleProvider` unchanged. Tests over a fake network and a differential test against the SDK.
+    - _Requirements: 66.13, 9.3, 9.4, 9.10, 16.4_
+  - [ ] 24.3 The size of the new module against the margin of `max_installed_mb`, written in the checkpoint; the budget does not rise.
+    - _Requirements: 65.6; D3_
+
+- [ ] 23. Checkpoint of D121 and D122 (it runs last, after 24)
+  - [ ] 23.1 One evidence line for each criterion of Requirements 64 to 67 and for each changed criterion (9.12, 19.1, 19.2, 25.2, 25.3, 26.3, 27.1, 56.10, 59.2, 59.3, 59.10 to 59.13, 60.1): the file or function that realizes it and the test that checks it.
+    - _Requirements: 64, 65, 66, 67; D121, D122_
+  - [ ] 23.2 Run `uv run pytest tests/unit/models tests/differential tests/examples -q`, `make budget`, `uv run mypy` and `uv run ruff check` on the changed files; write the installed size and the cold start before and after.
+    - _Requirements: 65.6; D3, D27_
+
 ## Notes
 
 - Tasks marked with `*` are optional (tests) and can be skipped for a faster path.
+- Milestones 15 to 23 are decision D121 (Requirements 64 to 67), written on 2026-11-14 after the examples of task 22.2 (D89). They are in build order: the data and its tools, the shapes in `base`, the profiles, the reader, fitting, emulation, the client, the public surface, the checkpoint. The router is not touched: what it may do with sizes is open decision O83.
 - Status reflects the code in `src/skye/models` and `tests/` at migration time, not the former `model-providers` checkboxes.
 - The `models` extra is empty (stdlib REST); `google` declares only its SDK and exact token counting declares only `tiktoken` (design "Extras and budgets"; D25).
 - Done on 2026-11-03: every task except the final checkpoint (10), left for the final verification. Decisions taken on the instruction to implement everything: D33 (extra `tokens`), images as a `UserMessage` field, the Jev wire format as an assumption (7.1). Still open: O8 (gateway selector for Jev), the Google differential case, a live check of the request shapes against the real services.
@@ -197,7 +275,14 @@ honors.
     { "id": 2, "tasks": ["2.3", "3.1", "3.2", "3.3", "3.4", "5.2", "6.2", "7.1"] },
     { "id": 3, "tasks": ["3.5", "4.1", "7.2", "8.1"] },
     { "id": 4, "tasks": ["4.2", "8.2", "9.1"] },
-    { "id": 5, "tasks": ["10"] }
+    { "id": 5, "tasks": ["10"] },
+    { "id": 6, "tasks": ["15.1", "15.2", "15.3", "16.1", "16.2", "16.3"] },
+    { "id": 7, "tasks": ["15.4", "17.1", "17.2", "17.3"] },
+    { "id": 8, "tasks": ["18.1", "19.1"] },
+    { "id": 9, "tasks": ["19.2", "19.3", "20.1", "20.2", "24.1", "24.2", "24.3"] },
+    { "id": 10, "tasks": ["21.1", "21.2", "21.3", "21.4"] },
+    { "id": 11, "tasks": ["22.1", "22.2", "22.3"] },
+    { "id": 12, "tasks": ["23.1", "23.2"] }
   ]
 }
 ```

@@ -5,7 +5,7 @@ this
 module holds only what is specific to Anthropic.
 
 Example:
-    >>> from skye.models.plugins.anthropic.provider import AnthropicProvider
+    >>> from skye.models.plugins.providers.anthropic.provider import AnthropicProvider
     >>> provider = AnthropicProvider(api_key="sk-ant-...")  # or set ANTHROPIC_API_KEY
     >>> response = provider.complete(request)  # doctest: +SKIP
 """

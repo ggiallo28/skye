@@ -89,7 +89,7 @@ def test_a_sync_only_subclass_no_longer_instantiates():
 def test_the_built_in_adapters_keep_only_the_async_hook(module):
     import importlib
 
-    mod = importlib.import_module(f"skye.models.plugins.{module}")
+    mod = importlib.import_module(f"skye.models.plugins.providers.{module}")
     classes = [
         c
         for c in vars(mod).values()

@@ -15,8 +15,8 @@ import pytest
 from skye.base.completion import CompleteRequest
 from skye.base.exceptions import CapabilityChoiceError, ValidationError
 from skye.base.messages import AssistantMessage, UserMessage
-from skye.models.plugins.anthropic.provider import AnthropicProvider
-from skye.models.plugins.bedrock.provider import BedrockProvider
+from skye.models.plugins.providers.anthropic.provider import AnthropicProvider
+from skye.models.plugins.providers.bedrock.provider import BedrockProvider
 from skye.models.utilities.capability_choice import instruction
 from skye.models.utilities.rest import JsonObject
 

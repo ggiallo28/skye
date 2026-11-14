@@ -9,13 +9,13 @@ import pytest
 
 from skye.base.exceptions import ConfigurationError, ValidationError
 from skye.base.profile import ModelProfile, ProviderProfile, RegionRule, profile_from_mapping
-from skye.models import plugins as _plugin
+from skye.models.plugins import providers as _plugin
 
 FOLDERS = list(_plugin.IMPLEMENTATIONS)
 FILES = sorted(
     f"{folder}/{e.name}"
     for folder in FOLDERS
-    for e in resources.files(f"skye.models.plugins.{folder}").iterdir()
+    for e in resources.files(f"skye.models.plugins.providers.{folder}").iterdir()
     if e.name.endswith(".toml")
 )
 
@@ -37,7 +37,9 @@ def test_every_provider_folder_has_a_profile_file():
 def test_each_file_loads_and_names_its_provider(file):
     folder, name = file.split("/")
     text = (
-        resources.files(f"skye.models.plugins.{folder}").joinpath(name).read_text(encoding="utf-8")
+        resources.files(f"skye.models.plugins.providers.{folder}")
+        .joinpath(name)
+        .read_text(encoding="utf-8")
     )
     profile = profile_from_mapping(tomllib.loads(text), file)
     assert _plugin.profiles()[profile.name] == profile

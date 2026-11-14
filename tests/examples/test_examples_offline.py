@@ -19,9 +19,22 @@ SKIPPED_FOLDERS: set[str] = set()
 SCRIPTS = sorted(
     p
     for p in EXAMPLES.rglob("*.py")
-    if p.name != "__init__.py" and "__pycache__" not in p.parts and p.relative_to(EXAMPLES).parts[0] not in SKIPPED_FOLDERS
+    if p.name != "__init__.py"
+    and "__pycache__" not in p.parts
+    and p.relative_to(EXAMPLES).parts[0] not in SKIPPED_FOLDERS
 )
-SECRET_MARKERS = ("API_KEY", "SECRET", "TOKEN", "AWS_", "AZURE_", "GOOGLE_", "OPENAI_", "ANTHROPIC_", "COHERE_", "MCP_SERVER_URL")
+SECRET_MARKERS = (
+    "API_KEY",
+    "SECRET",
+    "TOKEN",
+    "AWS_",
+    "AZURE_",
+    "GOOGLE_",
+    "OPENAI_",
+    "ANTHROPIC_",
+    "COHERE_",
+    "MCP_SERVER_URL",
+)
 
 # Runs the example as __main__ after making every outbound connection fail, as it would with no network.
 RUNNER = """
@@ -48,6 +61,11 @@ def _clean_env() -> dict[str, str]:
 EXPECTED_TO_FAIL = {
     "agents/hooks.py": "waits for the hooks of the agents spec (3-runtime-agents)",
     "agents/hooks_memory.py": "waits for the hooks of the agents spec (3-runtime-agents)",
+    "models/catalog_dates.py": "waits for the model sizes and the single client of the models spec (1-adapters-models, decision D121); remove this entry when they exist",
+    "models/emulated_features.py": "waits for the model sizes and the single client of the models spec (1-adapters-models, decision D121); remove this entry when they exist",
+    "models/fitted_parameters.py": "waits for the model sizes and the single client of the models spec (1-adapters-models, decision D121); remove this entry when they exist",
+    "models/model_sizes.py": "waits for the model sizes and the single client of the models spec (1-adapters-models, decision D121); remove this entry when they exist",
+    "models/providers_together.py": "waits for the model sizes and the single client of the models spec (1-adapters-models, decision D121); remove this entry when they exist",
 }
 
 

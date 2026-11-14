@@ -471,6 +471,12 @@ toolkits is open in O70; tasks 18 and 19 build only the registration and the sha
     `docs/reference/configuration-keys.md`, and the strict docs build passes
     - _Requirements: 61.2, 15.10_
 
+- [ ] 27. The profile after decision D121 (done by `models:17`; this milestone only keeps the two specs in step)
+  - [ ] 27.1 The profile of a built-in provider is `profile.json`, and `ProviderProfile` carries the families, the rows of the size table and the parameter table; `profile_from_mapping` builds them and `skye plugins` shows them. Done by `models:17.1` and `models:17.3`.
+    - _Requirements: 56.10, 59.13_
+  - [ ] 27.2 `ModelProfile` has no price field and no profile carries a price, the one of Jev included; `plugins.profile` keeps merging models. The plugin example and the plugin pages stop showing a price in a profile. Done by `models:17.2`.
+    - _Requirements: 59.2, 59.3, 59.10, 59.11, 59.12, 60.1_
+
 - [x] 12. Final checkpoint (it runs after tasks 13 to 21; its id does not move because tests cite this file)
   - [x] 12.0 Validate the code against every criterion this spec points to (`requirements.md`: Requirements 56 to 62 of
     `10-requirements.md`, and decisions D27, D97, D98, D104, D107, D108, D110 and D111). For each criterion, write one evidence line: the

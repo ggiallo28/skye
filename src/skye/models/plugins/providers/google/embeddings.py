@@ -24,7 +24,7 @@ from typing import Any
 from skye.auth.plugins.google import resolve_google_auth
 from skye.base.interfaces.authentication import AuthenticationInterface
 from skye.models.base import BaseEmbeddingProvider
-from skye.models.plugins.google.provider import _model_url
+from skye.models.plugins.providers.google.provider import _model_url
 from skye.models.utilities import rest
 
 

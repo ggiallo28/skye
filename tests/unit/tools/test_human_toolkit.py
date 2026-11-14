@@ -16,9 +16,9 @@ import pytest
 from skye.base.exceptions import ConfigurationError, ValidationError
 from skye.base.messages import CapabilityStatus
 from skye.completion import CapabilityCall
-from skye.tools.plugins import human as door
-from skye.tools.plugins.human import EscalationMessage, HumanToolkit
-from skye.tools.plugins.human import toolkit as module
+from skye.tools.plugins.toolkits import human as door
+from skye.tools.plugins.toolkits.human import EscalationMessage, HumanToolkit
+from skye.tools.plugins.toolkits.human import toolkit as module
 
 
 @pytest.fixture
@@ -48,7 +48,10 @@ def test_the_door_registers_the_name_by_text_in_a_private_registrar():
 
     registrar = Registrar()
     door.register(registrar)
-    assert registrar._tables["toolkit"]["human"].target == "skye.tools.plugins.human:HumanToolkit"
+    assert (
+        registrar._tables["toolkit"]["human"].target
+        == "skye.tools.plugins.toolkits.human:HumanToolkit"
+    )
 
 
 def test_an_unknown_channel_lists_the_two_built_in_ones():
@@ -318,6 +321,8 @@ def test_the_console_channel_reads_one_line_from_a_terminal(monkeypatch):
 
 
 def test_import_skye_tools_does_not_import_the_module():
-    code = "import sys, skye.tools; print('skye.tools.plugins.human.toolkit' in sys.modules)"
+    code = (
+        "import sys, skye.tools; print('skye.tools.plugins.toolkits.human.toolkit' in sys.modules)"
+    )
     done = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
     assert done.stdout.strip() == "False"

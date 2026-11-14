@@ -95,7 +95,6 @@ BUILTIN_PLUGINS: tuple[str, ...] = (
     "skye.store.plugins:register",
     "skye.auth.plugins:register",
     "skye.router.plugins:register",
-    "skye.tools.engines:register",
     "skye.tools.plugins:register",
     "skye.prompts.plugins:register",
     "skye.agents.plugins:register",

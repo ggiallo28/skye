@@ -173,8 +173,8 @@ plugin object with `register(registrar)`, no `PluginInterface` and no `skye.use`
   A registration is in memory for the running process only, and the write is safe from several threads. There is no namespace of
   plugins and no scope for tests (D111).
 - **One kind, several functions.** `provider` covers models, embeddings and decisions. The table is keyed by name and function, and the
-  function is deduced from the method of the class (`generate`, `encode`, `decide`); `skye.provider(name)` builds a model provider and
-  `provider_type="embedding"` or `"decision"` the others. One provider name has one profile, kept under its own name.
+  function is deduced from the method of the class (`generate`, `encode`, `decide`); `skye.provider(name)` builds one client with the methods of the three
+  functions and creates the adapter of a function at its first call; there is no `provider_type` (D121, section "Model sizes, catalog and the single client"). One provider name has one profile, kept under its own name.
 - **Sync and async.** A plugin writes only the async method; `run_sync` and `iterate_sync` in `base` derive the sync one.
 - **Where.** `RegistrarInterface`, `ProviderProfile`, `ModelProfile`, `RegionRule`, `resolve_region` and the lookup of
   a `ModelProfile` are in `base` (data, Protocols and in-memory tables; no I/O). The scan of the entry-point group `skye.plugins` is
@@ -183,18 +183,20 @@ plugin object with `register(registrar)`, no `PluginInterface` and no `skye.use`
 - **Built-ins use the same calls.** The built-in providers, backends, strategies, MCP clients and toolkits register with the same
   calls, by `"module:attribute"` text so that nothing is imported before first use. The registries that exist today stay as views;
   the capability registry is not one of them.
-- **Layout of the built-ins (D110).** Each extensible component keeps them in `<component>/plugins/<name>/`, one folder per implementation or
-  provider (`models`: `openai`, `anthropic`, `bedrock`, `azure`, `google`, `cohere`, `typesafe`; `store`, `auth` and `tools` by implementation).
+- **Layout of the built-ins (D110, D123).** Each extensible component keeps them in `<component>/plugins/`: one folder per implementation where the
+  component has one kind (`store`, `auth`, `router`, `agents`), and one folder per kind with the implementations inside where it has more
+  (`models/plugins/providers/`: `openai`, `anthropic`, `bedrock`, `azure`, `google`, `cohere`, `typesafe`; `models/plugins/clouds/`: `aws`, `azure`, `gcp`,
+  placeholders with no code, O86; `tools/plugins/engines/` and `tools/plugins/toolkits/`). `<component>/plugins:register` is the one call of the registrar.
   The `__init__.py` of a folder is the only door: public names resolved lazily, and an internal `register(registrar)` that makes the same calls as a third party.
   The files have the same names in every folder: in `models` `provider.py`, `request.py`, `response.py`, `capabilities.py`, `embeddings.py`,
-  `multimodal_embeddings.py`, `decision.py`, `profile.toml`; the main file is `backend.py` in `store`, `source.py` in `auth`, `client.py` in `tools/engines` (the MCP clients; the toolkits are `toolkit.py` in `tools/plugins`, D114) and `agent.py` in `agents`. What several providers use, and what a plugin is written with, is in
+  `multimodal_embeddings.py`, `decision.py`, `profile.json`, `catalog.json`; the main file is `backend.py` in `store`, `source.py` in `auth`, `client.py` in `tools/plugins/engines` (the MCP clients; the toolkits are `toolkit.py` in `tools/plugins/toolkits`, D123) and `agent.py` in `agents`. What several providers use, and what a plugin is written with, is in
   `models/utilities/` (`base.py`, `openai_compatible/`, `anthropic_compatible/`, `transport/`), not in `plugins/`. `plugins` is not a component: it would have to know the internal paths of all
   the others (Requirement 56.9).
 - **The profile is the one home of provider knowledge.** It carries the key variable, the region rule, the default endpoint, the client
-  settings (Azure's names), the model profiles (prices, tokenizer, message overhead, `get_model_info` keys) and the error mapper. Cost,
-  token counting, the router and `auth` read it; none keeps a table of provider names. Logic stays in the adapter module (error
-  handler, schema conversion); the profile points to it. The profiles of the built-in providers are data, one `profile.toml` per provider
-  read with the standard library; `base` only builds the dataclass from the mapping (`profile_from_mapping`), because it does no file I/O.
+  settings (Azure's names), the model profiles (tokenizer, message overhead, `get_model_info` keys; no prices, D121), the families the platform serves, the rows of the size table, the
+  parameter table and the error mapper. Token counting, the router and `auth` read it; none keeps a table of provider names. Logic stays in the adapter module (error
+  handler, schema conversion); the profile points to it. The profiles of the built-in providers are data, one `profile.json` per provider
+  read with the standard library (JSON for every data file read at run time, Requirement 65.4); `base` only builds the dataclass from the mapping (`profile_from_mapping`), because it does no file I/O.
 - **The store keeps its own representation.** `CounterStore.count`, a capability for liveness and remaining lifetime, and the default
   backend created by `skye.store.backend("memory")` mean that the router never reads a stored shape or compares a timestamp with the clock.
 - **Control.** Optional allowlist `plugins` in the configuration file; `skye plugins` lists
@@ -209,6 +211,34 @@ plugin object with `register(registrar)`, no `PluginInterface` and no `skye.use`
   merges a change into an existing provider.
 - **Checks.** `tests/budget/test_provider_knowledge.py` and `tests/budget/test_storage_knowledge.py` (allowlists that only shrink);
   the cold-start and size budgets do not rise.
+
+## Model sizes, catalog and the single client
+Decision D121 (Requirements 64 to 67); the spec is `1-adapters-models`. Three pieces of data and one object.
+- **The enums.** `Size` (the sizes) and `Reasoning` (the levels, ordered) are in `base` and exported by `<pkg>`. A text given as `model` is
+  a literal id; only a member of `Size` is a size. Where only texts exist (a configuration file) the names of
+  the sizes are reserved words.
+- **The size table.** Rows of platform, family, kind, size, date and model id, written by hand in the profile of each platform. One pure
+  function in `base` resolves a size: the row with the latest date on or before the catalog date. There are two dates, `catalog` (language
+  and decision) and `embedding_catalog`, each with a default written in the release; nothing else enters the resolution: no process-wide
+  setting, no file outside the wheel, no network.
+- **The model catalog.** What each model accepts (limits, capabilities, input modalities, endpoints, reasoning levels, vector size), one file
+  per platform next to its adapter, generated by a development script from a public list plus corrections written by hand, read by `models`
+  at the first use of a model of that platform. `base` holds only the data shape (`ModelInfo`), because it does no file I/O. No prices.
+- **Fitting.** Between the client and the adapter one step in `models` turns the common parameters into what the model accepts: it scales
+  an interval, takes the nearest allowed value, leaves out what the model lacks, and records each change. It reads the parameter table of the
+  profile and the catalog and contains no provider name. Emulation (capabilities and structured output through the prompt, a line of text for a
+  content the model cannot read) is a second step of the same kind; the tolerant JSON reader it needs is in `base`, standard library only.
+  A fit never changes the model or the provider (D13).
+- **The single client.** `<pkg>.provider(name)` returns one object that has the methods of the three Ports (`model`, `vector_encoder`,
+  `decision`) and builds the adapter of a kind at its first call. The name is `platform` or `platform/family`: the plugin registers the
+  platform and the profile lists the families. The `vector_encoder` Port has one method for one text or a list, and no batch methods.
+- **Composition.** `<pkg>.providers(language=..., embedding=..., decision=..., **defaults)` puts at most one provider of each kind behind
+  one client, each given by name or as a client built by `<pkg>.provider`; the defaults are a closed set typed by the `TypedDict`
+  `ProviderDefaults` (size, the two dates, `strict`, region, place, timeout, retries) and never a secret. `<pkg>.provider` stays the
+  only function that creates a client. The composition is static and has no state: one provider per kind,
+  nothing chosen at run time. The router is another problem (several targets for one request, chosen at each call, with state, one layer above): it is
+  not accepted by `providers` and `models` does not know it (O83 holds what it may do with sizes later).
+- **The response.** `CompleteResponse` names the provider next to the model and lists the fits in `adjustments`.
 
 ## Base contracts
 `base` holds the shapes every component shares. Message types: `SkyeMessage` with the role variants (`UserMessage`, `AssistantMessage`,
@@ -336,7 +366,7 @@ What a provider is written with is in `models/utilities/` (D110), as plain modul
 `error_mapping.py`; the HTTP helper itself is `base/http.py`), the shaping of a request (`structured.py`, `schema_check.py`,
 `capability_choice.py`, `prompt_parts.py`, `multimodal.py`) and `credentials.py`; `models/base.py`, `cost.py` and `token_counter.py` are the
 component's own. SigV4 signing is in `auth` and reused by Bedrock. Three adapter
-families (`models/utilities/openai_compatible`, `models/utilities/anthropic_compatible`, and the provider folders of `models/plugins`): `openai_compatible` (one adapter keyed by base URL and key, with `openai` and `azure` holding what is specific to each: OpenAI, Azure and
+families (`models/utilities/openai_compatible`, `models/utilities/anthropic_compatible`, and the provider folders of `models/plugins/providers`): `openai_compatible` (one adapter keyed by base URL and key, with `openai` and `azure` holding what is specific to each: OpenAI, Azure and
 the OpenAI-compatible ecosystem), `anthropic` (Messages API), `bedrock` (Converse with SigV4, boto3 not required); Google has its own
 dialect. Streaming parsing and signing are written once and reused. The provider-SDK extras are driven to zero; the residual extras
 are `memory`, `observe` if no stdlib path exists, `mcp` and `auth`.
@@ -357,7 +387,7 @@ backend is always chosen by the caller (D97).
 
 ## DecisionModel (Jev)
 `base/interfaces/decision.py` defines the one `DecisionModel` Port: a finite option set in, one choice and a probability per option out
-(each in 0..1, sum 1, empty set rejected). The implementation, Jev, is `models/plugins/typesafe/decision.py`. Consumers: `gateway` (tool selection),
+(each in 0..1, sum 1, empty set rejected). The implementation, Jev, is `models/plugins/providers/typesafe/decision.py`. Consumers: `gateway` (tool selection),
 `router` (cheapest capable model), `guard` (pre-flight).
 
 ## Extras and budgets (table)
@@ -388,7 +418,7 @@ Lives in `tools`, consume-only. Official MCP types are converted at one module (
 messages through the `MCPPrompt` descriptor in `tools`; `Resource` stays internal to `tools` until a same-layer consumer needs it
 (then a resource Port in `base`, open decision O7). The built-in client, `skyemcp`, is JSON-RPC over stateless HTTP on `base/http.py`; `fastmcp`
 is the optional substitute (`create_mcp_client(target, impl=...)`); differential tests keep both equal.
-Only `tools/engines/fastmcp/client.py` imports `fastmcp`; the built-in client (`impl="skyemcp"`) is the default and `impl="fastmcp"` returns the substitute from the `mcp` extra.
+Only `tools/plugins/engines/fastmcp/client.py` imports `fastmcp`; the built-in client (`impl="skyemcp"`) is the default and `impl="fastmcp"` returns the substitute from the `mcp` extra.
 
 ## Correctness properties (what the tests guard)
 1. Layer import direction is downward only. 2. Imports stay within each component's allowed set. 3. `base` imports only the standard library.
@@ -403,7 +433,8 @@ marked as a failure. 20. A guessable-name alias stores no second value, and the 
 21. The `.skye` parser imports only the standard library, takes text and never a path. 22. Every load error names the file, line and column.
 23. No `.skye` expression is evaluated with `eval` or `exec`, and one that calls anything outside the allowed list is rejected.
 24. A loop over steps is bounded, and a flow that can run forever does not load. 25. Every `.skye` example in the documentation passes
-`skye check`, and the examples of the language pass the parser.
+`skye check`, and the examples of the language pass the parser. 26. A size resolves to the same model for the same version, arguments and dates, with no network and no file outside the wheel.
+27. A fit never changes the model or the provider, and with `strict=True` nothing is sent. 28. A secret is never a common argument of a composition.
 
 ## Codename placement
 

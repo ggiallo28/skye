@@ -14,7 +14,7 @@ from collections.abc import Callable
 from typing import Any
 
 from skye.base.completion import CompleteRequest
-from skye.models.plugins.bedrock.capabilities import transform_capabilities
+from skye.models.plugins.providers.bedrock.capabilities import transform_capabilities
 from skye.models.utilities.structured import (
     STRUCTURED_TOOL,
     closed_schema,

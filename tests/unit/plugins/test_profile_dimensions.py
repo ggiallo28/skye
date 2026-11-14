@@ -8,10 +8,13 @@ import pytest
 from skye.base.plugins import Registrar, get_registrar
 from skye.base.profile import ModelProfile, ProviderProfile
 from skye.models.base import BaseEmbeddingProvider
-from skye.models.plugins.bedrock import BedrockEmbeddingProvider
-from skye.models.plugins.cohere import CohereEmbeddingProvider
-from skye.models.plugins.google import GoogleEmbeddingProvider, GoogleMultimodalEmbeddingProvider
-from skye.models.plugins.openai import OpenAIEmbeddingProvider
+from skye.models.plugins.providers.bedrock import BedrockEmbeddingProvider
+from skye.models.plugins.providers.cohere import CohereEmbeddingProvider
+from skye.models.plugins.providers.google import (
+    GoogleEmbeddingProvider,
+    GoogleMultimodalEmbeddingProvider,
+)
+from skye.models.plugins.providers.openai import OpenAIEmbeddingProvider
 
 # The values the adapters held as constants before this change: a frozen copy, so that the move
 # cannot drift.
@@ -76,7 +79,7 @@ def test_a_plugin_profile_gives_its_own_embedding_model_a_dimension():
     registrar = Registrar()
     registrar.provider(
         "acme-embed",
-        "skye.models.plugins.openai:OpenAIEmbeddingProvider",
+        "skye.models.plugins.providers.openai:OpenAIEmbeddingProvider",
         profile=ProviderProfile(
             "acme-embed", models={"acme-1": ModelProfile(info={"vector_dimension": 64})}
         ),

@@ -12,8 +12,8 @@ pytest.importorskip("fastmcp", reason="fastmcp not installed (dev/test dependenc
 
 from skye.base.exceptions import ProviderError  # noqa: E402
 from skye.tools.exceptions import CapabilityExecutionError  # noqa: E402
-from skye.tools.engines.skyemcp import SkyeMCPClient  # noqa: E402
-from skye.tools.engines.fastmcp import FastMCPClient  # noqa: E402
+from skye.tools.plugins.engines.skyemcp import SkyeMCPClient  # noqa: E402
+from skye.tools.plugins.engines.fastmcp import FastMCPClient  # noqa: E402
 
 EPS = 1e-9
 
@@ -36,15 +36,23 @@ async def test_list_tools_same_schema_subset(clients):
 
 async def test_call_tool_structured_and_text(clients):
     b, f = clients
-    rb, rf = await b.call_tool("add", {"a": 1.5, "b": 2}), await f.call_tool("add", {"a": 1.5, "b": 2})
+    rb, rf = await b.call_tool("add", {"a": 1.5, "b": 2}), await f.call_tool(
+        "add", {"a": 1.5, "b": 2}
+    )
     assert rb.keys() == rf.keys() == {"result"}
     assert rb["result"] == pytest.approx(rf["result"], abs=EPS) == pytest.approx(3.5, abs=EPS)
-    assert await b.call_tool("echo", {"text": "hi"}) == await f.call_tool("echo", {"text": "hi"}) == "hi"
+    assert (
+        await b.call_tool("echo", {"text": "hi"})
+        == await f.call_tool("echo", {"text": "hi"})
+        == "hi"
+    )
 
 
 async def test_call_tool_timing_value_epsilon(clients):
     b, f = clients
-    assert (await b.call_tool("timing"))["elapsed"] == pytest.approx((await f.call_tool("timing"))["elapsed"], abs=EPS)
+    assert (await b.call_tool("timing"))["elapsed"] == pytest.approx(
+        (await f.call_tool("timing"))["elapsed"], abs=EPS
+    )
 
 
 async def test_tool_error_same_category(clients):
@@ -71,8 +79,12 @@ async def test_list_prompts_equivalent(clients):
 
 async def test_get_prompt_equivalent(clients):
     b, f = clients
-    mb, mf = await b.get_prompt("greet", {"who": "Ada"}), await f.get_prompt("greet", {"who": "Ada"})
-    assert [(type(m).__name__, m.content) for m in mb] == [(type(m).__name__, m.content) for m in mf]
+    mb, mf = await b.get_prompt("greet", {"who": "Ada"}), await f.get_prompt(
+        "greet", {"who": "Ada"}
+    )
+    assert [(type(m).__name__, m.content) for m in mb] == [
+        (type(m).__name__, m.content) for m in mf
+    ]
     assert mb[0].content == "Say hello to Ada"
 
 

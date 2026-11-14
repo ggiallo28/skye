@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import pytest
 
-from skye.models.plugins.anthropic import AnthropicProvider
-from skye.models.plugins.bedrock import BedrockProvider
+from skye.models.plugins.providers.anthropic import AnthropicProvider
+from skye.models.plugins.providers.bedrock import BedrockProvider
 
 # The rule the two adapters used to hold, kept here as the oracle: a substring match of four
 # fragments anywhere in the model id.
@@ -68,7 +68,7 @@ def test_the_bedrock_profile_gives_the_answer_of_the_old_substring_rule(bedrock,
 
 
 def test_the_four_refusing_models_are_exactly_the_ones_the_profiles_name():
-    from skye.models.plugins import profiles
+    from skye.models.plugins.providers import profiles
 
     for provider, prefix in (("anthropic", "claude-"), ("bedrock", "anthropic.claude-")):
         refusing = {
@@ -80,7 +80,7 @@ def test_the_four_refusing_models_are_exactly_the_ones_the_profiles_name():
 
 
 def test_the_adapters_hold_no_list_any_more():
-    from skye.models.plugins.bedrock import provider as bedrock_module
+    from skye.models.plugins.providers.bedrock import provider as bedrock_module
     from skye.models.utilities.anthropic_compatible import provider as compatible_module
 
     for module in (bedrock_module, compatible_module):

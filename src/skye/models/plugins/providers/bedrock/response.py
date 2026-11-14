@@ -15,7 +15,7 @@ from typing import Any
 
 from skye.base.completion import CompleteResponse, StreamChunk, TokenUsage
 from skye.models.cost import usage_of
-from skye.models.plugins.bedrock.capabilities import extract_capability_calls
+from skye.models.plugins.providers.bedrock.capabilities import extract_capability_calls
 from skye.models.utilities import rest
 from skye.models.utilities.structured import STRUCTURED_TOOL
 

@@ -13,7 +13,7 @@ from typing import Any
 
 from skye.base.completion import CompleteResponse, StreamChunk, TokenUsage
 from skye.models.cost import usage_of
-from skye.models.plugins.google.capabilities import (
+from skye.models.plugins.providers.google.capabilities import (
     extract_capability_calls as default_extract_capability_calls,
 )
 from skye.models.utilities.rest import JsonObject, wrap

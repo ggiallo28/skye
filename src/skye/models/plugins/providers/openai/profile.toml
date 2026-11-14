@@ -1,7 +1,7 @@
 name = "openai"
 api_key_variables = ["OPENAI_API_KEY"]
 default_api_base = "https://api.openai.com/v1"
-map_error = "skye.models.plugins.openai.errors:map_error"
+map_error = "skye.models.plugins.providers.openai.errors:map_error"
 
 [models."gpt-4-turbo"]
 prompt_price = 10.0

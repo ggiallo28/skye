@@ -15,7 +15,7 @@ import skye
 from skye.base.exceptions import CapabilityError, ValidationError
 from skye.base.messages import CapabilityStatus
 from skye.completion import CapabilityCall
-from skye.tools.plugins.files import FilesToolkit
+from skye.tools.plugins.toolkits.files import FilesToolkit
 
 
 @pytest.fixture
@@ -54,11 +54,14 @@ def test_the_toolkit_is_registered_as_files_and_built_by_name(tree: Path):
 
 def test_a_registrar_with_the_tools_door_gets_the_text_target():
     from skye.base.plugins import Registrar
-    from skye.tools import plugins
+    from skye.tools.plugins import toolkits as plugins
 
     registrar = Registrar()
     plugins.register(registrar)
-    assert registrar._tables["toolkit"]["files"].target == "skye.tools.plugins.files:FilesToolkit"
+    assert (
+        registrar._tables["toolkit"]["files"].target
+        == "skye.tools.plugins.toolkits.files:FilesToolkit"
+    )
 
 
 # -- the options
@@ -329,13 +332,14 @@ def test_importing_skye_tools_does_not_import_the_file_system_code():
     code = (
         "import sys\n"
         "import skye.tools\n"
-        "import skye.tools.plugins\n"
-        "assert 'skye.tools.plugins.files.toolkit' not in sys.modules, 'imported with skye.tools'\n"
+        "import skye.tools.plugins.toolkits\n"
+        "inner = 'skye.tools.plugins.toolkits.files.toolkit'\n"
+        "assert inner not in sys.modules, 'imported with skye.tools'\n"
         "from skye.base.plugins import get_registrar\n"
         "assert 'files' in get_registrar().names('toolkit')\n"
-        "assert 'skye.tools.plugins.files.toolkit' not in sys.modules, 'imported at registration'\n"
+        "assert inner not in sys.modules, 'imported at registration'\n"
         "get_registrar().get('toolkit', 'files')\n"
-        "assert 'skye.tools.plugins.files.toolkit' in sys.modules, 'not imported when asked for'\n"
+        "assert inner in sys.modules, 'not imported when asked for'\n"
     )
     done = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True)
     assert done.returncode == 0, done.stderr[-800:]

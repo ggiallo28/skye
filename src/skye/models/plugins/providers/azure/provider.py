@@ -6,7 +6,7 @@ federated token, managed identity, the ``az login`` cache), or nothing and let
 ``resolve_azure_auth`` pick one from the standard Azure variables.
 
 Example:
-    >>> from skye.models.plugins.azure.provider import AzureOpenAIProvider
+    >>> from skye.models.plugins.providers.azure.provider import AzureOpenAIProvider
     >>> provider = AzureOpenAIProvider(
     ...     azure_endpoint="https://myresource.openai.azure.com/", api_key="...",
     ...     api_version="2024-10-21", deployment_name="gpt-4o",

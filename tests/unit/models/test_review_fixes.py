@@ -39,10 +39,10 @@ from skye.base.exceptions import (
 from skye.base.interfaces.capability import CapabilitySchema
 from skye.base.messages import UserMessage
 from skye.base.prompt_parts import OutputSchema
-from skye.models.plugins.anthropic.provider import AnthropicProvider
-from skye.models.plugins.azure.provider import AzureOpenAIProvider
-from skye.models.plugins.bedrock.provider import BedrockProvider
-from skye.models.plugins.openai.provider import OpenAIProvider
+from skye.models.plugins.providers.anthropic.provider import AnthropicProvider
+from skye.models.plugins.providers.azure.provider import AzureOpenAIProvider
+from skye.models.plugins.providers.bedrock.provider import BedrockProvider
+from skye.models.plugins.providers.openai.provider import OpenAIProvider
 from skye.models.utilities.error_mapping import ErrorHandler
 from skye.models.utilities.structured import parse_structured
 
@@ -593,8 +593,8 @@ def test_a_conforming_output_schema_reply_is_returned() -> None:
 def test_the_key_variables_are_the_ones_of_the_profiles(monkeypatch) -> None:
     """The adapters keep no variable name (task 6.3): they read ``api_key_variables`` of their profile (D18)."""
     from skye.base.api_keys import api_key_variables
-    from skye.models.plugins.cohere.embeddings import CohereEmbeddingProvider
-    from skye.models.plugins.openai.embeddings import OpenAIEmbeddingProvider
+    from skye.models.plugins.providers.cohere.embeddings import CohereEmbeddingProvider
+    from skye.models.plugins.providers.openai.embeddings import OpenAIEmbeddingProvider
 
     assert api_key_variables("openai") == ("OPENAI_API_KEY",)
     assert api_key_variables("anthropic") == ("ANTHROPIC_API_KEY",)

@@ -14,8 +14,8 @@ from skye.base.completion import TokenUsage
 from skye.base.exceptions import ConfigurationError
 from skye.base.plugins import Registrar, get_registrar
 from skye.base.profile import ProviderProfile
-from skye.models import plugins as _plugin
 from skye.models.cost import CostCalculator
+from skye.models.plugins import providers as _plugin
 
 
 @pytest.fixture

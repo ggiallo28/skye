@@ -4,7 +4,7 @@ The wire format is shared with every compatible endpoint (the package ``openai_c
 module holds only what is specific to OpenAI.
 
 Example:
-    >>> from skye.models.plugins.openai.provider import OpenAIProvider
+    >>> from skye.models.plugins.providers.openai.provider import OpenAIProvider
     >>> provider = OpenAIProvider(api_key="sk-...")  # or set OPENAI_API_KEY and pass nothing
     >>> response = provider.complete(request)  # doctest: +SKIP
 """

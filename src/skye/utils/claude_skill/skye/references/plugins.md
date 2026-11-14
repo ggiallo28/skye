@@ -52,7 +52,7 @@ plugins.provider(
 client = skye.provider("acme")  # the key is read from ACME_API_KEY
 ```
 
-Built-in profiles are `profile.toml` files in `models/plugins/<provider>/`. To change one that exists, merge instead of replacing it:
+Built-in profiles are `profile.toml` files in `models/plugins/providers/<provider>/`. To change one that exists, merge instead of replacing it:
 `plugins.profile("openai", models={"gpt-4o-mini": {"prompt_price": 0.2}})` changes only the fields given.
 
 ## Write the async form only

@@ -11,7 +11,7 @@ Features:
 - Multimodal inputs (images)
 
 Example:
-    >>> from skye.models.plugins.bedrock.provider import BedrockProvider
+    >>> from skye.models.plugins.providers.bedrock.provider import BedrockProvider
     >>> from skye.base.completion import CompleteRequest
     >>> from skye.base.messages import UserMessage
     >>>
@@ -32,9 +32,9 @@ from typing import Any
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.interfaces.authentication import AuthenticationInterface
 from skye.models.base import BaseModelProvider
-from skye.models.plugins.bedrock import capabilities as _capabilities
-from skye.models.plugins.bedrock import request as _request
-from skye.models.plugins.bedrock import response as _response
+from skye.models.plugins.providers.bedrock import capabilities as _capabilities
+from skye.models.plugins.providers.bedrock import request as _request
+from skye.models.plugins.providers.bedrock import response as _response
 from skye.models.utilities import rest
 from skye.models.utilities.blocking import aiterate_blocking
 from skye.models.utilities.credentials import resolve_aws_region

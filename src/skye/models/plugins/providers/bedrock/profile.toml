@@ -1,5 +1,5 @@
 name = "bedrock"
-map_error = "skye.models.plugins.bedrock.errors:map_error"
+map_error = "skye.models.plugins.providers.bedrock.errors:map_error"
 
 [region]
 variables = ["AWS_REGION", "AWS_DEFAULT_REGION"]

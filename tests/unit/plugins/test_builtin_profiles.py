@@ -9,8 +9,8 @@ import pytest
 
 from skye.base.plugins import Registrar
 from skye.base.profile import ModelProfile, ProviderProfile, find_model_profile
-from skye.models import plugins as _plugin
 from skye.models.cost import CostCalculator
+from skye.models.plugins import providers as _plugin
 
 # The list prices of November 2024 that ``CostCalculator.PRICING`` held before plugins:6.1, kept
 # here as a frozen copy: the profiles must
@@ -240,8 +240,8 @@ def test_the_credential_sources_of_azure_and_google_name_the_variable_their_prof
 def test_each_provider_class_reads_the_variable_its_profile_names(monkeypatch):
     """The adapters keep no variable name: an OpenAI or Anthropic provider reads the first variable
     of its profile."""
-    from skye.models.plugins.anthropic.provider import AnthropicProvider
-    from skye.models.plugins.openai.provider import OpenAIProvider
+    from skye.models.plugins.providers.anthropic.provider import AnthropicProvider
+    from skye.models.plugins.providers.openai.provider import OpenAIProvider
 
     assert not hasattr(OpenAIProvider, "api_key_env_var")
     assert not hasattr(AnthropicProvider, "api_key_env_var")
@@ -252,8 +252,8 @@ def test_each_provider_class_reads_the_variable_its_profile_names(monkeypatch):
 
 
 def test_default_endpoints_equal_the_adapters():
-    from skye.models.plugins.anthropic.provider import AnthropicProvider
-    from skye.models.plugins.openai.provider import OpenAIProvider
+    from skye.models.plugins.providers.anthropic.provider import AnthropicProvider
+    from skye.models.plugins.providers.openai.provider import OpenAIProvider
 
     assert _plugin.PROFILES["openai"].default_api_base == OpenAIProvider.default_api_base
     assert _plugin.PROFILES["anthropic"].default_api_base == AnthropicProvider.default_api_base

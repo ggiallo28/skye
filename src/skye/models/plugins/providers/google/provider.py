@@ -16,7 +16,7 @@ Features:
 - Multimodal inputs (images, video)
 
 Example:
-    >>> from skye.models.plugins.google.provider import GoogleProvider
+    >>> from skye.models.plugins.providers.google.provider import GoogleProvider
     >>> from skye.base.completion import CompleteRequest
     >>> from skye.base.messages import UserMessage
     >>>
@@ -40,8 +40,8 @@ from skye.auth.plugins.google import resolve_google_auth
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.interfaces.authentication import AuthenticationInterface
 from skye.models.base import BaseModelProvider
-from skye.models.plugins.google import capabilities, request, response
-from skye.models.plugins.google.capabilities import (
+from skye.models.plugins.providers.google import capabilities, request, response
+from skye.models.plugins.providers.google.capabilities import (
     as_args as _as_args,  # noqa: F401  (kept importable from here)
 )
 from skye.models.utilities import rest
@@ -135,12 +135,12 @@ class GoogleProvider(BaseModelProvider):
 
     def _transform_messages(self, messages: list[Any]) -> list[dict[str, Any]]:
         """Transform Skye messages to Google (Gemini) format (see
-        :func:`skye.models.plugins.google.request.transform_messages`)."""
+        :func:`skye.models.plugins.providers.google.request.transform_messages`)."""
         return request.transform_messages(messages)
 
     def _transform_capabilities(self, capabilities_: list[Any]) -> list[dict[str, Any]]:
         """Transform Skye capabilities to Google Gemini format (see
-        :func:`skye.models.plugins.google.capabilities.transform_capabilities`)."""
+        :func:`skye.models.plugins.providers.google.capabilities.transform_capabilities`)."""
         return capabilities.transform_capabilities(capabilities_)
 
     def _extract_capability_calls(self, response_: Any) -> list[Any] | None:
@@ -150,7 +150,7 @@ class GoogleProvider(BaseModelProvider):
 
     def _transform_request(self, request_: CompleteRequest) -> dict[str, Any]:
         """Transform CompleteRequest to the Vertex AI REST body (see
-        :func:`skye.models.plugins.google.request.transform_request`).
+        :func:`skye.models.plugins.providers.google.request.transform_request`).
 
         The returned dict carries ``model`` (consumed by ``_acall_provider``, not sent).
         ``_transform_messages`` and ``_transform_capabilities`` of this
@@ -170,7 +170,7 @@ class GoogleProvider(BaseModelProvider):
 
     def _transform_response(self, response_: Any) -> CompleteResponse:
         """Transform a ``generateContent`` JSON response to CompleteResponse (see
-        :func:`skye.models.plugins.google.response.transform_response`)."""
+        :func:`skye.models.plugins.providers.google.response.transform_response`)."""
         return response.transform_response(response_, self._extract_capability_calls)
 
     def _transform_stream_chunk(self, chunk: Any) -> StreamChunk:
@@ -201,7 +201,7 @@ class GoogleProvider(BaseModelProvider):
 
     def format_capability_results(self, results: list[Any]) -> list[dict[str, Any]]:
         """Format capability results as Google ``functionResponse`` entries (see
-        :func:`skye.models.plugins.google.capabilities.format_capability_results`)."""
+        :func:`skye.models.plugins.providers.google.capabilities.format_capability_results`)."""
         return capabilities.format_capability_results(results)
 
     def get_model_info(self) -> dict[str, Any]:

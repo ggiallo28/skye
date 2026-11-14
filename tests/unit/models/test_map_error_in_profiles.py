@@ -30,14 +30,14 @@ class Slow(Exception):
 def test_a_built_in_profile_names_the_errors_file_of_its_folder(provider):
     with restored_default_registrar() as registrar:
         text = registrar.get_profile(provider).map_error
-    assert text == f"skye.models.plugins.{provider}.errors:map_error"
+    assert text == f"skye.models.plugins.providers.{provider}.errors:map_error"
 
 
 @pytest.mark.parametrize("provider", BUILT_IN)
 def test_the_old_handler_names_are_the_map_error_of_the_provider(provider):
     old = getattr(ErrorHandler, f"handle_{provider}_error")
     assert old is error_mapping.profile_handler(provider)
-    assert old.__module__ == f"skye.models.plugins.{provider}.errors"
+    assert old.__module__ == f"skye.models.plugins.providers.{provider}.errors"
 
 
 def test_a_provider_with_no_handler_has_no_old_handler_name():
@@ -97,7 +97,7 @@ def test_a_plugin_gives_its_map_error_as_a_text():
             "acme-text",
             OpenAICompatibleProvider,
             profile=ProviderProfile(
-                "acme-text", map_error="skye.models.plugins.openai.errors:map_error"
+                "acme-text", map_error="skye.models.plugins.providers.openai.errors:map_error"
             ),
         )
         wrapped = ErrorHandler.wrap_provider_error(Slow("x"), "acme-text")
@@ -119,12 +119,12 @@ def test_the_errors_files_are_imported_at_the_first_error_and_not_before():
         "registrar = get_registrar()\n"
         "assert registrar.get_profile('openai').map_error\n"
         "OpenAICompatibleProvider(model='gpt-4o-mini', api_key='k', provider_name='openai')\n"
-        "late = [m for m in sys.modules if m.endswith('.errors') and m.startswith('skye.models.plugins')]\n"
+        "late = [m for m in sys.modules if m.endswith('.errors') and m.startswith('skye.models.plugins.providers')]\n"
         "assert not late, late\n"
         "from skye.models.utilities.error_mapping import ErrorHandler\n"
         "ErrorHandler.wrap_provider_error(ValueError('x'), 'openai')\n"
-        "assert 'skye.models.plugins.openai.errors' in sys.modules\n"
-        "assert 'skye.models.plugins.google.errors' not in sys.modules\n"
+        "assert 'skye.models.plugins.providers.openai.errors' in sys.modules\n"
+        "assert 'skye.models.plugins.providers.google.errors' not in sys.modules\n"
     )
     done = subprocess.run(
         [sys.executable, "-I", "-c", code],
@@ -136,7 +136,7 @@ def test_the_errors_files_are_imported_at_the_first_error_and_not_before():
 
 
 def test_gemini_schema_lives_in_the_google_folder():
-    from skye.models.plugins.google import schema
+    from skye.models.plugins.providers.google import schema
     from skye.models.utilities import structured
 
     assert hasattr(schema, "gemini_schema")

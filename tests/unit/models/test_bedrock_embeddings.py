@@ -14,7 +14,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from skye.models.plugins.bedrock.embeddings import BedrockEmbeddingProvider
+from skye.models.plugins.providers.bedrock.embeddings import BedrockEmbeddingProvider
 from skye.models.utilities import rest
 
 
@@ -47,7 +47,7 @@ class TestBedrockEmbeddingProviderInitialization:
         assert "boto3" not in sys.modules
 
     def test_source_has_no_boto3_import(self) -> None:
-        import skye.models.plugins.bedrock.embeddings as mod
+        import skye.models.plugins.providers.bedrock.embeddings as mod
 
         text = Path(mod.__file__).read_text()
         assert "import boto3" not in text and "LazyImporter" not in text

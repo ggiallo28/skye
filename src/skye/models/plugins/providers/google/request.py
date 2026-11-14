@@ -12,13 +12,13 @@ from collections.abc import Callable
 from typing import Any
 
 from skye.base.completion import CompleteRequest
-from skye.models.plugins.google.capabilities import (
+from skye.models.plugins.providers.google.capabilities import (
     as_args,
 )
-from skye.models.plugins.google.capabilities import (
+from skye.models.plugins.providers.google.capabilities import (
     transform_capabilities as default_transform_capabilities,
 )
-from skye.models.plugins.google.schema import gemini_schema
+from skye.models.plugins.providers.google.schema import gemini_schema
 from skye.models.utilities.structured import schema_instruction, schema_of
 
 

@@ -2,7 +2,7 @@
 
 Deterministic, offline, static: parses the source of `base`, `router` and `tools` (the router, the tools and the completion models)
 and fails when it finds something that belongs to one provider: its host name, a key of its wire format, one of its adapter classes or
-a module of `models/plugins`. The adapters of `models` must not import each other either: adding a provider changes nothing outside its
+a module of `models/plugins/providers`. The adapters of `models` must not import each other either: adding a provider changes nothing outside its
 own folder (D110). This replaces the old script `scripts/validate_provider_architecture.py`, which no one ran.
 """
 
@@ -26,22 +26,22 @@ WIRE_KEYS = {
 PROVIDER_CLASSES = ("openaiprovider", "anthropicprovider", "bedrockprovider", "googleprovider", "azureopenaiprovider", "cohereprovider")
 ALLOWED_WIRE_KEYS = {"base/openai_shape.py": {"tool_calls", "function_call"}}
 
-# Adapter modules of `models`: the folders of `models/plugins` (one per provider, D110) and the two wire-format bases of `models/utilities`. An adapter may use
+# Adapter modules of `models`: the folders of `models/plugins/providers` (one per provider, D110) and the two wire-format bases of `models/utilities`. An adapter may use
 # the modules of its own provider family (Google embeddings reuse the Google adapter, Azure builds on the OpenAI-compatible base) and nothing of another
-# provider. The vendor `__init__.py` files are part of their folder; `models/plugins/__init__.py` belongs to no provider.
-ADAPTER_DIRS = ("models/plugins", "models/utilities/openai_compatible", "models/utilities/anthropic_compatible")
+# provider. The vendor `__init__.py` files are part of their folder; `models/plugins/providers/__init__.py` belongs to no provider.
+ADAPTER_DIRS = ("models/plugins/providers", "models/utilities/openai_compatible", "models/utilities/anthropic_compatible")
 FAMILY_OF_FOLDER = {
     "openai": "openai", "azure": "openai", "anthropic": "anthropic", "bedrock": "bedrock", "google": "google", "cohere": "cohere", "typesafe": "typesafe",
 }
 FAMILY_OF_BASE = {"openai_compatible": "openai", "anthropic_compatible": "anthropic"}
-ADAPTER_IMPORT_PREFIXES = ("skye.models.plugins", "skye.models.utilities.openai_compatible", "skye.models.utilities.anthropic_compatible")
+ADAPTER_IMPORT_PREFIXES = ("skye.models.plugins.providers", "skye.models.utilities.openai_compatible", "skye.models.utilities.anthropic_compatible")
 
 
 def family_of_module(module: str) -> str | None:
     """The provider family of a dotted module path of `models`, or `None` when it belongs to no provider."""
     parts = module.split(".")
-    if module.startswith("skye.models.plugins.") and len(parts) > 3:
-        return FAMILY_OF_FOLDER.get(parts[3])
+    if module.startswith("skye.models.plugins.providers.") and len(parts) > 4:
+        return FAMILY_OF_FOLDER.get(parts[4])
     if module.startswith("skye.models.utilities.") and len(parts) > 3:
         return FAMILY_OF_BASE.get(parts[3])
     return None
@@ -50,8 +50,8 @@ def family_of_module(module: str) -> str | None:
 def family_of_path(rel: str) -> str | None:
     """The provider family of a source file given its path below `skye`."""
     parts = Path(rel).parts
-    if parts[:2] == ("models", "plugins") and len(parts) > 3:
-        return FAMILY_OF_FOLDER.get(parts[2])
+    if parts[:3] == ("models", "plugins", "providers") and len(parts) > 4:
+        return FAMILY_OF_FOLDER.get(parts[3])
     if parts[:2] == ("models", "utilities") and len(parts) > 3:
         return FAMILY_OF_BASE.get(parts[2])
     return None
@@ -123,7 +123,7 @@ def test_the_adapters_do_not_import_each_other():
     bad = []
     for path, rel in _sources(ADAPTER_DIRS):
         own = family_of_path(rel)
-        if own is None:  # models/plugins/__init__.py belongs to no provider
+        if own is None:  # models/plugins/providers/__init__.py belongs to no provider
             continue
         for module in adapter_cross_imports(path.read_text(encoding="utf-8"), own):
             bad.append(f"{rel} imports {module}")
@@ -134,7 +134,7 @@ def test_the_detector_finds_what_it_must():
     """It reports each kind of provider-specific content, and accepts the allowed OpenAI data shape."""
     assert core_violations("URL = 'https://api.openai.com/v1'", "router/x.py")
     assert core_violations("body = {'stop_reason': 'end_turn'}", "router/x.py")
-    assert core_violations("from skye.models.plugins.openai.provider import OpenAIProvider", "router/x.py")
+    assert core_violations("from skye.models.plugins.providers.openai.provider import OpenAIProvider", "router/x.py")
     assert core_violations("x = BedrockProvider()", "tools/x.py")
     assert not core_violations("x = {'role': 'user'}", "router/x.py")
     assert not core_violations("call = {'tool_calls': []}", "base/openai_shape.py")
@@ -142,6 +142,6 @@ def test_the_detector_finds_what_it_must():
 
 
 def test_the_adapter_check_finds_a_cross_import():
-    assert adapter_cross_imports("from skye.models.plugins.anthropic.provider import AnthropicProvider", "bedrock")
+    assert adapter_cross_imports("from skye.models.plugins.providers.anthropic.provider import AnthropicProvider", "bedrock")
     assert not adapter_cross_imports("from skye.models.base import BaseModelProvider", "bedrock")
-    assert not adapter_cross_imports("from skye.models.plugins.google.provider import GoogleProvider", "google")
+    assert not adapter_cross_imports("from skye.models.plugins.providers.google.provider import GoogleProvider", "google")

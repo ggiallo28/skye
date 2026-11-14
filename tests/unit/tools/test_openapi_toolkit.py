@@ -16,7 +16,7 @@ from skye.base import http
 from skye.base.exceptions import ProviderError, ValidationError
 from skye.base.messages import CapabilityStatus
 from skye.completion import CapabilityCall
-from skye.tools.plugins.openapi import OpenApiToolkit
+from skye.tools.plugins.toolkits.openapi import OpenApiToolkit
 
 DOC: dict[str, Any] = {
     "openapi": "3.0.0",
@@ -115,13 +115,13 @@ def test_the_toolkit_is_registered_as_openapi_and_built_by_name():
 
 def test_a_registrar_with_the_tools_door_gets_the_text_target():
     from skye.base.plugins import Registrar
-    from skye.tools import plugins
+    from skye.tools.plugins import toolkits as plugins
 
     registrar = Registrar()
     plugins.register(registrar)
     assert (
         registrar._tables["toolkit"]["openapi"].target
-        == "skye.tools.plugins.openapi:OpenApiToolkit"
+        == "skye.tools.plugins.toolkits.openapi:OpenApiToolkit"
     )
 
 
@@ -332,7 +332,7 @@ async def test_the_alias_is_the_prefix():
 
 def test_importing_skye_tools_does_not_import_the_openapi_module():
     code = (
-        "import sys, skye, skye.tools; assert 'skye.tools.plugins.openapi.toolkit' not in "
+        "import sys, skye, skye.tools; assert 'skye.tools.plugins.toolkits.openapi.toolkit' not in "
         "sys.modules"
     )
     done = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True)

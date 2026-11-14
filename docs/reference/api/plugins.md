@@ -34,7 +34,7 @@ Each `check_<kind>` runs offline against fakes and returns the names of the chec
 that failed. The built-in registrations pass the same functions in the test suite.
 
 What ships with Skye is registered the same way: the providers, the backends, the credential sources, the routing strategies, the two
-MCP clients (`skyemcp`, the default, and `fastmcp`, in `skye.tools.engines`), one tokenizer, the agent `react` and four toolkits (`files`,
+MCP clients (`skyemcp`, the default, and `fastmcp`, in `skye.tools.plugins.engines`), one tokenizer, the agent `react` and four toolkits (`files`,
 `openapi`, `human`, `shell`). `skye plugins` on the command line lists everything registered, and the plugins installed as packages with
 the entry point group `skye.plugins` (which `plugins` in the [configuration file](../configuration-keys.md#which-plugins-load) can limit).
 

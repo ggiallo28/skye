@@ -1,4 +1,5 @@
-"""The layout of ``models/plugins`` (D110, Requirements 56.9 and 56.10): one folder per provider,
+"""The layout of ``models/plugins/providers`` (D110, D123, Requirements 56.9 and 56.10): one folder
+per provider,
 one door, the same file names."""
 
 from __future__ import annotations
@@ -11,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from skye.base.plugins import Registrar
-from skye.models import plugins
+from skye.models.plugins import providers as plugins
 
 ROOT = Path(plugins.__file__).parent
 FOLDERS = list(plugins.IMPLEMENTATIONS)
@@ -32,9 +33,28 @@ ALLOWED_FILES = {
 }
 
 
+#: The clouds are placeholders of open decision O86: a docstring and no code, until it is taken.
+CLOUDS_ROOT = ROOT.parent / "clouds"
+CLOUDS = ["aws", "azure", "gcp"]
+
+
 def test_the_folders_on_disk_are_the_implementations():
-    on_disk = sorted(p.name for p in ROOT.iterdir() if p.is_dir() and p.name != "__pycache__")
-    assert on_disk == sorted(FOLDERS)
+    def on_disk(root):
+        return sorted(p.name for p in root.iterdir() if p.is_dir() and p.name != "__pycache__")
+
+    assert on_disk(ROOT) == sorted(FOLDERS)
+    assert on_disk(ROOT.parent) == ["clouds", "providers"]
+    assert on_disk(CLOUDS_ROOT) == CLOUDS
+
+
+@pytest.mark.parametrize("package", ["clouds", *(f"clouds.{name}" for name in CLOUDS)])
+def test_a_cloud_placeholder_holds_a_docstring_and_no_code(package):
+    folder = ROOT.parent.joinpath(*package.split("."))
+    assert [p.name for p in folder.iterdir() if p.is_file()] == ["__init__.py"]
+    module = importlib.import_module(f"skye.models.plugins.{package}")
+    assert module.__doc__
+    names = [name for name in vars(module) if not name.startswith("__")]
+    assert [name for name in names if name not in CLOUDS] == []  # a sub-package once imported
 
 
 @pytest.mark.parametrize("folder", FOLDERS)
@@ -46,7 +66,7 @@ def test_a_folder_has_its_door_and_only_the_uniform_file_names(folder):
 
 @pytest.mark.parametrize("folder", FOLDERS)
 def test_every_lazy_name_resolves(folder):
-    package = importlib.import_module(f"skye.models.plugins.{folder}")
+    package = importlib.import_module(f"skye.models.plugins.providers.{folder}")
     for name in package._LAZY:
         assert getattr(package, name) is not None, name
     with pytest.raises(AttributeError):
@@ -57,7 +77,7 @@ def test_every_lazy_name_resolves(folder):
 def test_every_inner_file_is_offered_by_the_door(folder):
     """Every file a door names exists, and the folder has no other code file than the uniform names
     (the helpers are not offered by the door)."""
-    package = importlib.import_module(f"skye.models.plugins.{folder}")
+    package = importlib.import_module(f"skye.models.plugins.providers.{folder}")
     inner = {p.stem for p in (ROOT / folder).glob("*.py") if p.name != "__init__.py"}
     assert set(package._LAZY.values()) <= inner
 
@@ -89,7 +109,7 @@ def test_a_text_points_at_the_door_and_never_at_an_inner_file():
         for name in registrar.names("provider", function):
             text = registrar._tables["provider"][(name, function)].target
             module = text.partition(":")[0]
-            assert module.count(".") == 3 and module.startswith("skye.models.plugins."), (
+            assert module.count(".") == 4 and module.startswith("skye.models.plugins.providers."), (
                 function,
                 name,
                 text,
@@ -103,15 +123,16 @@ def test_importing_a_folder_imports_no_inner_file(folder):
     ``skye.models`` itself imports the public classes when it is imported, so the subprocess stands
     an empty package in its place: that isolates the door.
     """
-    models_dir = ROOT.parent
+    models_dir = ROOT.parents[1]
     code = (
         "import sys, types\n"
         "import skye\n"
         "stub = types.ModuleType('skye.models')\n"
         f"stub.__path__ = [{str(models_dir)!r}]\n"
         "sys.modules['skye.models'] = stub\n"
-        f"import skye.models.plugins.{folder}\n"
-        f"inner = [m for m in sys.modules if m.startswith('skye.models.plugins.{folder}.')]\n"
+        f"import skye.models.plugins.providers.{folder}\n"
+        f"prefix = 'skye.models.plugins.providers.{folder}.'\n"
+        "inner = [m for m in sys.modules if m.startswith(prefix)]\n"
         "assert not inner, inner\n"
         "assert not {'openai', 'anthropic', 'boto3', 'tiktoken'} & set(sys.modules), "
         "'a vendor library was imported'\n"
@@ -120,7 +141,7 @@ def test_importing_a_folder_imports_no_inner_file(folder):
         [sys.executable, "-I", "-c", code],
         capture_output=True,
         text=True,
-        env={"PYTHONPATH": str(ROOT.parents[2])},
+        env={"PYTHONPATH": str(ROOT.parents[3])},
     )
     assert done.returncode == 0, done.stderr[-800:]
 
@@ -147,14 +168,14 @@ def test_a_missing_profile_file_is_a_configuration_error_naming_the_file():
     from skye.models.utilities.vendor import read_profile
 
     with pytest.raises(ConfigurationError) as caught:
-        read_profile("skye.models.plugins.openai", "no_such_profile.toml")
+        read_profile("skye.models.plugins.providers.openai", "no_such_profile.toml")
     assert "no_such_profile.toml" in str(caught.value)
 
 
 # -- models/utilities: what a plugin is written with (D110)
 # -----------------------------------------------------------
 
-UTILITIES = ROOT.parent / "utilities"
+UTILITIES = ROOT.parents[1] / "utilities"
 
 
 def test_the_utilities_are_plain_files_and_the_two_wire_format_providers():

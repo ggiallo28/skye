@@ -19,7 +19,7 @@ from skye.base.validated import Validated, validated
 from skye.base.completion import CompleteRequest, CompleteResponse, StreamChunk
 from skye.base.exceptions import ProviderError
 from skye.base.messages import SystemMessage, UserMessage
-from skye.models.plugins.openai.provider import OpenAIProvider
+from skye.models.plugins.providers.openai.provider import OpenAIProvider
 from skye.models.utilities.rest import JsonObject
 
 POST = "skye.models.utilities.rest.post_json"
