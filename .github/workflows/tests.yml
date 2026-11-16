@@ -24,7 +24,7 @@ jobs:
       matrix:
         python: ["3.11", "3.13"]  # the oldest supported Python (requires-python >=3.11, D49) and the newest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
