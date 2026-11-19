@@ -1,0 +1,38 @@
+name: Feature request
+description: Suggest a change or an addition to Skye.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. For open questions and early ideas, please use [Discussions](https://github.com/ggiallo28/skye/discussions).
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and what gets in your way today?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: What you would like
+      description: How you imagine it working. A short code sketch of the call you would like to write helps.
+  - type: dropdown
+    id: dependency
+    attributes:
+      label: Does it need a new dependency?
+      description: Skye is built for serverless, where the size of the library and its cold start matter. See "Dependencies and size" in CONTRIBUTING.md.
+      options:
+        - No, standard library only
+        - Only a library already in AWS Lambda
+        - A pure-Python package
+        - I do not know
+    validations:
+      required: true
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I would like to work on this myself
